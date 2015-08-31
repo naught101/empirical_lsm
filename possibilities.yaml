@@ -1,43 +1,52 @@
 ---
-bounds:
-    dimensions:
-        x: longitude
-        y: latitude
-        z: 
+dimensions:
+    x: longitude
+    y: latitude
+    z:
+        bounds:
             - canopy
             - bedrock # / static aquifer kind of thing
-        time:
-            - of year
-            - of day
+    time:
+        - of year
+        - of day
 
 inputs:
     initial conditions:
-        - outputs
+        - outputs from previous timesteps
         - states
     boundary conditions:
-        - met forcings:
-            - radiation:
+        met forcings:
+            radiation:
                 - shortwave
                 - longwave
-            - water:
-                - precipitation:
+            water:
+                precipitation:
                     - rain
                     - mist
                     - snow
                     - hail
                 - humidity
                 - soil boundary wetness
-            - temperature:
+            temperature:
                 - air
                 - x/y boundaries
                 - bedrock/soil bottom
-            - carbon:
-                CO2 concentration
-            - physical:
+            carbon:
+                - CO2 concentration
+            physical:
                 - air pressure
-                - wind:
+                wind:
                     - speed
                     - direction
+        vegetation:
+            # In a dynamic vegetation model, most of these are outputs too.
+            - Leaf area index - phenology
+            - greenness # is this just a proxy for LAI?
+            - Vegetation height  # relevant especially for grasslands, crops
+            - root fraction
+            - root depth
+            - interception
+
     site metadata:
         # mostly time-invariant
         # a lot of these parameters are actually summary values of distributions
@@ -45,29 +54,38 @@ inputs:
         - reference height # Fluxnet
         - latitude
         - longitude
-        - vegetation parameters: 
+        - albedo
+        vegetation data:
             # time varying for dynamic vegetation models
-            - Leaf area index
-                # time variant: phenology
-            - plant type:
+            plant type:
                 - C4
                 - C3
                 - CAM
             - Wood volume/area
             - storage capacities
-                # probably not measurable - empirical, calculable
-            - vegetation height
-        - soil data:
+                # probably not measurable. Empirically calculable.
+            - canopy height
+            - leaf shape/size parameters
+        soil data:
+            - density
             - porosity
             - absorbtivity
+              # Are porosity/absorbtivity/sat cap. basically all the same thing? Is there other relevance?
             - saturation capacity
+            - field capacity
             - wilting point
                 # why is this usually a soil parameter? How much is it dependent on soil capacity?
                 # Is it just a function of plant type and soil drainage?
             - hydraulic conductivity
                 # in different dimensions
+            - heat capacity
+            - chemistry
+            # Composition
+            - Silt fraction
+            - Clay fraction
+            - Sand fraction
 
-    - model parameters # model layout dependent
+    - model parameters # model structure dependent
 
 input transformations:
     - lag
@@ -75,21 +93,21 @@ input transformations:
     - derivatives over window
 
 states:
-    - energy:
+    energy:
         - soil storage
         - vegetation storage
         - within canopy air storage
         - latent storage in ice # (assume water is a base state? I don't know how this works)
-    - water:
+    water:
         - soil storage
         - vegetation storage
         - on-canopy storage
         - within-canopy air storage
-    - carbon:
+    carbon:
         - soil carbon
         - vegetation
         - air within canopy # assume == atmosphere CO2
-    - nutrients:
+    nutrients:
         - soil
         - vegetation
         - air   # nitrogen, etc. probably negligible
@@ -101,82 +119,16 @@ ouputs:
     - GPP
     - Qg
     - Rnet
+    - SWup
+    - LWup
+    - Runoff
+    - Soil Moisture
 
 processes:
+    # Haven't filled this out yet, because it isn't relevant for an empirical model
     - structures
     - relationships
     - orders
     - resolutions
+
 ---
-
-# ripped/expanded from CABLE
-# most of these are process dependent
-- soil parameters:
-    - Silt fraction
-    - Clay fraction
-    - Sand fraction
-    - swilt
-    - sfc
-    - ssat
-    - bch
-    - hyds
-    - sucs
-    - new rhosoil values
-    - css
-    - rhosoil (changed, YP nov 2007)
-- vegetation parameters:
-    - canopy height  # (m)  - distribution
-    - leaf angle  # distribution
-    - leaf width  # (m)
-    - leaf length  # (m)
-    - C4 fraction
-    - rholeaf:
-        - visual
-        - near infrared
-        - thermal
-    - rhowood:
-        - visual
-        - near infrared
-        - thermal
-    - tauleaf:
-        - visual
-        - near infrared
-        - thermal
-    - tauwood:
-        - visual
-        - near infrared
-        - thermal
-    - rhosoil:
-        - visual
-        - near infrared
-        - thermal
-    - xalbnir
-    - LAI:
-      - max  # (m2/m2)
-    - Wood area index  # (m2/m2)
-    - canopy storage capacity:
-        - energy
-        - carbon
-        - water 
-    - shelrb
-    - vegcf
-    - extkn
-    - vcmax  # (mol/m2/s)
-    - rp20
-    - rpcoeff  # (/oC)
-    - rs20
-    - tvjmin  # (oC)
-    - tvjmax  # (oC)
-    - vbeta
-    - betaroot
-    - pool: leaf
-    - wood
-    - root
-    - soilfast
-    - soilslow   # (gC/m2)
-    - rate: leaf
-    - wood
-    - root
-    - soilfast
-    - soilslow   # (/year)
-
