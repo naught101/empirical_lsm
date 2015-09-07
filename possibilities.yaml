@@ -91,6 +91,10 @@ input transformations:
     - lag
     - mean over window
     - derivatives over window
+    - normalisation (scaling/shifting)
+    - dimensionality reduction
+    - dimensionality production (e.g. support vector machines)
+    - log/exp/power transforms
 
 states:
     energy:
@@ -124,7 +128,20 @@ ouputs:
     - Runoff
     - Soil Moisture
 
-processes:
+models: # empirical
+    # I think model selection can basically be boiled down to selecting a model structure, and selecting a fitting process (e.g. linear regression via OLS, or bayesian estimation)
+    - Linear regression
+        - Polynomial regression
+    - Cluster + piecewise regression
+      # some calibration for optimal cluster size?
+      # Or binning + any other model type, really
+    - Support vector machines
+    - Neural networks - multilayer perceptron
+      # Requires calibration
+    - Decision trees/forests
+      # volatile
+
+processes: # physical
     # Haven't filled this out yet, because it isn't relevant for an empirical model
     - structures
     - relationships
