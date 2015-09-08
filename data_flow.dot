@@ -1,0 +1,48 @@
+digraph data_flow {
+    plots -> summary_data;
+    plots -> metrics [style=dashed];
+    metrics -> obs_flux_test;
+    metrics -> model_predictions;
+    model_predictions -> fitted_model;
+    model_predictions -> obs_met_test;
+    fitted_model -> model;
+    model -> structure;
+    model -> parameters;
+    parameters -> site_data;
+    parameters -> literature;
+    fitted_model -> obs_flux_train;
+    fitted_model -> obs_met_train;
+    obs_flux_test -> tt_selection;
+    obs_met_test -> tt_selection;
+    obs_flux_train -> tt_selection;
+    obs_met_train -> tt_selection;
+    obs_flux_test -> obs_flux_data;
+    obs_met_test -> obs_met_data;
+    obs_flux_train -> obs_flux_data;
+    obs_met_train -> obs_met_data;
+    summary_data -> model_predictions;
+    site_data -> gridded_data;
+
+    CACHE -> model_predictions
+    CACHE -> fitted_model
+    CACHE -> metrics
+
+    fitted_model [label="fitted model"];
+    gridded_data [label="gridded data"];
+    literature;
+    metrics;
+    model;
+    model_predictions [label="model predictions"];
+    obs_flux_data [label="obs flux data"];
+    obs_flux_test [label="obs flux test set"];
+    obs_flux_train [label="obs flux train set"];
+    obs_met_data      [label="obs met data"];
+    obs_met_test  [label="obs met test set"];
+    obs_met_train [label="obs met train set"];
+    parameters;
+    plots;
+    site_data         [label="site data"];
+    structure;
+    summary_data      [label="summary data"];
+    tt_selection [label="train/test\nselection process"];
+}
