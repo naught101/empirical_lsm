@@ -28,6 +28,7 @@ import pandas as pd
 import os
 import glob
 import joblib
+from datetime import datetime
 
 from collections import OrderedDict
 
@@ -84,6 +85,7 @@ def evaluate_simulation(sim_data, land_data, model_name, flux_vars, cache):
     """
 
     eval_hash = short_hash((sim_data, land_data))[0:7]
+    eval_time = datetime.now().isoformat()
 
     # TODO: This currently returns "TumbaFluxnet" - would be nice to return the proper name.
     #       Probably should be fixed in PALS.
@@ -107,6 +109,7 @@ def evaluate_simulation(sim_data, land_data, model_name, flux_vars, cache):
         metric_data.ix[row_id, "sim_id"] = short_hash(sim_data)
         metric_data.ix[row_id, "site"] = site
         metric_data.ix[row_id, "var"] = y_var
+        metric_data.ix[row_id, "eval_time"] = eval_time
 
         for k, v in run_metrics(Y_sim, Y_obs, metrics).items():
             metric_data.ix[row_id, k] = v
