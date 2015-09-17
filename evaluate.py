@@ -14,26 +14,25 @@ Usage:
     evaluation.py (-h | --help | --version)
 
 Options:
-    -h, --help      Show this screen and exit.
-    --flux_vars=F   Flux variables of interest [default: Qh,Qle,Rnet,NEE,GPP]
-    --cache=CACHE   Cache path to use for metrics and metadata [default: cache/]
+    -h, --help        Show this screen and exit.
+    --flux_vars=F...  Flux variables of interest [default: Qh,Qle,Rnet,NEE,GPP]
+    --cache=CACHE     Cache path to use for metrics and metadata [default: cache/]
 """
 
 from docopt import docopt
 
 
-import numpy as np
 import xray
 import pandas as pd
 import os
 import glob
-import joblib
 from datetime import datetime
 
 from collections import OrderedDict
 
 # import pals_utils as pu
 from pals_utils.stats import metrics
+from pals_utils.helpers import short_hash
 
 
 def run_metrics(sim_data, obs_data, metrics=metrics):
@@ -47,17 +46,6 @@ def run_metrics(sim_data, obs_data, metrics=metrics):
     for (n, m) in metrics.items():
         metric_data[n] = m(sim_data, obs_data)
     return metric_data
-
-
-def short_hash(obj, n=7):
-    """returns a shortened joblib.hash
-
-    :obj: Elements to hash
-    :n: number of hash characters to return
-    :returns: short hash
-
-    """
-    return joblib.hash(obj)[0:n]
 
 
 # Evaluate
