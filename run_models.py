@@ -20,22 +20,6 @@ Options:
     -h, --help            Show this screen and exit.
 """
 
-"""
-## Todo
-
-- [<model_opts>...]
-- add more metrics
-    - mutual info score
-- multi variate output
-- table of results
-- Rhys: Compare the functional form of empirical models to that of LSMs, see where they differ
-    - multivariate functional form
-- clustered regression
-- proper lagged regression
-- markov regression (use outputs as inputs to next timestep)
-- auto-diagram models (optional: include parameters)
-"""
-
 from docopt import docopt
 
 import numpy as np
