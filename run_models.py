@@ -2,14 +2,28 @@
 # -*- coding: utf-8 -*-
 """
 File: run_models.py
-Author: John Doe
-Email: yourname@email.com
-Github: https://github.com/yourname
-Description: 
+Author: ned haughton
+Email: ned@nedhaughton.com
+Github: https://github.com/naught101
+Description: Script for running empirical models over PALS-style fluxnet sites.
 
+Usage:
+    run_models.py fit <model> [options] <metfile> <fluxfile>
+    run_models.py run <model_path> <metfile>
+    run_models.py (-h | --help | --version)
 
+Options:
+    --scale=(std|minmax)  method to rescale data.
+    --pca                 method to decompose the data
+    --lag=<lag>           number of timesteps to lag the data (includes unlagged data)
+    --poly=<poly>         number of timesteps to lag the data (includes unlagged data)
+    -h, --help            Show this screen and exit.
+"""
+
+"""
 ## Todo
 
+- [<model_opts>...]
 - add more metrics
     - mutual info score
 - multi variate output
@@ -20,7 +34,6 @@ Description:
 - proper lagged regression
 - markov regression (use outputs as inputs to next timestep)
 - auto-diagram models (optional: include parameters)
-
 """
 
 from docopt import docopt
@@ -28,6 +41,7 @@ from docopt import docopt
 import numpy as np
 import xray
 import pandas as pd
+import sys
 import os
 import joblib
 import pickle
@@ -38,20 +52,11 @@ from collections import OrderedDict
 from pals_utils.stats import metrics
 from pals_utils.helpers import timeit, short_hash
 
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.decomposition import PCA
+from sklearn.pipeline import make_pipeline
 
-doc = '''
-Usage:
-    run_models.py fit <model> [--] [<model_opts>...] [options] <metfile> <fluxfile>
-    run_models.py run <model_path> <metfile>
-    run_models.py (-h | --help | --version)
-
-Options:
-    --scale=(std|minmax)  method to rescale data.
-    --pca                 method to decompose the data
-    --lag=<lag>           number of timesteps to lag the data (includes unlagged data)
-    --poly=<poly>         number of timesteps to lag the data (includes unlagged data)
-    -h, --help            Show this screen and exit.
-'''
 
 met_vars = ["SWdown", "Tair", "LWdown", "Wind", "Rainf", "PSurf", "Qair"]
 flux_vars = ["Qh", "Qle", "Rnet", "NEE"]
@@ -232,7 +237,7 @@ def evaluate_simulation(sim_data, land_data, y_vars, name, cache, clear_cache=Fa
     return metric_data.loc[eval_hash]
 
 
-def test_model_pipeline(pipe=flux_data, y_vars, name, cache, plot=False, clear_cache=False):
+def test_model_pipeline(pipe, flux_data, y_vars, name, cache, plot=False, clear_cache=False):
     """Top-level pipeline fitter and tester.
 
     Fits and predicts with a model, runs metrics, optionally runs some diagnostic plots.
@@ -251,72 +256,97 @@ def get_model(model_name):
     :model_name: name of the model
     :returns: model object
     """
-    from sklearn.preprocessing import StandardScaler
-    from sklearn.preprocessing import PolynomialFeatures
-    from sklearn.decomposition import PCA
-    from sklearn.pipeline import make_pipeline
-
-    from sklearn.linear_model import LinearRegression
-    from sklearn.linear_model import SGDRegressor
     # , Perceptron, PassiveAggressiveRegressor
-    from sklearn.svm import SVR
-    # , NuSVR, LinearSVR
-    # from sklearn.neural_network import MultilayerPerceptronRegressor
-    # This is from a pull request: https://github.com/scikit-learn/scikit-learn/pull/3939
-    from sklearn.neighbors import KNeighborsRegressor
-    from sklearn.tree import DecisionTreeRegressor
-    from sklearn.ensemble import ExtraTreesRegressor
+        # , NuSVR, LinearSVR
 
     if model_name == 'lin':
-        return LinearRegression
+        from sklearn.linear_model import LinearRegression
+        return LinearRegression()
 
-DecisionTreeRegressor())
-ExtraTreesRegressor())
-KNeighborsRegressor(n_neighbors=1000))
-LinearRegression())
-MultilayerPerceptronRegressor())
-MultilayerPerceptronRegressor(activation="logistic"))
-MultilayerPerceptronRegressor(hidden_layer_sizes=(10,10,)))
-MultilayerPerceptronRegressor(hidden_layer_sizes=(10,30,)))
-MultilayerPerceptronRegressor(hidden_layer_sizes=(20,20,)))
-MultilayerPerceptronRegressor(hidden_layer_sizes=(20,20,20,)))
-PCA()
-PolynomialFeatures(2)
-PolynomialFeatures(5)
-SGDRegressor())
-SVR())
-SVR(kernel="poly"))
-StandardScaler()
+    if model_name == 'sgd':
+        from sklearn.linear_model import SGDRegressor
+        return SGDRegressor()
+
+    if model_name == 'svr':
+        from sklearn.svm import SVR
+        return SVR()
+        # SVR(kernel="poly")
+
+    if model_name == 'tree':
+        from sklearn.tree import DecisionTreeRegressor
+        return DecisionTreeRegressor()
+
+    if model_name == 'extratree':
+        from sklearn.ensemble import ExtraTreesRegressor
+        return ExtraTreesRegressor()
+
+    if model_name == 'kneighbours':
+        from sklearn.neighbors import KNeighborsRegressor
+        return KNeighborsRegressor()
+        # KNeighborsRegressor(n_neighbors=1000)
+
+    if model_name == 'mlp':
+        from sklearn.neural_network import MultilayerPerceptronRegressor
+        # This is from a pull request: https://github.com/scikit-learn/scikit-learn/pull/3939
+        return MultilayerPerceptronRegressor()
+        # MultilayerPerceptronRegressor(activation="logistic")
+        # MultilayerPerceptronRegressor(hidden_layer_sizes=(10,10,))
+        # MultilayerPerceptronRegressor(hidden_layer_sizes=(10,30,))
+        # MultilayerPerceptronRegressor(hidden_layer_sizes=(20,20,))
+        # MultilayerPerceptronRegressor(hidden_layer_sizes=(20,20,20,))
+
+    raise Exception("Unknown Model")
+
+def main_fit_model(args):
+    """fit command
+
+    :args: args passed from docopt
+    :returns: TODO
+    """
+    # TODO: model arguments
+    model = get_model(args["<model>"])
+
+    pipe_args = []
+    if args['--scale'] is not None:
+        if args['--scale'] == 'std':
+            pipe_args.append(StandardScaler())
+        elif args['--scale'] == 'minmax':
+            pipe_args.append(MinMaxScaler())
+        else:
+            sys.exit('Unknown scaler %s' % args['--scale'])
+    if args['--pca']:
+        pipe_args.append(PCA())
+    if args['--poly'] is not None:
+        poly = int(args['--poly'])
+        if 1 > poly or poly > 5:
+            sys.exit('Poly features with n=%d is a dumb idea' % poly)
+        pipe_args.append(PolynomialFeatures(poly))
+    pipe_args.append(model)
+
+    pipe = make_pipeline(*pipe_args)
+
+    print(pipe)
+    sys.exit('works!')
+
+    met_data = xray.open_dataset(args["<metfile>"])
+    flux_data = xray.open_dataset(args["<metfile>"])
+
+    if not os.path.exists("cache/"):
+        os.mkdir("cache")
+    cache = pd.HDFStore("cache/cache.hdf5")
+
+    fit_model_pipeline(pipe, met_data, flux_data, name, cache)
+
 
 def main(args):
 
     print(args)
-    return
 
     if args['fit']:
-        met_data = xray.open_dataset(args["<metfile>"])
-        flux_data = xray.open_dataset(args["<metfile>"])
-
-        if not os.path.exists("cache/"):
-            os.mkdir("cache")
-        cache = pd.HDFStore("cache/cache.hdf5")
-
-        model = get_model(args["<model_name>"])
-
-        pipe_args = []
-        if args['--scale']:
-            print(' lah')
-
-        fit_model_pipeline(pipe, met_data, flux_data, name, cache)
+        main_fit_model(args)
 
 
 if (__name__ == '__main__'):
-    args = docopt(doc)
+    args = docopt(__doc__)
 
     main(args)
-
-
-
-
-
-
