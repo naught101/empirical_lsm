@@ -33,7 +33,7 @@ import pickle
 from collections import OrderedDict
 
 # import pals_utils as pu
-from pals_utils.stats import metrics
+from pals_utils.stats import run_metrics
 from pals_utils.helpers import timeit, short_hash
 from pals_utils.data import pals_site_name
 
@@ -70,13 +70,6 @@ def get_pipeline_name(pipe, suffix=None):
         return ", ".join(list(pipe.named_steps.keys()) + [suffix])
     else:
         return ", ".join(pipe.named_steps.keys())
-
-
-def run_metrics(Y_pred, Y_validate, metrics):
-    metric_data = OrderedDict()
-    for (n, m) in metrics.items():
-        metric_data[n] = m(Y_pred, Y_validate)
-    return metric_data
 
 
 # #############################

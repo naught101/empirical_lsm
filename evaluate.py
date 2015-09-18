@@ -28,24 +28,9 @@ import os
 import glob
 from datetime import datetime
 
-from collections import OrderedDict
-
 # import pals_utils as pu
-from pals_utils.stats import metrics
+from pals_utils.stats import run_metrics
 from pals_utils.helpers import short_hash
-
-
-def run_metrics(sim_data, obs_data, metrics=metrics):
-    """run each metric in metrics dict over the simulation
-
-    :param sim_data:
-    :param obs_data:
-    :param metrics:
-    """
-    metric_data = OrderedDict()
-    for (n, m) in metrics.items():
-        metric_data[n] = m(sim_data, obs_data)
-    return metric_data
 
 
 # Evaluate
@@ -99,7 +84,7 @@ def evaluate_simulation(sim_data, land_data, model_name, flux_vars, cache):
         metric_data.ix[row_id, "var"] = y_var
         metric_data.ix[row_id, "eval_time"] = eval_time
 
-        for k, v in run_metrics(Y_sim, Y_obs, metrics).items():
+        for k, v in run_metrics(Y_sim, Y_obs).items():
             metric_data.ix[row_id, k] = v
 
     cache["metric_data"] = metric_data
