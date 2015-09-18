@@ -51,6 +51,7 @@ from collections import OrderedDict
 # import pals_utils as pu
 from pals_utils.stats import metrics
 from pals_utils.helpers import timeit, short_hash
+from pals_utils.data import pals_site_name
 
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.preprocessing import PolynomialFeatures
@@ -107,7 +108,7 @@ def fit_exists(fit_id, cache):
         return cache["model_fits"][fit_id]["fit_hash"]
 
 
-def fit_model_pipeline(pipe, land_data, name, cache, clear_cache=False):
+def fit_model_pipeline(pipe, met_data, flux_data, name, cache, clear_cache=False):
     """Top-level pipeline fitter.
 
     Fits a model, stores model and metadata.
@@ -120,17 +121,15 @@ def fit_model_pipeline(pipe, land_data, name, cache, clear_cache=False):
     if name is None:
         name = get_pipeline_name(pipe)
 
-    fit_id = joblib.hash((pipe, land_data))
+    fit_id = joblib.hash((pipe, met_data, flux_data))
 
     fit_hash = fit_exists(fit_id, cache)
     if fit_hash is not None and not clear_cache:
-        print("Model %s already fitted for %s, loading from file." % name, land_data.name)
+        print("Model %s already fitted for %s, loading from file." % name, pals_site_name(met_data))
         with open(get_model_fit_path(fit_hash), "rb") as f:
             pipe = pickle.load(f)
     else:
-        if land_data.met is None or land_data.flux is None:
-            raise KeyError("missing met or flux data")
-        fit_time = fit_pipeline(pipe, land_data.met, land_data.flux)[1]
+        _, fit_time = fit_pipeline(pipe, met_data, flux_data)
         fit_hash = joblib.hash(pipe)
         cache["model_fits"][fit_id]["fit_hash"] = fit_hash
         cache["model_fits"][fit_id]["fit_time"] = fit_time
@@ -324,9 +323,7 @@ def main_fit_model(args):
     pipe_args.append(model)
 
     pipe = make_pipeline(*pipe_args)
-
-    print(pipe)
-    sys.exit('works!')
+    name = get_pipeline_name(pipe)
 
     met_data = xray.open_dataset(args["<metfile>"])
     flux_data = xray.open_dataset(args["<metfile>"])
@@ -337,10 +334,14 @@ def main_fit_model(args):
 
     fit_model_pipeline(pipe, met_data, flux_data, name, cache)
 
+    print(pipe)
+
+    cache.close()
+
 
 def main(args):
 
-    print(args)
+    # print(args)
 
     if args['fit']:
         main_fit_model(args)
