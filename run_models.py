@@ -26,7 +26,6 @@ import xray
 import pandas as pd
 import sys
 import os
-import joblib
 import pickle
 
 # import pals_utils as pu
@@ -94,7 +93,7 @@ def fit_model_pipeline(pipe, met_data, flux_data, name, cache, clear_cache=False
     if name is None:
         name = get_pipeline_name(pipe)
 
-    fit_id = joblib.hash((pipe, met_data, flux_data))
+    fit_id = short_hash((pipe, met_data, flux_data))
 
     fit_hash = fit_exists(fit_id, cache)
     if fit_hash is not None and not clear_cache:
@@ -103,7 +102,7 @@ def fit_model_pipeline(pipe, met_data, flux_data, name, cache, clear_cache=False
             pipe = pickle.load(f)
     else:
         _, fit_time = fit_pipeline(pipe, met_data, flux_data)
-        fit_hash = joblib.hash(pipe)
+        fit_hash = short_hash(pipe)
         cache["model_fits"][fit_id]["fit_hash"] = fit_hash
         cache["model_fits"][fit_id]["fit_time"] = fit_time
         cache.flush()
@@ -135,7 +134,7 @@ def simulate_model_pipeline(pipe, met_data, name, cache, clear_cache=False):
     if name is None:
         name = get_pipeline_name(pipe)
 
-    fit_hash = joblib.hash((pipe, met_data))
+    fit_hash = short_hash((pipe, met_data))
 
     sim_hash = sim_exists(pipe, met_data, cache)
     if sim_hash and not clear_cache:
@@ -147,7 +146,7 @@ def simulate_model_pipeline(pipe, met_data, name, cache, clear_cache=False):
             raise KeyError("missing met or flux data")
         sim_data, fit_time = get_pipeline_prediction(pipe, met_data)
         # TODO: If a simulation can produce more than one output for a given input, this won"t be unique. Is that ok?
-        sim_hash = joblib.hash(sim_data)
+        sim_hash = short_hash(sim_data)
         cache["simulations"][fit_hash]["sim_hash"] = sim_hash
         cache["simulations"][fit_hash]["model_predict_time"] = fit_time
         cache.flush()
