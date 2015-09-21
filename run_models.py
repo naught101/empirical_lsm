@@ -22,7 +22,6 @@ Options:
 
 from docopt import docopt
 
-import numpy as np
 import xray
 import pandas as pd
 import sys
@@ -30,10 +29,7 @@ import os
 import joblib
 import pickle
 
-from collections import OrderedDict
-
 # import pals_utils as pu
-from pals_utils.stats import run_metrics
 from pals_utils.helpers import timeit, short_hash
 from pals_utils.data import pals_site_name
 
@@ -161,71 +157,6 @@ def simulate_model_pipeline(pipe, met_data, name, cache, clear_cache=False):
     return sim_data, sim_hash
 
 
-# Evaluate
-
-# TODO: Could make a wrapper around this so that you can just pass a hash, or a fit model, and auto-load the data.
-
-def evaluation_exists(sim_data, land_data, cache):
-    eval_hash = joblib.hash((sim_data, land_data))
-
-    if ("metric_data" in cache) and (eval_hash in cache.metric_data.index[0]):
-        return eval_hash
-
-
-def evaluate_simulation(sim_data, land_data, y_vars, name, cache, clear_cache=False):
-    """Top-level simulation evaluator.
-
-    Compares sim_data to land_data, using standard metrics. Stores the results in an easily accessible format.
-    """
-
-    eval_hash = joblib.hash((sim_data, land_data))
-
-    index = {"eval_hash": eval_hash,
-             "name": name,
-             "site": land_data.name,
-             "var": y_vars[0]}
-
-    if "metric_data" in cache and not clear_cache:
-        if eval_hash in cache.metric_data.index[0]:
-            print("Metrics already calculated for %s, skipping." % name)
-            return cache.metric_data
-        metric_data = cache.metric_data
-    else:
-        metric_data = pd.DataFrame([index])
-        metric_data = metric_data.set_index(list(index.keys()))
-
-    for y_var in y_vars:
-        Y_sim = np.array(sim_data.flux[y_var])
-        Y_obs = np.array(land_data.flux[y_var])
-
-        row_id = tuple(list(index.values())[0:3] + [y_var])
-        metric_data.ix[row_id, "name"] = "%s_%s" % (y_var)
-        metric_data.ix[row_id, "sim_id"] = joblib.hash(sim_data)
-        metric_data.ix[row_id, "site"] = land_data.name
-        metric_data.ix[row_id, "var"] = y_var
-
-        for k, v in run_metrics(Y_sim, Y_obs, metrics).items():
-            metric_data.ix[row_id, k] = v
-
-    cache["metric_data"] = metric_data
-    cache.flush()
-
-    return metric_data.loc[eval_hash]
-
-
-def test_model_pipeline(pipe, flux_data, y_vars, name, cache, plot=False, clear_cache=False):
-    """Top-level pipeline fitter and tester.
-
-    Fits and predicts with a model, runs metrics, optionally runs some diagnostic plots.
-    """
-
-    (train_data, test_data) = flux_data.time_split(0.7)
-
-    fit_hash = short_hash(pipe, flux_data)
-    sim_hash = fit_exists(fit_hash)
-    eval_hash = sim_exists(sim_hash)
-
-
 def get_model(model_name):
     """return a scikit-learn model, and the required arguments
 
@@ -233,7 +164,7 @@ def get_model(model_name):
     :returns: model object
     """
     # , Perceptron, PassiveAggressiveRegressor
-        # , NuSVR, LinearSVR
+    # , NuSVR, LinearSVR
 
     if model_name == 'lin':
         from sklearn.linear_model import LinearRegression
@@ -272,6 +203,7 @@ def get_model(model_name):
         # MultilayerPerceptronRegressor(hidden_layer_sizes=(20,20,20,))
 
     raise Exception("Unknown Model")
+
 
 def main_fit_model(args):
     """fit command
