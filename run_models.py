@@ -9,7 +9,7 @@ Description: Script for running empirical models over PALS-style fluxnet sites.
 
 Usage:
     run_models.py fit <model> [options] <metfile> <fluxfile>
-    run_models.py run <model_path> <metfile>
+    run_models.py run <fit_hash> <metfile>
     run_models.py (-h | --help | --version)
 
 Options:
@@ -287,12 +287,46 @@ def main_fit_model(args):
     return
 
 
+def main_run_model(args):
+    """run command
+
+    :args: args passed from docopt
+    :returns: TODO
+    """
+    model_path = get_model_fit_path(args["<fit_hash>"])
+    with open(model_path, 'rb') as f:
+        pipe = pickle.load(f)
+
+    # TODO: get name from cache/smarter naming?
+    name = get_pipeline_name(pipe)
+
+    met_data = xray.open_dataset(args["<metfile>"])
+
+    if not os.path.exists("cache/"):
+        os.mkdir("cache")
+    sim_cache = pd.HDFStore("cache/sim_cache.hdf5")
+
+    sim_data, sim_hash = simulate_model_pipeline(pipe, met_data, name, sim_cache)
+
+    print("sim hash: ", sim_hash)
+    print(sim_data)
+
+    sim_cache.close()
+
+    return
+
+
 def main(args):
 
     # print(args)
 
     if args['fit']:
         main_fit_model(args)
+
+    if args['run']:
+        main_run_model(args)
+
+    return
 
 
 if (__name__ == '__main__'):
