@@ -275,13 +275,16 @@ def main_fit_model(args):
 
     if not os.path.exists("cache/"):
         os.mkdir("cache")
-    cache = pd.HDFStore("cache/cache.hdf5")
+    fit_cache = pd.HDFStore("cache/fit_cache.hdf5")
 
-    fit_model_pipeline(pipe, met_data, flux_data, name, cache)
+    pipe, fit_hash = fit_model_pipeline(pipe, met_data, flux_data, name, fit_cache)
 
+    print("fit hash: ", fit_hash)
     print(pipe)
 
-    cache.close()
+    fit_cache.close()
+
+    return
 
 
 def main(args):

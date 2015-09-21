@@ -103,9 +103,9 @@ def main(args):
         if not os.path.exists(cache_dir):
             print("Cache doesn't exist..")
             return
-        for f in glob.glob(os.path.join(cache_dir, "*")):
+        for f in glob.glob(os.path.join(cache_dir, "eval_cache.hdf5")):
             os.remove(f)
-        print("cleared all data from %s" % cache_dir)
+        print("cleared eval data from %s" % cache_dir)
 
     elif args['metrics']:
 
@@ -114,7 +114,7 @@ def main(args):
             print("Using cache %s" % cache_dir)
             os.mkdir(cache_dir)
 
-        cache = pd.HDFStore(os.path.join(cache_dir, "cache.hdf5"))
+        cache = pd.HDFStore(os.path.join(cache_dir, "eval_cache.hdf5"))
 
         sim_data = xray.open_dataset(args['<sim_file>'])
         land_data = xray.open_dataset(args['<flux_file>'])
