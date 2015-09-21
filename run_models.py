@@ -148,7 +148,7 @@ def get_sim_path(sim_hash, sim_dir="cache/simulations"):
 
 def sim_exists(fit_hash, cache):
     if "/simulations" in cache.keys() and fit_hash in cache.simulations.index:
-        return cache.simulations[fit_hash, "sim_hash"]
+        return cache.simulations.ix[fit_hash, "sim_hash"]
 
 
 def simulate_model_pipeline(pipe, met_data, name, cache, clear_cache=False):
@@ -175,9 +175,18 @@ def simulate_model_pipeline(pipe, met_data, name, cache, clear_cache=False):
         sim_data, pred_time = get_pipeline_prediction(pipe, met_data)
         # TODO: If a simulation can produce more than one output for a given input, this won"t be unique. Is that ok?
         sim_hash = short_hash(sim_data)
-        cache.append(("simulations/%s/sim_hash" % fit_hash), sim_hash)
-        cache.append(("simulations/%s/predict_time" % fit_hash), pred_time)
+
+        if "/simulations" in cache.keys():
+            simulations = cache.simulations
+        else:
+            simulations = pd.DataFrame()
+
+        simulations.ix[fit_hash, "sim_hash"] = sim_hash
+        simulations.ix[fit_hash, "predict_time"] = pred_time
+        cache.simulations = simulations
+
         cache.flush()
+
         with open(get_model_fit_path(sim_hash), "wb") as f:
             pickle.dump(sim_data, f)
 
