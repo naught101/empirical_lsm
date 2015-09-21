@@ -91,7 +91,7 @@ def get_model_fit_path(fit_hash, fit_dir="cache/model_fits"):
 
 def fit_exists(fit_id, cache):
     if "/model_fits" in cache.keys() and fit_id in cache.model_fits.index:
-        return cache.model_fits[fit_id, "fit_hash"]
+        return cache.model_fits.ix[fit_id, "fit_hash"]
 
 
 def fit_model_pipeline(pipe, met_data, flux_data, name, cache, clear_cache=False):
@@ -111,8 +111,9 @@ def fit_model_pipeline(pipe, met_data, flux_data, name, cache, clear_cache=False
 
     fit_hash = fit_exists(fit_id, cache)
     if fit_hash is not None and not clear_cache:
-        print("Model %s already fitted for %s, loading from file." % name, pals_site_name(met_data))
-        with open(get_model_fit_path(fit_hash), "rb") as f:
+        print("Model %s already fitted for %s, loading from file." % (name, pals_site_name(met_data)))
+        filename = get_model_fit_path(fit_hash)
+        with open(filename, "rb") as f:
             pipe = pickle.load(f)
     else:
         _, fit_time = fit_pipeline(pipe, met_data, flux_data)
@@ -123,10 +124,10 @@ def fit_model_pipeline(pipe, met_data, flux_data, name, cache, clear_cache=False
         else:
             model_fits = pd.DataFrame()
 
-        model_fits[fit_id, "fit_hash"] = fit_hash
-        model_fits[fit_id, "fit_time"] = fit_time
-        model_fits[fit_id, "name"] = name
-        model_fits[fit_id, "site"] = pals_site_name(met_data)
+        model_fits.ix[fit_id, "fit_hash"] = fit_hash
+        model_fits.ix[fit_id, "fit_time"] = fit_time
+        model_fits.ix[fit_id, "name"] = name
+        model_fits.ix[fit_id, "site"] = pals_site_name(met_data)
 
         cache['model_fits'] = model_fits
         cache.flush()
@@ -165,7 +166,7 @@ def simulate_model_pipeline(pipe, met_data, name, cache, clear_cache=False):
 
     sim_hash = sim_exists(pipe, met_data, cache)
     if sim_hash and not clear_cache:
-        print("Model %s already simulated for %s, loading from file." % name, met_data.name)
+        print("Model %s already simulated for %s, loading from file." % (name, met_data.name))
         with open(get_sim_path(sim_hash), "rb") as f:
             sim_data = pickle.load(f)
     else:
@@ -174,8 +175,8 @@ def simulate_model_pipeline(pipe, met_data, name, cache, clear_cache=False):
         sim_data, pred_time = get_pipeline_prediction(pipe, met_data)
         # TODO: If a simulation can produce more than one output for a given input, this won"t be unique. Is that ok?
         sim_hash = short_hash(sim_data)
-        cache.append("simulations/%s/sim_hash" % fit_hash, sim_hash)
-        cache.append("simulations/%s/predict_time" % fit_hash, pred_time)
+        cache.append(("simulations/%s/sim_hash" % fit_hash), sim_hash)
+        cache.append(("simulations/%s/predict_time" % fit_hash), pred_time)
         cache.flush()
         with open(get_model_fit_path(sim_hash), "wb") as f:
             pickle.dump(sim_data, f)
