@@ -153,7 +153,7 @@ def simulate_model_pipeline(pipe, met_data, name, cache, clear_cache=False):
         with open(get_sim_path(sim_hash), "rb") as f:
             sim_data = pickle.load(f)
     else:
-        if met_data.met is None or met_data.flux is None:
+        if met_data is None:
             raise KeyError("missing met or flux data")
         sim_data, pred_time = get_pipeline_prediction(pipe, met_data)
         # TODO: If a simulation can produce more than one output for a given input, this won"t be unique. Is that ok?
