@@ -3,6 +3,8 @@
 
 layouts are model structural definitions without set parameters
 
+Not necessary to store this.
+
 layout
 : Scikit-learn estimator/pipeline or object with similar fit/predict methods
 layout_hash
@@ -37,7 +39,7 @@ site_id
 fit_hash
 : shorthash of the fit (unique to layout/data combo)
 fit_path
-: path to pickled fit
+: path to pickled fit (calculated from fit_hash)
 
 ## simulations
 
@@ -52,7 +54,7 @@ site_id
 sim_hash
 : shorthash of the xray dataset
 sim_path
-: path to netcdf file where sim data is stored.
+: path to netcdf file where sim data is stored. (calculated from sim_hash)
 
 
 ## Evaluations

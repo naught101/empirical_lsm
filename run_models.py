@@ -107,7 +107,8 @@ def fit_model_pipeline(pipe, met_data, flux_data, name, cache, clear_cache=False
     if name is None:
         name = get_pipeline_name(pipe)
 
-    fit_id = short_hash((pipe, met_data, flux_data))
+    layout_hash = short_hash(pipe)
+    fit_id = '%s_%s' % (layout_hash, pals_site_name(met_data))
 
     fit_hash = fit_exists(fit_id, cache)
     if fit_hash is not None and not clear_cache:
@@ -126,6 +127,7 @@ def fit_model_pipeline(pipe, met_data, flux_data, name, cache, clear_cache=False
 
         model_fits.ix[fit_id, "fit_hash"] = fit_hash
         model_fits.ix[fit_id, "fit_time"] = fit_time
+        model_fits.ix[fit_id, "layout_hash"] = layout_hash
         model_fits.ix[fit_id, "name"] = name
         model_fits.ix[fit_id, "site"] = pals_site_name(met_data)
 
@@ -146,9 +148,9 @@ def get_sim_path(sim_hash, sim_dir="cache/simulations"):
     return "%s/%s.pickle" % (sim_dir, sim_hash)
 
 
-def sim_exists(fit_hash, cache):
-    if "/simulations" in cache.keys() and fit_hash in cache.simulations.index:
-        return cache.simulations.ix[fit_hash, "sim_hash"]
+def sim_exists(sim_id, cache):
+    if "/simulations" in cache.keys() and sim_id in cache.simulations.index:
+        return cache.simulations.ix[sim_id, "sim_hash"]
 
 
 def simulate_model_pipeline(pipe, met_data, name, cache, clear_cache=False):
@@ -162,10 +164,12 @@ def simulate_model_pipeline(pipe, met_data, name, cache, clear_cache=False):
     if name is None:
         name = get_pipeline_name(pipe)
 
-    fit_hash = short_hash((pipe, met_data))
+    fit_hash = short_hash(pipe)
 
-    sim_hash = sim_exists(pipe, met_data, cache)
-    if sim_hash and not clear_cache:
+    sim_id = '%s_%s' % (fit_hash, pals_site_name(met_data))
+
+    sim_hash = sim_exists(sim_id, cache)
+    if sim_hash is not None and not clear_cache:
         print("Model %s already simulated for %s, loading from file." % (name, met_data.name))
         with open(get_sim_path(sim_hash), "rb") as f:
             sim_data = pickle.load(f)
@@ -181,8 +185,10 @@ def simulate_model_pipeline(pipe, met_data, name, cache, clear_cache=False):
         else:
             simulations = pd.DataFrame()
 
-        simulations.ix[fit_hash, "sim_hash"] = sim_hash
-        simulations.ix[fit_hash, "predict_time"] = pred_time
+        simulations.ix[sim_id, "fit_hash"] = fit_hash
+        simulations.ix[sim_id, "site"] = pals_site_name(met_data)
+        simulations.ix[sim_id, "sim_hash"] = sim_hash
+        simulations.ix[sim_id, "predict_time"] = pred_time
         cache.simulations = simulations
 
         cache.flush()
