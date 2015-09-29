@@ -22,19 +22,21 @@ FLUX_QC = [v + "_qc" for v in FLUX_VARS]
 GEO_VARS = ["latitude", "longitude", "elevation", "reference_height"]
 
 
-def copy_data(dataset, met=None, flux=None):
+def copy_data(dataset):
     """Return a copy of the land dataset.
 
     met and flux components optional: use dataset.met, dataset.flux
     """
     return dataset[GEO_VARS]
 
+
 def time_split(dataset, ratio):
     """Split data along the time axis, by ratio"""
     first_len = np.floor(ratio * dataset.dims['time'])
-    first = dataset.copy_data()
-    second = dataset.copy_data()
+    first = dataset[dataset['time'] < dataset['time'][first_len]]
+    second = dataset[dataset['time'] >= dataset['time'][first_len]]
     return first, second
+
 
 def load_ncdf(filename, with_qc=False):
     """Load data from a PALS-style netCDF file
