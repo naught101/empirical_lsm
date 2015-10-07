@@ -1,25 +1,32 @@
-# Model test bed
+% Model test bed
+% ned haughton
+% <%from datetime import datetime as dt
+print(dt.isoformat(dt.now(), sep=' '))%>
 
 <<>>=
 import xray
+import numpy as np
+
+from pals_utils.data import pals_xray_to_array
 
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.decomposition import PCA
 from sklearn.pipeline import make_pipeline
 
-from run_models import fit_and_predict
-from evaluate import full_evaluation
+from ubermodel.models import get_pipeline_name
+# from ubermodel.models import fit_pipe_multisite, simulate_pipe_multisite
+from ubermodel.evaluate import evaluation_simulation
 @
 
 Cyclic train and test:
 
 <<>>=
-data_path = 'data/PALS/datasets'
-datasets = ['Amplero', 'Blodgett', 'Bugac', 'ElSaler2', 'ElSaler', 'Espirra',
-            'FortPeck', 'Harvard', 'Hesse', 'Howard', 'Howlandm', 'Hyytiala',
-            'Kruger', 'Loobos', 'Merbleue', 'Mopane', 'Palang', 'Sylvania',
-            'Tumba', 'UniMich']
+datapath = 'data/PALS/datasets'
+datasets = ['Amplero', 'Blodgett', 'Bugac', 'ElSaler2', 'ElSaler',
+            'Espirra', 'FortPeck', 'Harvard', 'Hesse', 'Howard',
+            'Howlandm', 'Hyytiala', 'Kruger', 'Loobos', 'Merbleue',
+            'Mopane', 'Palang', 'Sylvania', 'Tumba', 'UniMich']
 
 met_paths = ['%s/met/%sFluxnet.1.4_met.nc' % (datapath, s) for s in datasets]
 flux_paths = ['%s/flux/%sFluxnet.1.4_flux.nc' % (datapath, s) for s in datasets]
@@ -31,26 +38,50 @@ flux_data = [xray.open_dataset(path) for path in flux_paths]
 <<>>=
 def test_pipeline_crossval(pipe, name, met_data, flux_data):
     assert isinstance(met_data, list), "Met data isn't a list"
-    assert all([isinstance(m, xray.Dataset) for d in met_data]),
+    assert all([isinstance(ds, xray.Dataset) for ds in met_data]), \
         "At least one met dataset isn't an xray dataset"
     assert isinstance(flux_data, list), "Flux data isn't a list"
-    assert all([isinstance(m, xray.Dataset) for d in flux_data]),
+    assert all([isinstance(ds, xray.Dataset) for ds in flux_data]), \
         "At least one met dataset isn't an xray dataset"
 
-    for i in len(met_dataset):
+    for i in range(len(met_data)):
         met_train = [m for j, m in enumerate(met_data) if j != i]
         flux_train = [m for j, m in enumerate(flux_data) if j != i]
         met_test = met_data[i]
         flux_test = flux_data[i]
 
-        fit_hash, fit_time = fit_pipe_multisite(pipe, name, met_train, flux_train)
+        fit_pipe_multisite(pipe, met_train, flux_train)
 
-        sim_data, pred_time = simulate_pipe_multisite(pipe, name, met_test)
-        sim_hashes.append(sim_hash)
+        sim_data = simulate_pipe(pipe, met_test)
 
         eval_hash = evaluate_simulation(sim_data, flux_test, name)
 
         diagnostic_plots(sim_data, flux_data, name)
+
+
+#@timeit
+def fit_pipe_multisite(pipe, met_data, flux_data):
+
+    met_array = np.concatenate([pals_xray_to_array(ds) for ds in met_data], 1)
+    print([list(ds.data_vars) for ds in flux_data])
+    flux_array = np.concatenate([pals_xray_to_array(ds) for ds in flux_data], 1)
+
+    pipe.fit(X=met_array, y=flux_array)
+
+
+#@timeit
+def simulate_pipe(pipe, met_data):
+
+    sim_data = pipe.fit(X=pals_xray_to_array(met_data))
+
+    return sim_data
+
+
+def diagnostic_plots(sim_data, flux_data, name):
+    pass
+
+
+
 @
 
 
@@ -118,7 +149,6 @@ from sklearn.svm import SVR
 
 pipe = make_pipeline(SVR())
 name = get_pipeline_name(pipe)
-test_pipeline(pipe)
 @
 
 <<>>=
@@ -129,12 +159,11 @@ name = get_pipeline_name(pipe)
 <<>>=
 pipe = make_pipeline(StandardScaler(), PCA(), SVR())
 name = get_pipeline_name(pipe)
-test_pipeline(pipe)
 @
 
 <<>>=
 pipe = make_pipeline(StandardScaler(), SVR(kernel="poly"))
-name = get_pipeline_name(pipe, "polykernel"))
+name = get_pipeline_name(pipe, "polykernel")
 @
 
 
@@ -231,8 +260,8 @@ name = get_pipeline_name(pipe)
 - need to make a proper wrapper for this.
 
 <<>>=
-pipe = make_pipeline(LagFeatures(), LinearRegression())
-name = name=get_pipeline_name(pipe, "lag1"))
+#pipe = make_pipeline(LagFeatures(), LinearRegression())
+#name = get_pipeline_name(pipe, "lag1")
 @
 
 
