@@ -170,50 +170,50 @@ name = get_pipeline_name(pipe, "polykernel")
 ### Multilayer Perceptron
 
 <<>>=
-from sklearn.neural_network import MultilayerPerceptronRegressor
-
-pipe = make_pipeline(MultilayerPerceptronRegressor())
-name = get_pipeline_name(pipe)
-@
-
-<<>>=
-pipe = make_pipeline(StandardScaler(), MultilayerPerceptronRegressor())
-name = get_pipeline_name(pipe)
-@
-
-<<>>=
-pipe = make_pipeline(PCA(), MultilayerPerceptronRegressor())
-name = get_pipeline_name(pipe)
-@
-
-<<>>=
-pipe = make_pipeline(StandardScaler(), PCA(), MultilayerPerceptronRegressor())
-name = get_pipeline_name(pipe)
-@
-
-<<>>=
-pipe = make_pipeline(StandardScaler(), MultilayerPerceptronRegressor(activation="logistic"))
-name = get_pipeline_name(pipe, "logisitic"))
-@
-
-<<>>=
-pipe = make_pipeline(StandardScaler(), MultilayerPerceptronRegressor(hidden_layer_sizes=(20,20,20,)))
-name = get_pipeline_name(pipe, "[20,20,20]"))
-@
-
-<<>>=
-pipe = make_pipeline(StandardScaler(), MultilayerPerceptronRegressor(hidden_layer_sizes=(10,10,)))
-name = get_pipeline_name(pipe, "[10,10]"))
-@
-
-<<>>=
-pipe = make_pipeline(StandardScaler(), MultilayerPerceptronRegressor(hidden_layer_sizes=(10,30,)))
-name = get_pipeline_name(pipe, "[10,30]"))
-@
-
-<<>>=
-pipe = make_pipeline(StandardScaler(), MultilayerPerceptronRegressor(hidden_layer_sizes=(20,20,)))
-name = get_pipeline_name(pipe, "[20,20]"))
+# from sklearn.neural_network import MultilayerPerceptronRegressor
+#
+# pipe = make_pipeline(MultilayerPerceptronRegressor())
+# name = get_pipeline_name(pipe)
+# @
+#
+# <<>>=
+# pipe = make_pipeline(StandardScaler(), MultilayerPerceptronRegressor())
+# name = get_pipeline_name(pipe)
+# @
+#
+# <<>>=
+# pipe = make_pipeline(PCA(), MultilayerPerceptronRegressor())
+# name = get_pipeline_name(pipe)
+# @
+#
+# <<>>=
+# pipe = make_pipeline(StandardScaler(), PCA(), MultilayerPerceptronRegressor())
+# name = get_pipeline_name(pipe)
+# @
+#
+# <<>>=
+# pipe = make_pipeline(StandardScaler(), MultilayerPerceptronRegressor(activation="logistic"))
+# name = get_pipeline_name(pipe, "logisitic")
+# @
+#
+# <<>>=
+# pipe = make_pipeline(StandardScaler(), MultilayerPerceptronRegressor(hidden_layer_sizes=(20,20,20,)))
+# name = get_pipeline_name(pipe, "[20,20,20]")
+# @
+#
+# <<>>=
+# pipe = make_pipeline(StandardScaler(), MultilayerPerceptronRegressor(hidden_layer_sizes=(10,10,)))
+# name = get_pipeline_name(pipe, "[10,10]")
+# @
+#
+# <<>>=
+# pipe = make_pipeline(StandardScaler(), MultilayerPerceptronRegressor(hidden_layer_sizes=(10,30,)))
+# name = get_pipeline_name(pipe, "[10,30]")
+# @
+#
+# <<>>=
+# pipe = make_pipeline(StandardScaler(), MultilayerPerceptronRegressor(hidden_layer_sizes=(20,20,)))
+# name = get_pipeline_name(pipe, "[20,20]")
 @
 
 
