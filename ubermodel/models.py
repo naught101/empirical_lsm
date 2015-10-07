@@ -8,13 +8,15 @@ Github: https://github.com/naught101
 Description:
 """
 
+import xray
+import numpy as np
 import pandas as pd
 import os
 import pickle
 
 # import pals_utils as pu
 from pals_utils.helpers import timeit, short_hash
-from pals_utils.data import pals_site_name, pals_xray_to_df
+from pals_utils.data import pals_site_name, pals_xray_to_df, pals_xray_to_array
 
 
 MET_VARS = ["SWdown", "Tair", "LWdown", "Wind", "Rainf", "PSurf", "Qair"]
@@ -224,3 +226,44 @@ def get_model(model_name):
         # MultilayerPerceptronRegressor(hidden_layer_sizes=(20,20,20,))
 
     raise Exception("Unknown Model")
+
+
+def test_pipeline_crossval(pipe, name, met_data, flux_data):
+    assert isinstance(met_data, list), "Met data isn't a list"
+    assert all([isinstance(ds, xray.Dataset) for ds in met_data]), \
+        "At least one met dataset isn't an xray dataset"
+    assert isinstance(flux_data, list), "Flux data isn't a list"
+    assert all([isinstance(ds, xray.Dataset) for ds in flux_data]), \
+        "At least one met dataset isn't an xray dataset"
+
+    for i in range(len(met_data)):
+        met_train = [m for j, m in enumerate(met_data) if j != i]
+        flux_train = [m for j, m in enumerate(flux_data) if j != i]
+        met_test = met_data[i]
+        flux_test = flux_data[i]
+
+        fit_pipe_multisite(pipe, met_train, flux_train)
+
+        sim_data = simulate_pipe(pipe, met_test)
+
+        eval_hash = evaluate_simulation(sim_data, flux_test, name)
+
+        diagnostic_plots(sim_data, flux_data, name)
+
+
+#@timeit
+def fit_pipe_multisite(pipe, met_data, flux_data):
+
+    met_array = np.concatenate([pals_xray_to_array(ds) for ds in met_data], 1)
+    print([list(ds.data_vars) for ds in flux_data])
+    flux_array = np.concatenate([pals_xray_to_array(ds) for ds in flux_data], 1)
+
+    pipe.fit(X=met_array, y=flux_array)
+
+
+#@timeit
+def simulate_pipe(pipe, met_data):
+
+    sim_data = pipe.fit(X=pals_xray_to_array(met_data))
+
+    return sim_data

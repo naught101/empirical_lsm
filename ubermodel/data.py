@@ -21,6 +21,27 @@ FLUX_VARS = ["Qh", "Qle", "Rnet", "NEE"]
 FLUX_QC = [v + "_qc" for v in FLUX_VARS]
 GEO_VARS = ["latitude", "longitude", "elevation", "reference_height"]
 
+DATAPATH = 'data/PALS/datasets'
+DATASETS = ['Amplero', 'Blodgett', 'Bugac', 'ElSaler2', 'ElSaler',
+            'Espirra', 'FortPeck', 'Harvard', 'Hesse', 'Howard',
+            'Howlandm', 'Hyytiala', 'Kruger', 'Loobos', 'Merbleue',
+            'Mopane', 'Palang', 'Sylvania', 'Tumba', 'UniMich']
+
+met_paths = ['%s/met/%sFluxnet.1.4_met.nc' % (DATAPATH, s) for s in DATASETS]
+flux_paths = ['%s/flux/%sFluxnet.1.4_flux.nc' % (DATAPATH, s) for s in DATASETS]
+
+
+def get_datasets(paths):
+    return [xray.open_dataset(path) for path in paths]
+
+
+def get_met_datasets():
+    return get_datasets(met_paths)
+
+
+def get_flux_datasets():
+    return get_datasets(flux_paths)
+
 
 def copy_data(dataset):
     """Return a copy of the land dataset.
