@@ -1,6 +1,13 @@
 # Model test bed
 
 <<>>=
+import xray
+
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.decomposition import PCA
+from sklearn.pipeline import make_pipeline
+
 from run_models import fit_and_predict
 from evaluate import full_evaluation
 @
@@ -66,8 +73,15 @@ pseudo code:
 - insensitive to scaling or PCA
 
 <<>>=
+from sklearn.linear_model import LinearRegression
+
 pipe = make_pipeline(LinearRegression())
 name = get_pipeline_name(pipe)
+
+test_pipeline_crossval(pipe, name, met_data, flux_data)
+
+sys.exit()
+
 @
 
 ### Polynomial regression
@@ -75,6 +89,8 @@ name = get_pipeline_name(pipe)
     - because non-linearities are localised?
 
 <<>>=
+from sklearn.preprocessing import PolynomialFeatures
+
 pipe = make_pipeline(PolynomialFeatures(2), LinearRegression())
 name = get_pipeline_name(pipe, "poly2")
 @
@@ -88,6 +104,8 @@ name = get_pipeline_name(pipe, "poly5")
 - very sensitive to scaling. Not sensitive to PCA
 
 <<>>=
+from sklearn.linear_model import SGDRegressor
+
 pipe = make_pipeline(StandardScaler(), SGDRegressor())
 name = get_pipeline_name(pipe)
 @
@@ -96,6 +114,8 @@ name = get_pipeline_name(pipe)
 - Sensitive to scaling, not to PCA
 
 <<>>=
+from sklearn.svm import SVR
+
 pipe = make_pipeline(SVR())
 name = get_pipeline_name(pipe)
 test_pipeline(pipe)
@@ -121,6 +141,8 @@ name = get_pipeline_name(pipe, "polykernel"))
 ### Multilayer Perceptron
 
 <<>>=
+from sklearn.neural_network import MultilayerPerceptronRegressor
+
 pipe = make_pipeline(MultilayerPerceptronRegressor())
 name = get_pipeline_name(pipe)
 @
@@ -170,6 +192,8 @@ name = get_pipeline_name(pipe, "[20,20]"))
 - Not sensitive to scaling or PCA
 
 <<>>=
+from sklearn.neighbors import KNeighborsRegressor
+
 pipe = make_pipeline(KNeighborsRegressor())
 name = get_pipeline_name(pipe)
 @
@@ -183,11 +207,15 @@ name = get_pipeline_name(pipe, "1000 neighbours")
 ### Decision Trees
 
 <<>>=
+from sklearn.tree import DecisionTreeRegressor
+
 pipe = make_pipeline(DecisionTreeRegressor())
 name = get_pipeline_name(pipe)
 @
 
 <<>>=
+from sklearn.ensemble import ExtraTreesRegressor
+
 pipe = make_pipeline(ExtraTreesRegressor())
 name = get_pipeline_name(pipe)
 @
