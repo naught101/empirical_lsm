@@ -5,8 +5,62 @@ from run_models import fit_and_predict
 from evaluate import full_evaluation
 ```
 
+Cyclic train and test:
+
+```python
+data_path = 'data/PALS/datasets'
+datasets = ['Amplero', 'Blodgett', 'Bugac', 'ElSaler2', 'ElSaler', 'Espirra',
+            'FortPeck', 'Harvard', 'Hesse', 'Howard', 'Howlandm', 'Hyytiala',
+            'Kruger', 'Loobos', 'Merbleue', 'Mopane', 'Palang', 'Sylvania',
+            'Tumba', 'UniMich']
+
+met_paths = ['%s/met/%sFluxnet.1.4_met.nc' % (datapath, s) for s in datasets]
+flux_paths = ['%s/flux/%sFluxnet.1.4_flux.nc' % (datapath, s) for s in datasets]
+
+met_data = [xray.open_dataset(path) for path in met_paths]
+flux_data = [xray.open_dataset(path) for path in flux_paths]
+```
+
+```python
+def test_pipeline_crossval(pipe, name, met_data, flux_data):
+    assert isinstance(met_data, list), "Met data isn't a list"
+    assert all([isinstance(m, xray.Dataset) for d in met_data]),
+        "At least one met dataset isn't an xray dataset"
+    assert isinstance(flux_data, list), "Flux data isn't a list"
+    assert all([isinstance(m, xray.Dataset) for d in flux_data]),
+        "At least one met dataset isn't an xray dataset"
+
+    for i in len(met_dataset):
+        met_train = [m for j, m in enumerate(met_data) if j != i]
+        flux_train = [m for j, m in enumerate(flux_data) if j != i]
+        met_test = met_data[i]
+        flux_test = flux_data[i]
+
+        fit_hash, fit_time = fit_pipe_multisite(pipe, name, met_train, flux_train)
+
+        sim_data, pred_time = simulate_pipe_multisite(pipe, name, met_test)
+        sim_hashes.append(sim_hash)
+
+        eval_hash = evaluate_simulation(sim_data, flux_test, name)
+
+        diagnostic_plots(sim_data, flux_data, name)
+```
+
 
 ## Instantaneous models
+
+pseudo code:
+```
+    set up pipeline
+    set pipeline name
+    for each site in sites:
+        fit pipeline on other sites
+        simulate site
+        evaluate site
+        store eval results
+        ? print diagnostic plots
+    collate eval results and print summary plots (PLUMBER plots/multisim plots)
+```
 
 ### Linear regression
 - insensitive to scaling or PCA
