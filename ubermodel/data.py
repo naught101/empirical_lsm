@@ -14,10 +14,9 @@ import xray
 # import joblib
 # import time
 
-
-MET_VARS = ["SWdown", "Tair", "LWdown", "Wind", "Rainf", "PSurf", "Qair"]
+MET_VARS = ["SWdown", "LWdown", "Tair", "Qair", "Rainf", "Wind", "PSurf"]
 MET_QC = [v + "_qc" for v in MET_VARS]
-FLUX_VARS = ["Qh", "Qle", "Rnet", "NEE"]
+FLUX_VARS = ["Qh", "Qle", "Qg", "Rnet", "NEE", "GPP"]
 FLUX_QC = [v + "_qc" for v in FLUX_VARS]
 GEO_VARS = ["latitude", "longitude", "elevation", "reference_height"]
 

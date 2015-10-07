@@ -16,11 +16,7 @@ import pickle
 
 # import pals_utils as pu
 from pals_utils.helpers import timeit, short_hash
-from pals_utils.data import pals_site_name, pals_xray_to_df, pals_xray_to_array
-
-
-MET_VARS = ["SWdown", "Tair", "LWdown", "Wind", "Rainf", "PSurf", "Qair"]
-FLUX_VARS = ["Qh", "Qle", "Rnet", "NEE"]
+from pals_utils.data import pals_site_name, pals_xray_to_df, pals_xray_to_array, MET_VARS, FLUX_VARS
 
 
 #################
@@ -254,11 +250,12 @@ def test_pipeline_crossval(pipe, name, met_data, flux_data):
 #@timeit
 def fit_pipe_multisite(pipe, met_data, flux_data):
 
-    met_array = np.concatenate([pals_xray_to_array(ds) for ds in met_data], 1)
-    print([list(ds.data_vars) for ds in flux_data])
-    flux_array = np.concatenate([pals_xray_to_array(ds) for ds in flux_data], 1)
+    met_array = pd.concat([pals_xray_to_df(ds) for ds in met_data])[MET_VARS]
+    flux_array = pd.concat([pals_xray_to_df(ds) for ds in flux_data])[FLUX_VARS]
+    # print([pals_xray_to_df(f).describe() for f in flux_data])
+    # print(flux_array.Qg)
 
-    pipe.fit(X=met_array, y=flux_array)
+    pipe.fit(X=met_array.as_matrix(), y=flux_array.as_matrix())
 
 
 #@timeit
