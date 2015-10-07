@@ -208,3 +208,12 @@ name = name=get_pipeline_name(pipe, "lag1"))
 ```
 
 
+### Markov lagging
+
+- use one timestep's output as an input for the next timestep
+
+
+PLUMBER plots/intercomparison
+=============================
+
+
