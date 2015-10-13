@@ -97,10 +97,10 @@ def rst_output(model, name, site, files):
 
 
 def main(args):
-    name = args['name']
+    name = args['<name>']
     model = get_model(name)
 
-    site = args['site']
+    site = args['<site>']
 
     files = PLUMBER_fit_predict_eval(model, name, site)
 
