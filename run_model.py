@@ -5,32 +5,17 @@ File: run_model.py
 Author: ned haughton
 Email: ned@nedhaughton.com
 Description: Fits and runs a basic model and produces rst output with diagnostics
-"""
 
-doc = '''
 Usage:
-    run_model.py
-    my_program tcp <host> <port> [--timeout=<seconds>]
-    my_program serial <port> [--baud=<n>] [--timeout=<seconds>]
-    my_program (-h | --help | --version)
+    run_model.py <name> <site>
 
 Options:
     -h, --help  Show this screen and exit.
     --baud=<n>  Baudrate [default: 9600]
-'''
+"""
 
 from docopt import docopt
 
-
-def main(args):
-
-    return
-
-
-if (__name__ == '__main__'):
-    args = docopt(doc)
-
-    main(args)
 from datetime import datetime as dt
 
 import pandas as pd
@@ -38,8 +23,9 @@ import pandas as pd
 from pals_utils.constants import DATASETS, MET_VARS, FLUX_VARS
 from pals_utils.data import get_site_data, pals_xray_to_df, xray_list_to_df, copy_data
 
-from ubermodel.models import get_pipeline_name
+from ubermodel.models import get_model
 from ubermodel.evaluate import evaluate_simulation
+from ubermodel.plots import diagnostic_plots
 
 
 def PLUMBER_fit_predict_eval(model, name, site):
@@ -72,18 +58,20 @@ def PLUMBER_fit_predict_eval(model, name, site):
         sim_data = copy_data(met_test)
 
         sim_data[v] = model.predict(met_test)
-    
-        evaluate_simulation(sim_data, flux_test, name)
-    
-        diagnostic_plots(sim_data, flux_data, name)
+
+        # evaluate_simulation(sim_data, flux_test, name)
+
+    files = diagnostic_plots(sim_data, flux_data, name)
+
+    return files
 
 
 def rst_output(model, name, site, files):
     print(dt.isoformat(dt.now(), sep=' '))
-    
+
     plots = '\n\n'.join([
         ".. image :: {file}".format(file=f) for f in files])
-    
+
     template = """
     {name} at {site}
     ====================
@@ -108,17 +96,27 @@ def rst_output(model, name, site, files):
     return output
 
 
-from sklearn.linear_model import LinearRegression
+def main(args):
+    name = args['name']
+    model = get_model(name)
 
-model = make_pipeline(LinearRegression())
-name = get_pipeline_name(model)
+    site = args['site']
 
-site = 'Tumba'
+    files = PLUMBER_fit_predict_eval(model, name, site)
 
-PLUMBER_fit_predict_eval(model, name, site)
+    rst_file = 'source/{model}/{site}.rst'.format(
+        model=model,
+        site=site)
 
-files = ['testing']
+    output = rst_output(model, name, site, files)
 
-output = rst_output(model, name, site, files)
+    with open(rst_file, 'w') as f:
+        f.write(output)
 
-with
+    return
+
+
+if (__name__ == '__main__'):
+    args = docopt(__doc__)
+
+    main(args)
