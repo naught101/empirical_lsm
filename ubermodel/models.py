@@ -16,7 +16,7 @@ import pickle
 
 # import pals_utils as pu
 from pals_utils.helpers import timeit, short_hash
-from pals_utils.data import pals_site_name, pals_xray_to_df, pals_xray_to_array, MET_VARS, FLUX_VARS
+from pals_utils.data import pals_site_name, pals_xray_to_df, pals_xray_to_array, copy_data, MET_VARS, FLUX_VARS
 
 
 #################
@@ -252,6 +252,8 @@ def fit_pipe_multisite(pipe, met_data, flux_data):
 
     met_array = pd.concat([pals_xray_to_df(ds) for ds in met_data])[MET_VARS]
     flux_array = pd.concat([pals_xray_to_df(ds) for ds in flux_data])[FLUX_VARS]
+    [print(f.attrs['PALS_dataset_name'], '\n', set(FLUX_VARS).intersection(list(f.data_vars)))
+            for f in flux_data]
     # print([pals_xray_to_df(f).describe() for f in flux_data])
     # print(flux_array.Qg)
 
@@ -261,6 +263,11 @@ def fit_pipe_multisite(pipe, met_data, flux_data):
 #@timeit
 def simulate_pipe(pipe, met_data):
 
-    sim_data = pipe.fit(X=pals_xray_to_array(met_data))
+    sim_data = copy_data(met_data)
+
+    sim_data_array = pipe.predict(X=pals_xray_to_array(met_data))
+
+    # TODO: figure out a way to keep track of the variables in the model... pandas-sklearn?
+
 
     return sim_data
