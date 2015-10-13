@@ -19,6 +19,7 @@ from docopt import docopt
 from datetime import datetime as dt
 
 import pandas as pd
+import sys
 
 from pals_utils.constants import DATASETS, MET_VARS, FLUX_VARS
 from pals_utils.data import get_site_data, pals_xray_to_df, xray_list_to_df, copy_data
@@ -40,6 +41,7 @@ def PLUMBER_fit_predict_eval(model, name, site):
                                 variables=met_vars, qc=True)
     met_test = pals_xray_to_df(met_data[site], variables=met_vars, qc=True)
 
+    sim_data_dict = dict()
     for v in FLUX_VARS:
         flux_train = xray_list_to_df([ds for s, ds in flux_data.items()
                                       if s != site and v in list(ds.data_vars)],
@@ -55,11 +57,15 @@ def PLUMBER_fit_predict_eval(model, name, site):
 
         model.fit(X=met_train[qc_index], y=flux_train[qc_index])
 
-        sim_data = copy_data(met_test)
-
-        sim_data[v] = model.predict(met_test)
+        sim_data_dict[v] = model.predict(met_test)
 
         # evaluate_simulation(sim_data, flux_test, name)
+
+    if len(sim_data_dict) < 1:
+        print("No fluxes successfully fitted, quitting")
+        sys.exit()
+
+    sim_data = sim_dict_to_xray(sim_dict_list, met_test)
 
     files = diagnostic_plots(sim_data, flux_data, name)
 
