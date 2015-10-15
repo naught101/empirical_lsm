@@ -61,6 +61,7 @@ def PLUMBER_fit_predict(model, name, site):
     :returns: TODO
 
     """
+    print("Loading all data... ", end='')
     met_data = get_site_data(DATASETS, 'met')
     flux_data = get_site_data(DATASETS, 'flux')
 
@@ -70,6 +71,7 @@ def PLUMBER_fit_predict(model, name, site):
 
     flux_vars = FLUX_VARS
 
+    print("Converting... ", end='')
     met_train = xray_list_to_df([ds for s, ds in met_data.items() if s != site],
                                 variables=met_vars, qc=True)
 
@@ -79,6 +81,7 @@ def PLUMBER_fit_predict(model, name, site):
     flux_train = xray_list_to_df([ds for s, ds in flux_data.items() if s != site],
                                  variables=flux_vars, qc=True)
 
+    print('Fitting and running {0} using {1}'.format(flux_vars, met_vars))
     sim_data_dict = dict()
     for v in flux_vars:
         flux_train_v = flux_train[[v]]
@@ -168,11 +171,13 @@ def rst_gen(model, name, site):
     :returns: TODO
 
     """
-    files = PLUMBER_fit_predict_eval(model, name, site)
-
     rst_file = 'source/models/{name}/{site}.rst'.format(
         name=name,
         site=site)
+
+    print("Generating rst file for {0} at {1}.".format(name, site))
+
+    files = PLUMBER_fit_predict_eval(model, name, site)
 
     output = rst_output(model, name, site, files)
 
