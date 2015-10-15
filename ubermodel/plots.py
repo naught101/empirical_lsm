@@ -29,7 +29,7 @@ def diagnostic_plots(sim_data, flux_data, name):
 
     base_path = os.path.join('source', name, site, 'figures')
     if not os.path.isdir(base_path):
-        os.mkdir(base_path)
+        os.makedirs(base_path)
 
     files = []
 
