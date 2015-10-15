@@ -59,6 +59,8 @@ def PLUMBER_fit_predict_eval(model, name, site):
     met_vars.remove('LWdown')
     met_vars.remove('PSurf')
 
+    flux_vars = FLUX_VARS
+
     met_train = xray_list_to_df([ds for s, ds in met_data.items() if s != site],
                                 variables=met_vars, qc=True)
 
@@ -66,10 +68,10 @@ def PLUMBER_fit_predict_eval(model, name, site):
     met_test = pals_xray_to_df(met_data[site], variables=met_vars)
 
     flux_train = xray_list_to_df([ds for s, ds in flux_data.items() if s != site],
-                                 variables=FLUX_VARS, qc=True)
+                                 variables=flux_vars, qc=True)
 
     sim_data_dict = dict()
-    for v in FLUX_VARS:
+    for v in flux_vars:
         flux_train_v = flux_train[[v]]
 
         if met_train.shape[0] != flux_train_v.shape[0]:
