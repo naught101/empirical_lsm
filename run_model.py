@@ -124,7 +124,8 @@ def PLUMBER_fit_predict_eval(model, name, site):
 
 
 def rst_output(model, name, site, files):
-    print(dt.isoformat(dt.now(), sep=' '))
+
+    date = dt.isoformat(dt.now(), sep=' ')
 
     plots = '\n\n'.join([
         ".. image :: {file}".format(file=f) for f in files])
@@ -132,6 +133,8 @@ def rst_output(model, name, site, files):
     template = dedent("""
     {name} at {site}
     ====================
+
+    date: {date}
 
     Model details:
     --------------
@@ -148,17 +151,23 @@ def rst_output(model, name, site, files):
     output = (template.format(model=model,
                               name=name,
                               site=site,
-                              plots=plots))
+                              plots=plots,
+                              date=date))
 
     return output
 
 
-def main(args):
-    name = args['<name>']
-    model = get_model(name)
+def rst_gen(model, name, site):
+    """run a model and generate an rst file.
 
-    site = args['<site>']
+    This is useful for importing.
 
+    :model: TODO
+    :name: TODO
+    :site: TODO
+    :returns: TODO
+
+    """
     files = PLUMBER_fit_predict_eval(model, name, site)
 
     rst_file = 'source/{name}/{site}.rst'.format(
@@ -169,6 +178,15 @@ def main(args):
 
     with open(rst_file, 'w') as f:
         f.write(output)
+
+
+def main(args):
+    name = args['<name>']
+    model = get_model(name)
+
+    site = args['<site>']
+
+    rst_gen(model, name, site)
 
     return
 
