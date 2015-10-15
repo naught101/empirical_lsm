@@ -112,10 +112,13 @@ def PLUMBER_fit_predict(model, name, site):
 
 
 def PLUMBER_fit_predict_eval(model, name, site):
-    nc_path = 'source/models/{0}/{1}.nc'.format(name, site)
+    model_path = 'source/models/{0}/'.format(name)
+    nc_path = '{0}{1}.nc'.format(model_path, name)
     if os.path.exists(nc_path):
         sim_data = xray.open_dataset(nc_path)
     else:
+        if not os.path.exists(model_path):
+            os.makedirs(model_path)
         sim_data = PLUMBER_fit_predict(model, name, site)
         sim_data.to_netcdf(nc_path)
 
