@@ -43,9 +43,9 @@ def sim_dict_to_xray(sim_dict, old_ds):
 
     for v in sim_dict:
         sim_var = sim_dict[v]
-        sim_var.shape = (1, 1, sim_var.shape[0])
-        sim_array = xray.DataArray(sim_var, dims=['x', 'y', 'time'],
-            coords=dict(x=[1.0], y=[1.0], time=old_ds.coords['time']))
+        sim_var.shape = (sim_var.shape[0], 1, 1)
+        sim_array = xray.DataArray(sim_var, dims=['time', 'y', 'x'],
+            coords=dict(time=old_ds.coords['time'], y=[1.0], x=[1.0]))
         sim_data[v] = sim_array
 
     return sim_data

@@ -13,7 +13,7 @@ import seaborn as sns
 import pandas as pd
 import os
 
-from pals_utils.data import pals_site_name
+from pals_utils.data import pals_site_name, pals_xray_to_df
 
 
 def diagnostic_plots(sim_data, flux_data, name):
@@ -45,7 +45,7 @@ def diagnostic_plots(sim_data, flux_data, name):
 
 
 def plot_monthly_timeseries(sim_data, flux_data, var, name):
-    data = pd.concat([sim_data[var].to_dataframe(), flux_data[var].to_dataframe()])
-    data.columns = ['simulation', 'observations']
+    data = pd.concat([pals_xray_to_df(sim_data, [var]), pals_xray_to_df(flux_data, [var])], axis=1)
+    data.columns = ['modelled', 'observed']
 
     return data.plot()
