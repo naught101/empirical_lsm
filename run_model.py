@@ -21,6 +21,7 @@ from datetime import datetime as dt
 import pandas as pd
 import sys
 import xray
+from matplotlib.cbook import dedent
 
 from pals_utils.constants import DATASETS, MET_VARS, FLUX_VARS
 from pals_utils.data import get_site_data, pals_xray_to_df, xray_list_to_df, copy_data
@@ -106,7 +107,7 @@ def rst_output(model, name, site, files):
     plots = '\n\n'.join([
         ".. image :: {file}".format(file=f) for f in files])
 
-    template = """
+    template = dedent("""
     {name} at {site}
     ====================
 
@@ -120,7 +121,7 @@ def rst_output(model, name, site, files):
     ------
 
     {plots}
-    """
+    """)
 
     output = (template.format(model=model,
                               name=name,
@@ -138,8 +139,8 @@ def main(args):
 
     files = PLUMBER_fit_predict_eval(model, name, site)
 
-    rst_file = 'source/{model}/{site}.rst'.format(
-        model=model,
+    rst_file = 'source/{name}/{site}.rst'.format(
+        name=name,
         site=site)
 
     output = rst_output(model, name, site, files)
