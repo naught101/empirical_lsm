@@ -46,7 +46,7 @@ def sim_dict_to_xray(sim_dict, old_ds):
         sim_var = sim_dict[v]
         sim_var.shape = (sim_var.shape[0], 1, 1)
         sim_array = xray.DataArray(sim_var, dims=['time', 'y', 'x'],
-            coords=dict(time=old_ds.coords['time'], y=[1.0], x=[1.0]))
+                                   coords=dict(time=old_ds.coords['time'], y=[1.0], x=[1.0]))
         sim_data[v] = sim_array
 
     return sim_data
@@ -116,7 +116,7 @@ def PLUMBER_fit_predict_eval(model, name, site):
         sim_data = PLUMBER_fit_predict(model, name, site)
         sim_data.to_netcdf(nc_path)
 
-    flux_data = get_site_data(site, 'flux')
+    flux_data = get_site_data([site], 'flux')[site]
 
     files = diagnostic_plots(sim_data, flux_data, name)
 
