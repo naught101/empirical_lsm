@@ -109,7 +109,7 @@ def PLUMBER_fit_predict(model, name, site):
 
 
 def PLUMBER_fit_predict_eval(model, name, site):
-    nc_path = 'source/{0}/{1}.nc'.format(name, site)
+    nc_path = 'source/models/{0}/{1}.nc'.format(name, site)
     if os.path.exists(nc_path):
         sim_data = xray.open_dataset(nc_path)
     else:
@@ -170,7 +170,7 @@ def rst_gen(model, name, site):
     """
     files = PLUMBER_fit_predict_eval(model, name, site)
 
-    rst_file = 'source/{name}/{site}.rst'.format(
+    rst_file = 'source/models/{name}/{site}.rst'.format(
         name=name,
         site=site)
 
