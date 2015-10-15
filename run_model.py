@@ -20,6 +20,7 @@ from datetime import datetime as dt
 
 import pandas as pd
 import sys
+import os
 import xray
 from matplotlib.cbook import dedent
 
@@ -51,7 +52,15 @@ def sim_dict_to_xray(sim_dict, old_ds):
     return sim_data
 
 
-def PLUMBER_fit_predict_eval(model, name, site):
+def PLUMBER_fit_predict(model, name, site):
+    """Fit and predict a model
+
+    :model: TODO
+    :name: TODO
+    :site: TODO
+    :returns: TODO
+
+    """
     met_data = get_site_data(DATASETS, 'met')
     flux_data = get_site_data(DATASETS, 'flux')
 
@@ -74,8 +83,6 @@ def PLUMBER_fit_predict_eval(model, name, site):
     for v in flux_vars:
         flux_train_v = flux_train[[v]]
 
-        if met_train.shape[0] != flux_train_v.shape[0]:
-            "fuck"
         # Ditch all of the incomplete data
         qc_index = (~pd.concat([met_train, flux_train_v], axis=1).isnull()).apply(all, axis=1)
         if qc_index.sum() > 0:
@@ -98,7 +105,20 @@ def PLUMBER_fit_predict_eval(model, name, site):
 
     sim_data = sim_dict_to_xray(sim_data_dict, met_data[site])
 
-    files = diagnostic_plots(sim_data, flux_data[site], name)
+    return sim_data
+
+
+def PLUMBER_fit_predict_eval(model, name, site):
+    nc_path = 'source/{0}/{1}.nc'.format(name, site)
+    if os.path.exists(nc_path):
+        sim_data = xray.open_dataset(nc_path)
+    else:
+        sim_data = PLUMBER_fit_predict(model, name, site)
+        sim_data.to_netcdf(nc_path)
+
+    flux_data = get_site_data(site, 'flux')
+
+    files = diagnostic_plots(sim_data, flux_data, name)
 
     return files
 
