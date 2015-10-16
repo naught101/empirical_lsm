@@ -27,7 +27,7 @@ def diagnostic_plots(sim_data, flux_data, name):
     """
     site = pals_site_name(flux_data)
 
-    fig_path = os.path.join('source', 'models', name, site, 'figures')
+    fig_path = os.path.join('source', 'models', name, 'figures')
     if not os.path.isdir(fig_path):
         os.makedirs(fig_path)
 
@@ -37,7 +37,7 @@ def diagnostic_plots(sim_data, flux_data, name):
     for var in ['Qh']:
         plot_monthly_timeseries(sim_data, flux_data, var, name)
         filename = '{0}_{1}_monthly_timeseries.png'.format(name, site)
-        plot_path = os.path.join(fig_path, filename)
+        plot_path = os.path.join('figures', filename)
         files.append(plot_path)
         pl.savefig(plot_path)
 

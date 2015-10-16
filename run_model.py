@@ -136,8 +136,10 @@ def format_evaluation(eval_results):
 
 
 def rst_output(model, name, site, eval_text, files):
+    """format all the datas into an rst!
+    """
 
-    date = dt.isoformat(dt.now(), sep=' ')
+    date = dt.isoformat(dt.now().replace(microsecond=0), sep=' ')
 
     plots = '\n\n'.join([
         ".. image :: {file}".format(file=f) for f in files])
@@ -146,12 +148,12 @@ def rst_output(model, name, site, eval_text, files):
     {name} at {site}
     ====================
 
-    date: {date}
+    date: :code:`{date}`
 
     Model details:
     --------------
 
-    {model}
+    :code:`{model}`
 
     Evaluation results:
     -------------------
