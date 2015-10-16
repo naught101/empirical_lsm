@@ -173,7 +173,8 @@ def rst_output(model, name, site, eval_text, files):
                               name=name,
                               site=site,
                               plots=plots,
-                              date=date))
+                              date=date,
+                              eval_text=eval_text))
 
     return output
 
