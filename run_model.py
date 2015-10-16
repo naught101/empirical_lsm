@@ -99,9 +99,6 @@ def PLUMBER_fit_predict(model, name, site):
 
         sim_data_dict[v] = model.predict(met_test)
 
-        # flux_test = pals_xray_to_df(flux_data[site], variables=[v])
-        # evaluate_simulation(sim_data, flux_test, name)
-
     if len(sim_data_dict) < 1:
         print("No fluxes successfully fitted, quitting")
         sys.exit()
@@ -124,12 +121,26 @@ def PLUMBER_fit_predict_eval(model, name, site):
 
     flux_data = get_site_data([site], 'flux')[site]
 
+    eval_results = evaluate_simulation(sim_data, flux_data, name)
+
     files = diagnostic_plots(sim_data, flux_data, name)
 
-    return files
+    return eval_results, files
 
 
-def rst_output(model, name, site, files):
+def format_evaluation(eval_results):
+    """Format eval results in rst format
+
+    TODO: STUB
+
+    :eval_results: TODO
+    :returns: TODO
+
+    """
+    return repr(eval_results)
+
+
+def rst_output(model, name, site, eval_text, files):
 
     date = dt.isoformat(dt.now(), sep=' ')
 
@@ -147,6 +158,10 @@ def rst_output(model, name, site, files):
 
     {model}
 
+    Evaluation results:
+    -------------------
+
+    {eval_text}
 
     Plots:
     ------
@@ -180,9 +195,11 @@ def rst_gen(model, name, site):
 
     print("Generating rst file for {0} at {1}.".format(name, site))
 
-    files = PLUMBER_fit_predict_eval(model, name, site)
+    eval_results, files = PLUMBER_fit_predict_eval(model, name, site)
 
-    output = rst_output(model, name, site, files)
+    eval_text = format_evaluation(eval_results)
+
+    output = rst_output(model, name, site, eval_text, files)
 
     with open(rst_file, 'w') as f:
         f.write(output)
