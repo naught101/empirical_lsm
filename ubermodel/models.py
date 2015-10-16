@@ -199,7 +199,7 @@ def get_model(name):
     if len(transforms) > 0:
         raise Exception("unknown transforms: %s" % repr(transforms))
 
-    model = get_model(model_dict['class'], model_dict['args'])
+    model = get_model_class(model_dict['class'], model_dict['args'])
     pipe_list.append(model)
 
     return make_pipeline(pipe_list)
@@ -229,7 +229,7 @@ def get_pca():
     return PCA()
 
 
-def get_class(class_name, kwargs):
+def get_model_class(class_name, kwargs):
     """return a scikit-learn model class, and the required arguments
 
     :class_name: name of the model class
