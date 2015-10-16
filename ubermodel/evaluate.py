@@ -18,12 +18,6 @@ from pals_utils.helpers import short_hash
 
 # Evaluate
 
-def evaluation_exists(eval_id, cache):
-    """Check if evaluation for this set of simulation and obs data exists"""
-    if ("metric_data" in cache) and (eval_id in cache.metric_data.index):
-        return cache.metric_data.ix[eval_id, 'eval_hash']
-
-
 def evaluate_simulation(sim_data, flux_data, model_name, flux_vars, cache):
     """Top-level simulation evaluator.
 
