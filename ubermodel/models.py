@@ -28,20 +28,24 @@ def get_model(name):
 
     pipe_list = []
 
-    transforms = model_dict['transforms'].copy()
-    if 'scaler' in transforms:
-        scaler = transforms.pop('scaler')
-        pipe_list.append(get_scaler(scaler))
-    if 'pca' in transforms:
-        transforms.pop('pca')
-        pipe_list.append(get_pca())
-    if len(transforms) > 0:
-        raise Exception("unknown transforms: %s" % repr(transforms))
+    if 'transforms' in model_dict:
+        transforms = model_dict['transforms'].copy()
+        if 'scaler' in transforms:
+            scaler = transforms.pop('scaler')
+            pipe_list.append(get_scaler(scaler))
+        if 'pca' in transforms:
+            transforms.pop('pca')
+            pipe_list.append(get_pca())
+        if len(transforms) > 0:
+            raise Exception("unknown transforms: %s" % repr(transforms))
 
-    model = get_model_class(model_dict['class'], model_dict['args'])
+    if 'args' in model_dict:
+        model = get_model_class(model_dict['class'], model_dict['args'])
+    else:
+        model = get_model_class(model_dict['class'])
     pipe_list.append(model)
 
-    return make_pipeline(pipe_list)
+    return make_pipeline(*pipe_list)
 
 
 def get_scaler(scaler):
@@ -68,7 +72,7 @@ def get_pca():
     return PCA()
 
 
-def get_model_class(class_name, kwargs):
+def get_model_class(class_name, kwargs={}):
     """return a scikit-learn model class, and the required arguments
 
     :class_name: name of the model class
@@ -77,31 +81,31 @@ def get_model_class(class_name, kwargs):
     # , Perceptron, PassiveAggressiveRegressor
     # , NuSVR, LinearSVR
 
-    if class_name == 'lin':
+    if class_name == 'LinearRegression':
         from sklearn.linear_model import LinearRegression
         return LinearRegression(**kwargs)
 
-    if class_name == 'sgd':
+    if class_name == 'SGDRegressor':
         from sklearn.linear_model import SGDRegressor
         return SGDRegressor(**kwargs)
 
-    if class_name == 'svr':
+    if class_name == 'SVR':
         from sklearn.svm import SVR
         return SVR(**kwargs)
 
-    if class_name == 'tree':
+    if class_name == 'DecisionTreeRegressor':
         from sklearn.tree import DecisionTreeRegressor
         return DecisionTreeRegressor(**kwargs)
 
-    if class_name == 'extratree':
+    if class_name == 'ExtraTreesRegressor':
         from sklearn.ensemble import ExtraTreesRegressor
         return ExtraTreesRegressor(**kwargs)
 
-    if class_name == 'kneighbours':
+    if class_name == 'KNeighborsRegressor':
         from sklearn.neighbors import KNeighborsRegressor
         return KNeighborsRegressor(**kwargs)
 
-    if class_name == 'mlp':
+    if class_name == 'MultilayerPerceptronRegressor':
         from sklearn.neural_network import MultilayerPerceptronRegressor
         # This is from a pull request: https://github.com/scikit-learn/scikit-learn/pull/3939
         return MultilayerPerceptronRegressor(**kwargs)
