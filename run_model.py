@@ -23,6 +23,7 @@ import sys
 import os
 import xray
 from matplotlib.cbook import dedent
+from tabulate import tabulate
 
 from pals_utils.constants import DATASETS, MET_VARS, FLUX_VARS
 from pals_utils.data import get_site_data, pals_xray_to_df, xray_list_to_df, copy_data
@@ -130,14 +131,8 @@ def PLUMBER_fit_predict_eval(model, name, site):
 
 def format_evaluation(eval_results):
     """Format eval results in rst format
-
-    TODO: STUB
-
-    :eval_results: TODO
-    :returns: TODO
-
     """
-    return repr(eval_results)
+    return tabulate(eval_results, headers='firstrow', tablefmt='rst')
 
 
 def rst_output(model, name, site, eval_text, files):
