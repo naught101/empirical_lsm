@@ -67,4 +67,20 @@ def plot_scatter(data, name, var, site):
     return filename
 
 
-PLOTS = [plot_weekly_timeseries, plot_scatter]
+def plot_annual_cycle(data, name, var, site):
+    data.groupby(data.index.month).mean().plot()
+    pl.title('{0}: Annual average {1} cycle at {2}'.format(name, var, site))
+
+    filename = '{0}_{1}_{2}_annual_cycle.png'.format(name, var, site)
+    return filename
+
+
+def plot_daily_cycle(data, name, var, site):
+    data.groupby(data.index.dayofyear).mean().plot()
+    pl.title('{0}: daily average {1} cycle at {2}'.format(name, var, site))
+
+    filename = '{0}_{1}_{2}_daily_cycle.png'.format(name, var, site)
+    return filename
+
+
+PLOTS = [plot_weekly_timeseries, plot_scatter, plot_annual_cycle, plot_daily_cycle]
