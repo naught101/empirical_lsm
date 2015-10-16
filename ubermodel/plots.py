@@ -27,6 +27,8 @@ def diagnostic_plots(sim_data, flux_data, name):
     """
     site = pals_site_name(flux_data)
 
+    print('Running standard plots for %s at %s' % (name, site))
+
     fig_path = os.path.join('source', 'models', name, 'figures')
     if not os.path.isdir(fig_path):
         os.makedirs(fig_path)
