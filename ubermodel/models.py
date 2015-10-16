@@ -9,10 +9,12 @@ Description:
 """
 
 import xray
-import numpy as np
 import pandas as pd
 import os
 import pickle
+import yaml
+
+from sklearn.pipeline import make_pipeline
 
 # import pals_utils as pu
 from pals_utils.helpers import timeit, short_hash
@@ -176,52 +178,96 @@ def simulate_model_pipeline(pipe, met_data, name, cache, clear_cache=False):
     return sim_data, sim_hash
 
 
-def get_model(model_name):
-    """return a scikit-learn model, and the required arguments
+def get_model(name):
+    """return a model as defines in model_search.yaml
 
-    :model_name: name of the model
-    :returns: model object
+    :returns: TODO
+
+    """
+    with open('model_search.yaml') as f:
+        model_dict = yaml.load(f)[name]
+
+    pipe_list = []
+
+    transforms = model_dict['transforms'].copy()
+    if 'scaler' in transforms:
+        scaler = transforms.pop('scaler')
+        pipe_list.append(get_scaler(scaler))
+    if 'pca' in transforms:
+        transforms.pop('pca')
+        pipe_list.append(get_pca())
+    if len(transforms) > 0:
+        raise Exception("unknown transforms: %s" % repr(transforms))
+
+    model = get_model(model_dict['class'], model_dict['args'])
+    pipe_list.append(model)
+
+    return make_pipeline(pipe_list)
+
+
+def get_scaler(scaler):
+    """get a sklearn scaler from a scaler name
+
+    :scaler: TODO
+    :returns: TODO
+
+    """
+    if scaler == 'standard':
+        from sklearn.preprocessing import StandardScaler
+        return StandardScaler()
+    if scaler == 'minmax':
+        from sklearn.preprocessing import MinMaxScaler
+        return MinMaxScaler()
+
+
+def get_pca():
+    """get a PCA decomposition
+    :returns: TODO
+
+    """
+    from sklearn.decomposition import PCA
+    return PCA()
+
+
+def get_class(class_name, kwargs):
+    """return a scikit-learn model class, and the required arguments
+
+    :class_name: name of the model class
+    :returns: model class object
     """
     # , Perceptron, PassiveAggressiveRegressor
     # , NuSVR, LinearSVR
 
-    if model_name == 'lin':
+    if class_name == 'lin':
         from sklearn.linear_model import LinearRegression
-        return LinearRegression()
+        return LinearRegression(**kwargs)
 
-    if model_name == 'sgd':
+    if class_name == 'sgd':
         from sklearn.linear_model import SGDRegressor
-        return SGDRegressor()
+        return SGDRegressor(**kwargs)
 
-    if model_name == 'svr':
+    if class_name == 'svr':
         from sklearn.svm import SVR
-        return SVR()
-        # SVR(kernel="poly")
+        return SVR(**kwargs)
 
-    if model_name == 'tree':
+    if class_name == 'tree':
         from sklearn.tree import DecisionTreeRegressor
-        return DecisionTreeRegressor()
+        return DecisionTreeRegressor(**kwargs)
 
-    if model_name == 'extratree':
+    if class_name == 'extratree':
         from sklearn.ensemble import ExtraTreesRegressor
-        return ExtraTreesRegressor()
+        return ExtraTreesRegressor(**kwargs)
 
-    if model_name == 'kneighbours':
+    if class_name == 'kneighbours':
         from sklearn.neighbors import KNeighborsRegressor
-        return KNeighborsRegressor()
-        # KNeighborsRegressor(n_neighbors=1000)
+        return KNeighborsRegressor(**kwargs)
 
-    if model_name == 'mlp':
+    if class_name == 'mlp':
         from sklearn.neural_network import MultilayerPerceptronRegressor
         # This is from a pull request: https://github.com/scikit-learn/scikit-learn/pull/3939
-        return MultilayerPerceptronRegressor()
-        # MultilayerPerceptronRegressor(activation="logistic")
-        # MultilayerPerceptronRegressor(hidden_layer_sizes=(10,10,))
-        # MultilayerPerceptronRegressor(hidden_layer_sizes=(10,30,))
-        # MultilayerPerceptronRegressor(hidden_layer_sizes=(20,20,))
-        # MultilayerPerceptronRegressor(hidden_layer_sizes=(20,20,20,))
+        return MultilayerPerceptronRegressor(**kwargs)
 
-    raise Exception("Unknown Model")
+    raise Exception("Unknown Model class")
 
 
 def test_pipeline_crossval(pipe, name, met_data, flux_data):
