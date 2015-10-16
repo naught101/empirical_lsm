@@ -83,4 +83,31 @@ def plot_daily_cycle(data, name, var, site):
     return filename
 
 
-PLOTS = [plot_weekly_timeseries, plot_scatter, plot_annual_cycle, plot_daily_cycle]
+def plot_qq_plot(data, name, var, site):
+    """qqplot!
+    """
+    data.apply(sorted).plot.scatter('observed', 'modelled', c='black', s=1, alpha=0.5)
+    pl.title('{0}: Quantile-quantile plot for {1} at {2}'.format(name, var, site))
+
+    filename = '{0}_{1}_{2}_qq_plot.png'.format(name, var, site)
+    return filename
+
+
+def plot_residuals(data, name, var, site):
+    """Residual errors plot
+    """
+    data['residuals'] = data['modelled'] - data['observed']
+    data.plot.scatter('observed', 'residuals', c='black', s=1, alpha=0.5)
+
+    pl.title('{0}: residual plot for {1} at {2}'.format(name, var, site))
+
+    filename = '{0}_{1}_{2}_residual_plot.png'.format(name, var, site)
+    return filename
+
+
+PLOTS = [plot_weekly_timeseries,
+         plot_scatter,
+         plot_annual_cycle,
+         plot_daily_cycle,
+         plot_qq_plot,
+         plot_residuals]
