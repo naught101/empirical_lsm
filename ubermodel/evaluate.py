@@ -29,6 +29,7 @@ def evaluate_simulation(sim_data, flux_data, name):
                                    .intersection(flux_data.data_vars))
 
     metric_data = pd.DataFrame()
+    metric_data.index.name = 'metric'
     for v in eval_vars:
         sim_v = sim_data[v].values.ravel()
         obs_v = flux_data[v].values.ravel()

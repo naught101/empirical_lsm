@@ -134,7 +134,7 @@ def PLUMBER_fit_predict_eval(model, name, site):
 def format_evaluation(eval_results):
     """Format eval results in rst format
     """
-    return tabulate(eval_results, headers='firstrow', tablefmt='rst')
+    return tabulate(eval_results.round(4), headers='keys', tablefmt='rst')
 
 
 def rst_output(model, name, site, eval_text, files):
