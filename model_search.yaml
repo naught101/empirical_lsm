@@ -31,7 +31,7 @@ poly5:
 #         - very sensitive to scaling. Not sensitive to PCA
 #     class: SGDRegressor
 #     transforms:
-#         scaling: standard
+#         scaler: standard
 
 ### Support Vector Machines
 svm:
@@ -39,21 +39,21 @@ svm:
         - Sensitive to scaling, not to PCA
     class: SVR
     transforms:
-        scaling: standard
+        scaler: standard
 
 svm_poly:
     class: SVR
-    transforms:
-        scaling: standard
     args:
         kernel: poly
+    transforms:
+        scaler: standard
 
 
 ### Multilayer Perceptron
 mlp:
     class: MultilayerPerceptronRegressor
     transforms:
-        scaling: standard
+        scaler: standard
         pca: True
 
 mlp_log:
@@ -61,7 +61,7 @@ mlp_log:
     args: 
         activation: logistic
     transforms:
-        scaling: standard
+        scaler: standard
         pca: True
 
 # Maybe sklearn.grid_search would be a better way of doing this?
@@ -70,7 +70,7 @@ mlp_20_20_20:
     args: 
         hidden_layer_sizes: [20,20,20,]
     transforms:
-        scaling: standard
+        scaler: standard
         pca: True
 
 mlp_10_10:
@@ -78,7 +78,7 @@ mlp_10_10:
     args: 
         hidden_layer_sizes: [10,10,]
     transforms:
-        scaling: standard
+        scaler: standard
         pca: True
 
 mlp_10_20:
@@ -86,7 +86,7 @@ mlp_10_20:
     args: 
         hidden_layer_sizes: [10,30,]
     transforms:
-        scaling: standard
+        scaler: standard
         pca: True
 
 mlp_20_20:
@@ -94,7 +94,7 @@ mlp_20_20:
     args: 
         hidden_layer_sizes: [20,20,]
     transforms:
-        scaling: standard
+        scaler: standard
         pca: True
 
 
@@ -114,9 +114,8 @@ knn_1k:
 ### Decision Trees
 tree:
     class: DecisionTreeRegressor
-
     args:
-        scaling: standard
+        scaler: standard
         pca: True
 
 randomforest:
@@ -137,8 +136,8 @@ lin_lag1:
 
 ### Markov lagging
 markov1:
-    notes: TODO: need a wrapper that handles the running as well as the fitting.
-        - use one timestep's output as an input for the next timestep
+    notes: "TODO: need a wrapper that handles the running as well as the fitting.
+        - use one timestep's output as an input for the next timestep"
     class: LinearRegression
     transforms:
         markov_lag: 1
