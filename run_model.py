@@ -110,8 +110,8 @@ def PLUMBER_fit_predict(model, name, site):
 
 
 def PLUMBER_fit_predict_eval(model, name, site):
-    model_path = 'source/models/{0}/'.format(name)
-    nc_path = '{0}{1}.nc'.format(model_path, name)
+    model_path = 'source/models/{0}/sim_data/'.format(name)
+    nc_path = '{0}{1}_{2}.nc'.format(model_path, name, site)
     if os.path.exists(nc_path):
         print('%s already run at %s - loading from %s' % (name, site, nc_path))
         sim_data = xray.open_dataset(nc_path)
