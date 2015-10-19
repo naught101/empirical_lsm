@@ -109,15 +109,27 @@ def PLUMBER_fit_predict(model, name, site):
     return sim_data
 
 
-def PLUMBER_fit_predict_eval(model, name, site):
+def get_sim_nc_path(name, site):
+    """return the sim netcdf path, and make parent directories if they don't already exist.
+
+    :name: name of the model
+    :site: PALS site name to run the model at
+    :returns: sim netcdf path
+    """
     model_path = 'source/models/{n}/sim_data/'.format(n=name)
+    if not os.path.exists(model_path):
+        os.makedirs(model_path)
     nc_path = '{p}{n}_{s}.nc'.format(p=model_path, n=name, s=site)
+
+    return nc_path
+
+
+def PLUMBER_fit_predict_eval(model, name, site):
+    nc_path = get_sim_nc_path(name, site)
     if os.path.exists(nc_path):
         print('{n} already run at {s} - loading from {p}'.format(n=name, s=site, p=nc_path))
         sim_data = xray.open_dataset(nc_path)
     else:
-        if not os.path.exists(model_path):
-            os.makedirs(model_path)
         sim_data = PLUMBER_fit_predict(model, name, site)
         sim_data.to_netcdf(nc_path)
 
