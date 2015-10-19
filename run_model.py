@@ -7,11 +7,11 @@ Email: ned@nedhaughton.com
 Description: Fits and runs a basic model and produces rst output with diagnostics
 
 Usage:
-    run_model.py <name> <site>
+    run_model.py run <name> <site>
+    run_model.py eval <name> <site> [<file>]
 
 Options:
     -h, --help  Show this screen and exit.
-    --baud=<n>  Baudrate [default: 9600]
 """
 
 from docopt import docopt
@@ -36,9 +36,9 @@ from ubermodel.plots import diagnostic_plots
 def sim_dict_to_xray(sim_dict, old_ds):
     """Converts a dictionary of arrays into a xray dataset with the same geo data as old_ds
 
-    :sim_dict: TODO
-    :old_ds: TODO
-    :returns: TODO
+    :sim_dict: Dictionary of simulated variable vectors
+    :old_ds: xray dataset from which to copy metadata
+    :returns: xray dataset with sim_dict data
 
     """
     sim_data = copy_data(old_ds)
@@ -56,10 +56,10 @@ def sim_dict_to_xray(sim_dict, old_ds):
 def PLUMBER_fit_predict(model, name, site):
     """Fit and predict a model
 
-    :model: TODO
-    :name: TODO
-    :site: TODO
-    :returns: TODO
+    :model: sklearn-style model or pipeline (regression estimator)
+    :name: name of the model
+    :site: PALS site name to run the model at
+    :returns: xray dataset of simulation
 
     """
     print("Loading all data... ", end='')
@@ -183,11 +183,9 @@ def rst_write(model, name, site, eval_results, files):
 
     This is useful for importing.
 
-    :model: TODO
-    :name: TODO
-    :site: TODO
-    :returns: TODO
-
+    :model: sklearn-style model or pipeline (regression estimator)
+    :name: name of the model
+    :site: PALS site name to run the model at
     """
     rst_file = 'source/models/{n}/{n}_{s}.rst'.format(n=name, s=site)
 
@@ -206,11 +204,9 @@ def rst_write(model, name, site, eval_results, files):
 def main_run(model, name, site):
     """Main function for fitting, running, and evaluating a model.
 
-    :model: TODO
-    :name: TODO
-    :site: TODO
-    :returns: TODO
-
+    :model: sklearn-style model or pipeline (regression estimator)
+    :name: name of the model
+    :site: PALS site name to run the model at
     """
     eval_results, files = PLUMBER_fit_predict_eval(model, name, site)
 
@@ -221,11 +217,15 @@ def main_run(model, name, site):
 
 def main(args):
     name = args['<name>']
-    model = get_model(name)
-
     site = args['<site>']
 
-    main_run(model, name, site)
+    if args['run']:
+        model = get_model(name)
+        main_run(model, name, site)
+
+    elif args['eval']:
+        if args['
+        sim_data = 
 
     return
 
