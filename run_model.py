@@ -137,7 +137,7 @@ def format_evaluation(eval_results):
     return tabulate(eval_results.round(4), headers='keys', tablefmt='rst')
 
 
-def rst_output(model, name, site, eval_text, files):
+def rst_format(model, name, site, eval_text, files):
     """format all the datas into an rst!
     """
 
@@ -178,7 +178,7 @@ def rst_output(model, name, site, eval_text, files):
     return output
 
 
-def rst_gen(model, name, site):
+def rst_write(model, name, site, eval_results, files):
     """run a model and generate an rst file.
 
     This is useful for importing.
@@ -189,20 +189,34 @@ def rst_gen(model, name, site):
     :returns: TODO
 
     """
-    rst_file = 'source/models/{n}/{n}_{s}.rst'.format(
-        n=name,
-        s=site)
+    rst_file = 'source/models/{n}/{n}_{s}.rst'.format(n=name, s=site)
 
     print("Generating rst file for {n} at {s}.".format(n=name, s=site))
 
-    eval_results, files = PLUMBER_fit_predict_eval(model, name, site)
-
     eval_text = format_evaluation(eval_results)
 
-    output = rst_output(model, name, site, eval_text, files)
+    output = rst_format(model, name, site, eval_text, files)
 
     with open(rst_file, 'w') as f:
         f.write(output)
+
+    return
+
+
+def main_run(model, name, site):
+    """Main function for fitting, running, and evaluating a model.
+
+    :model: TODO
+    :name: TODO
+    :site: TODO
+    :returns: TODO
+
+    """
+    eval_results, files = PLUMBER_fit_predict_eval(model, name, site)
+
+    rst_write(model, name, site, eval_results, files)
+
+    return
 
 
 def main(args):
@@ -211,7 +225,7 @@ def main(args):
 
     site = args['<site>']
 
-    rst_gen(model, name, site)
+    main_run(model, name, site)
 
     return
 
