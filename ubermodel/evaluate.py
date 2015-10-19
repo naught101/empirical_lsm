@@ -39,7 +39,7 @@ def evaluate_simulation(sim_data, flux_data, name):
 
     site = pals_site_name(flux_data)
 
-    eval_path = 'source/models/{0}/{1}.csv'.format(name, site)
+    eval_path = 'source/models/{n}/{n}_{s}_metrics.csv'.format(n=name, s=site)
     metric_data.to_csv(eval_path)
 
     return metric_data

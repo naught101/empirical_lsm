@@ -82,7 +82,7 @@ def PLUMBER_fit_predict(model, name, site):
     flux_train = xray_list_to_df([ds for s, ds in flux_data.items() if s != site],
                                  variables=flux_vars, qc=True)
 
-    print('Fitting and running {0} using {1}'.format(flux_vars, met_vars))
+    print('Fitting and running {f} using {m}'.format(f=flux_vars, m=met_vars))
     sim_data_dict = dict()
     for v in flux_vars:
         flux_train_v = flux_train[[v]]
@@ -110,8 +110,8 @@ def PLUMBER_fit_predict(model, name, site):
 
 
 def PLUMBER_fit_predict_eval(model, name, site):
-    model_path = 'source/models/{0}/sim_data/'.format(name)
-    nc_path = '{0}{1}_{2}.nc'.format(model_path, name, site)
+    model_path = 'source/models/{n}/sim_data/'.format(n=name)
+    nc_path = '{p}{n}_{s}.nc'.format(p=model_path, n=name, s=site)
     if os.path.exists(nc_path):
         print('%s already run at %s - loading from %s' % (name, site, nc_path))
         sim_data = xray.open_dataset(nc_path)
@@ -189,11 +189,11 @@ def rst_gen(model, name, site):
     :returns: TODO
 
     """
-    rst_file = 'source/models/{name}/{site}.rst'.format(
-        name=name,
-        site=site)
+    rst_file = 'source/models/{n}/{n}_{s}.rst'.format(
+        n=name,
+        s=site)
 
-    print("Generating rst file for {0} at {1}.".format(name, site))
+    print("Generating rst file for {n} at {s}.".format(n=name, s=site))
 
     eval_results, files = PLUMBER_fit_predict_eval(model, name, site)
 

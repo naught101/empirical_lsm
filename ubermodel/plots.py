@@ -29,7 +29,7 @@ def diagnostic_plots(sim_data, flux_data, name):
 
     print('Running standard plots for %s at %s' % (name, site))
 
-    fig_path = os.path.join('source', 'models', name, 'figures')
+    fig_path = 'source/models/{n}/figures/{s}'.format(n=name, s=site)
     if not os.path.isdir(fig_path):
         os.makedirs(fig_path)
 
@@ -46,13 +46,13 @@ def diagnostic_plots(sim_data, flux_data, name):
                  benchmarks + [flux_data, sim_data]], axis=1)
         data.columns = benchmark_names + ['observed', 'modelled']
 
-        for plot in PLOTS:
+        for plot in DIAGNOSTIC_PLOTS:
             filename = plot(data, name, var, site)
             plot_path = os.path.join(fig_path, filename)
             pl.savefig(plot_path)
             pl.close()
 
-            rel_plot_path = os.path.join('figures', filename)
+            rel_plot_path = 'figures/{s}/{f}'.format(s=site, f=filename)
             files.append(rel_plot_path)
 
     return files
@@ -60,33 +60,33 @@ def diagnostic_plots(sim_data, flux_data, name):
 
 def plot_weekly_timeseries(data, name, var, site):
     data.resample('1W').plot()
-    pl.title('{0}: Weekly average {1} at {2}'.format(name, var, site))
+    pl.title('{n}: Weekly average {v} at {s}'.format(n=name, v=var, s=site))
 
-    filename = '{0}_{1}_{2}_weekly_timeseries.png'.format(name, var, site)
+    filename = '{n}_{v}_{s}_weekly_timeseries.png'.format(n=name, v=var, s=site)
     return filename
 
 
 def plot_scatter(data, name, var, site):
     data.plot.scatter('observed', 'modelled', c='black', s=1, alpha=0.5)
-    pl.title('{0}: Scatterplot of {1} at {2}'.format(name, var, site))
+    pl.title('{n}: Scatterplot of {v} at {s}'.format(n=name, v=var, s=site))
 
-    filename = '{0}_{1}_{2}_scatterplot.png'.format(name, var, site)
+    filename = '{n}_{v}_{s}_scatterplot.png'.format(n=name, v=var, s=site)
     return filename
 
 
 def plot_annual_cycle(data, name, var, site):
     data.groupby(data.index.month).mean().plot()
-    pl.title('{0}: Annual average {1} cycle at {2}'.format(name, var, site))
+    pl.title('{n}: Annual average {v} cycle at {s}'.format(n=name, v=var, s=site))
 
-    filename = '{0}_{1}_{2}_annual_cycle.png'.format(name, var, site)
+    filename = '{n}_{v}_{s}_annual_cycle.png'.format(n=name, v=var, s=site)
     return filename
 
 
 def plot_daily_cycle(data, name, var, site):
     data.groupby(data.index.dayofyear).mean().plot()
-    pl.title('{0}: daily average {1} cycle at {2}'.format(name, var, site))
+    pl.title('{n}: daily average {v} cycle at {s}'.format(n=name, v=var, s=site))
 
-    filename = '{0}_{1}_{2}_daily_cycle.png'.format(name, var, site)
+    filename = '{n}_{v}_{s}_daily_cycle.png'.format(n=name, v=var, s=site)
     return filename
 
 
@@ -94,9 +94,9 @@ def plot_qq_plot(data, name, var, site):
     """qqplot!
     """
     data.apply(sorted).plot.scatter('observed', 'modelled', c='black', s=1, alpha=0.5)
-    pl.title('{0}: Quantile-quantile plot for {1} at {2}'.format(name, var, site))
+    pl.title('{n}: Quantile-quantile plot for {v} at {s}'.format(n=name, v=var, s=site))
 
-    filename = '{0}_{1}_{2}_qq_plot.png'.format(name, var, site)
+    filename = '{n}_{v}_{s}_qq_plot.png'.format(n=name, v=var, s=site)
     return filename
 
 
@@ -106,13 +106,13 @@ def plot_residuals(data, name, var, site):
     data['residuals'] = data['modelled'] - data['observed']
     data.plot.scatter('observed', 'residuals', c='black', s=1, alpha=0.5)
 
-    pl.title('{0}: residual plot for {1} at {2}'.format(name, var, site))
+    pl.title('{n}: residual plot for {v} at {s}'.format(n=name, v=var, s=site))
 
-    filename = '{0}_{1}_{2}_residual_plot.png'.format(name, var, site)
+    filename = '{n}_{v}_{s}_residual_plot.png'.format(n=name, v=var, s=site)
     return filename
 
 
-PLOTS = [plot_weekly_timeseries,
+DIAGNOSTIC_PLOTS = [plot_weekly_timeseries,
          plot_scatter,
          plot_annual_cycle,
          plot_daily_cycle,
