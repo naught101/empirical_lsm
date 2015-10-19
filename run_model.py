@@ -227,6 +227,35 @@ def main_run(model, name, site):
     return
 
 
+def main_eval(name, site, sim_file=None):
+    """Main function for evaluating an existing simulation.
+
+    Copies simulation data to source directory.
+
+    :name: name of the model
+    :site: PALS site name to run the model at
+    :sim_file: Path to simulation netcdf
+    """
+    nc_path = get_sim_nc_path(name, site)
+    if sim_file is not None:
+        sim_data = xray.open_dataset(sim_file)
+        # WARNING! over writes existing sim!
+        sim_data.to_netcdf(nc_path)
+    else:
+        sim_data = xray.open_dataset(nc_path)
+
+    flux_data = get_site_data([site], 'flux')[site]
+
+    print('Evaluating data for {n} at {n}'.format(n=name, s=site))
+    eval_results = evaluate_simulation(sim_data, flux_data, name)
+
+    files = diagnostic_plots(sim_data, flux_data, name)
+
+    rst_write("Not generated", name, site, eval_results, files)
+
+    return
+
+
 def main(args):
     name = args['<name>']
     site = args['<site>']
@@ -236,8 +265,8 @@ def main(args):
         main_run(model, name, site)
 
     elif args['eval']:
-        if args['
-        sim_data = 
+        sim_file = args['<file>']
+        main_eval(name, site, sim_file)
 
     return
 
