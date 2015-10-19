@@ -90,8 +90,8 @@ def PLUMBER_fit_predict(model, name, site):
         # Ditch all of the incomplete data
         qc_index = (~pd.concat([met_train, flux_train_v], axis=1).isnull()).apply(all, axis=1)
         if qc_index.sum() > 0:
-            print("Training %s using %d complete samples out of %d" %
-                  (v, qc_index.sum(), met_train.shape[0]))
+            print("Training {v} using {count} complete samples out of {total}"
+                    .format(v=v, count=qc_index.sum(), total=met_train.shape[0]))
         else:
             print("No training data, skipping variable %s" % v)
             continue
@@ -113,7 +113,7 @@ def PLUMBER_fit_predict_eval(model, name, site):
     model_path = 'source/models/{n}/sim_data/'.format(n=name)
     nc_path = '{p}{n}_{s}.nc'.format(p=model_path, n=name, s=site)
     if os.path.exists(nc_path):
-        print('%s already run at %s - loading from %s' % (name, site, nc_path))
+        print('{n} already run at {s} - loading from {p}'.format(n=name, s=site, p=nc_path))
         sim_data = xray.open_dataset(nc_path)
     else:
         if not os.path.exists(model_path):
@@ -123,7 +123,7 @@ def PLUMBER_fit_predict_eval(model, name, site):
 
     flux_data = get_site_data([site], 'flux')[site]
 
-    print('Evaluating data for %s at %s' % (name, site))
+    print('Evaluating data for {n} at {s}'.format(n=name, s=site))
     eval_results = evaluate_simulation(sim_data, flux_data, name)
 
     files = diagnostic_plots(sim_data, flux_data, name)
