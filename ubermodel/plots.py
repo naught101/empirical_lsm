@@ -13,7 +13,7 @@ import seaborn as sns
 import pandas as pd
 import os
 
-from pals_utils.data import pals_site_name, pals_xray_to_df, FLUX_VARS
+from pals_utils.data import pals_site_name, pals_xray_to_df, get_pals_benchmark, FLUX_VARS
 
 
 def diagnostic_plots(sim_data, flux_data, name):
@@ -35,15 +35,22 @@ def diagnostic_plots(sim_data, flux_data, name):
 
     files = []
 
+    benchmark_names = ['1lin', '2lin', '3km27']
+    benchmarks = [get_pals_benchmark(bname, site) for bname in benchmark_names]
+
+    sns.set_palette(sns.color_palette(['red', 'pink', 'orange', 'black', 'blue']))
+
     # TODO: For variables
     for var in FLUX_VARS:
-        data = pd.concat([pals_xray_to_df(sim_data, [var]), pals_xray_to_df(flux_data, [var])], axis=1)
-        data.columns = ['modelled', 'observed']
+        data = pd.concat([pals_xray_to_df(ds, [var]) for ds in
+                 benchmarks + [flux_data, sim_data]], axis=1)
+        data.columns = benchmark_names + ['observed', 'modelled']
 
         for plot in PLOTS:
             filename = plot(data, name, var, site)
             plot_path = os.path.join(fig_path, filename)
             pl.savefig(plot_path)
+            pl.close()
 
             rel_plot_path = os.path.join('figures', filename)
             files.append(rel_plot_path)
