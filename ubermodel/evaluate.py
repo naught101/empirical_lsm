@@ -9,6 +9,7 @@ Description: PALS-style model evaluation
 """
 
 import pandas as pd
+import os
 
 from pals_utils.data import pals_site_name, FLUX_VARS
 from pals_utils.stats import run_metrics
@@ -39,7 +40,10 @@ def evaluate_simulation(sim_data, flux_data, name):
 
     site = pals_site_name(flux_data)
 
-    eval_path = 'source/models/{n}/{n}_{s}_metrics.csv'.format(n=name, s=site)
+    eval_dir = 'source/models/{n}/metrics/'.format(n=name)
+    if not os.path.exists(eval_dir):
+        os.makedirs(eval_dir)
+    eval_path = '{d}/{n}_{s}_metrics.csv'.format(d=eval_dir, n=name, s=site)
     metric_data.to_csv(eval_path)
 
     return metric_data
