@@ -89,7 +89,7 @@ def plot_annual_cycle(data, name, var, site):
 
 
 def plot_daily_cycle(data, name, var, site):
-    data.groupby(data.index.dayofyear).mean().plot()
+    data.groupby(data.index.time).mean().plot()
     pl.title('{n}: daily average {v} cycle at {s}'.format(n=name, v=var, s=site))
 
     filename = '{n}_{v}_{s}_daily_cycle.png'.format(n=name, v=var, s=site)

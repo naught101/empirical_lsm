@@ -28,7 +28,7 @@ def model_site_index_rst(model_dir):
     time = dt.isoformat(dt.now().replace(microsecond=0), sep=' ')
     name = model_dir.replace('source/models/', '')
 
-    model_run_files = glob.glob(model_dir + '/*.rst')
+    model_run_files = sorted(glob.glob(model_dir + '/*.rst'))
 
     sim_pages = [m.replace('source/models/', '').replace('.rst', '') for m in model_run_files]
 
@@ -36,7 +36,7 @@ def model_site_index_rst(model_dir):
 
     template = dedent("""
     {name} simulations
-    ===============
+    ==============================
 
     {time}
 
@@ -57,7 +57,7 @@ def model_search_index_rst():
     """
     time = dt.isoformat(dt.now().replace(microsecond=0), sep=' ')
 
-    model_dirs = [d for d in glob.glob('source/models/*') if os.path.isdir(d)]
+    model_dirs = [d for d in sorted(glob.glob('source/models/*')) if os.path.isdir(d)]
 
     for model_dir in model_dirs:
         model_site_index_rst(model_dir)
