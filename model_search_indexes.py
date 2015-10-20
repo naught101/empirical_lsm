@@ -12,9 +12,44 @@ Usage:
 """
 
 import glob
+import os
 from docopt import docopt
 from matplotlib.cbook import dedent
 from datetime import datetime as dt
+
+
+def model_site_index_rst(model_dir):
+    """list site simulations for a model
+
+    :model_dir: TODO
+    :returns: TODO
+
+    """
+    time = dt.isoformat(dt.now().replace(microsecond=0), sep=' ')
+    name = model_dir.replace('source/models/', '')
+
+    model_run_files = glob.glob(model_dir + '/*.rst')
+
+    sim_pages = [m.replace('source/models/', '').replace('.rst', '') for m in model_run_files]
+
+    sim_links = '\n'.join(['    %s' % m for m in sim_pages])
+
+    template = dedent("""
+    {name} simulations
+    ===============
+
+    {time}
+
+    .. toctree::
+        :maxdepth: 1
+
+    {links}
+    """)
+
+    with open(model_dir + '.rst', 'w') as f:
+        f.write(template.format(time=time, links=sim_links, name=name))
+
+    return
 
 
 def model_search_index_rst():
@@ -22,9 +57,12 @@ def model_search_index_rst():
     """
     time = dt.isoformat(dt.now().replace(microsecond=0), sep=' ')
 
-    model_run_files = glob.glob('source/models/*/*.rst')
+    model_dirs = [d for d in glob.glob('source/models/*') if os.path.isdir(d)]
 
-    model_pages = [m.lstrip('source/').rstrip('.rst') for m in model_run_files]
+    for model_dir in model_dirs:
+        model_site_index_rst(model_dir)
+
+    model_pages = [m.replace('source/', '') for m in model_dirs]
 
     model_links = '\n'.join(['    %s' % m for m in model_pages])
 
