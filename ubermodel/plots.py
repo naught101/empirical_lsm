@@ -14,11 +14,12 @@ import pandas as pd
 import os
 import warnings
 
-from pals_utils.data import pals_site_name, pals_xray_to_df, get_pals_benchmark, FLUX_VARS, MissingDataError
+from pals_utils.data import pals_site_name, pals_xray_to_df, get_pals_benchmark, MissingDataError
+from pals_utils.constants import FLUX_VARS, DATASETS
 
 
 def diagnostic_plots(sim_data, flux_data, name):
-    """Plot standard diagnostic plots
+    """Plot standard diagnostic plots for a single site
 
     :sim_data: TODO
     :flux_data: TODO
@@ -41,7 +42,16 @@ def diagnostic_plots(sim_data, flux_data, name):
 
     sns.set_palette(sns.color_palette(['red', 'pink', 'orange', 'black', 'blue']))
 
-    # TODO: For variables
+    # Generalise if more multi-variable plots needed
+    for plot in [plot_PLUMBER_sim_metrics]:
+        filename = plot(name, site)
+        plot_path = os.path.join(fig_path, filename)
+        pl.savefig(plot_path)
+        pl.close()
+
+        rel_plot_path = 'figures/{s}/{f}'.format(s=site, f=filename)
+        files.append(rel_plot_path)
+
     for var in FLUX_VARS:
         try:
             data = pd.concat([pals_xray_to_df(ds, [var]) for ds in
@@ -119,8 +129,57 @@ def plot_residuals(data, name, var, site):
 
 
 DIAGNOSTIC_PLOTS = [plot_weekly_timeseries,
-         plot_scatter,
-         plot_annual_cycle,
-         plot_daily_cycle,
-         plot_qq_plot,
-         plot_residuals]
+                    plot_scatter,
+                    plot_annual_cycle,
+                    plot_daily_cycle,
+                    plot_qq_plot,
+                    plot_residuals]
+
+
+#######################
+# metric plots
+#######################
+
+def plot_PLUMBER_sim_metrics(name, site):
+    """Plot metrics from a site, with benchmarks for comparison
+
+    :returns: TODO
+    """
+    csv_file = './source/models/{n}/metrics/{n}_{s}_metrics.csv'
+
+    benchmark_names = ['1lin', '2lin', '3km27']
+
+    if site == 'all':
+        sites = DATASETS
+    else:
+        sites = [site]
+
+    metric_df = []
+
+    for s in sites:
+        site_metrics = pd.read_csv(csv_file.format(n=name, s=s))
+        site_metrics = pd.melt(site_metrics, id_vars='metric')
+        site_metrics['name'] = name
+        site_metrics['site'] = s
+        metric_df.append(site_metrics)
+
+        for b in benchmark_names:
+            benchmark_metrics = pd.read_csv(csv_file.format(n=b, s=s))
+            benchmark_metrics = pd.melt(benchmark_metrics, id_vars='metric')
+            benchmark_metrics['name'] = b
+            benchmark_metrics['site'] = s
+            metric_df.append(benchmark_metrics)
+
+    metric_df = pd.concat(metric_df).reset_index(drop=True)
+
+    metric_df.ix[metric_df['metric'] == 'corr', 'value'] = - metric_df.ix[metric_df['metric'] == 'corr', 'value']
+
+    metric_df['rank'] = metric_df.groupby(['variable', 'metric', 'site'])['value'].rank()
+
+    mean_df = metric_df.groupby(['variable', 'name'])['rank'].mean().reset_index()
+
+    mean_df.pivot(index='variable', columns='name', values='rank').plot()
+    pl.title('{n}: PLUMBER plot: all metrics at {s}'.format(n=name, s=site))
+
+    filename = '{n}_{s}_PLUMBER_plot_all_metrics.png'.format(n=name, s=site)
+    return filename
