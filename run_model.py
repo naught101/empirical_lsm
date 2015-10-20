@@ -246,7 +246,7 @@ def main_eval(name, site, sim_file=None):
 
     flux_data = get_site_data([site], 'flux')[site]
 
-    print('Evaluating data for {n} at {n}'.format(n=name, s=site))
+    print('Evaluating data for {n} at {s}'.format(n=name, s=site))
     eval_results = evaluate_simulation(sim_data, flux_data, name)
 
     files = diagnostic_plots(sim_data, flux_data, name)
@@ -256,17 +256,41 @@ def main_eval(name, site, sim_file=None):
     return
 
 
+def main_eval_all(name):
+    """run eval for all PLUMBER benchmarks
+
+    :name: PLUMBER benchmark name
+    :returns: TODO
+    """
+    # Hacky solution just for PLUMBER benchmarks
+    for s in DATASETS:
+        s_file = 'data/PALS/benchmarks/{n}/{n}_{s}Fluxnet.1.4.nc'.format(n=name, s=s)
+        main_eval(name, s, s_file)
+
+    return
+
+
 def main(args):
+    # print(args)
+    # sys.exit()
+
     name = args['<name>']
     site = args['<site>']
 
     if args['run']:
         model = get_model(name)
-        main_run(model, name, site)
+        if site == 'all':
+            for s in DATASETS:
+                main_run(model, name, s)
+        else:
+            main_run(model, name, site)
 
     elif args['eval']:
         sim_file = args['<file>']
-        main_eval(name, site, sim_file)
+        if site == 'all':
+            main_eval_all(name)
+        else:
+            main_eval(name, site, sim_file)
 
     return
 
