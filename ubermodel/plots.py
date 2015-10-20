@@ -12,8 +12,9 @@ import matplotlib.pyplot as pl
 import seaborn as sns
 import pandas as pd
 import os
+import warnings
 
-from pals_utils.data import pals_site_name, pals_xray_to_df, get_pals_benchmark, FLUX_VARS
+from pals_utils.data import pals_site_name, pals_xray_to_df, get_pals_benchmark, FLUX_VARS, MissingDataError
 
 
 def diagnostic_plots(sim_data, flux_data, name):
@@ -42,8 +43,13 @@ def diagnostic_plots(sim_data, flux_data, name):
 
     # TODO: For variables
     for var in FLUX_VARS:
-        data = pd.concat([pals_xray_to_df(ds, [var]) for ds in
-                 benchmarks + [flux_data, sim_data]], axis=1)
+        try:
+            data = pd.concat([pals_xray_to_df(ds, [var]) for ds in
+                              benchmarks + [flux_data, sim_data]], axis=1)
+        except MissingDataError:
+            warnings.warn('Data missing for {v} at {s}, skipping.'.format(v=var, s=site))
+            continue
+
         data.columns = benchmark_names + ['observed', 'modelled']
 
         for plot in DIAGNOSTIC_PLOTS:
