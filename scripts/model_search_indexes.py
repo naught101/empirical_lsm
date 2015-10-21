@@ -17,6 +17,7 @@ from docopt import docopt
 from matplotlib.cbook import dedent
 from datetime import datetime as dt
 from ubermodel.plots import get_PLUMBER_plot
+from ubermodel.utils import print_good
 
 
 def model_site_index_rst(model_dir):
@@ -29,7 +30,7 @@ def model_site_index_rst(model_dir):
     time = dt.isoformat(dt.now().replace(microsecond=0), sep=' ')
     name = model_dir.replace('source/models/', '')
 
-    print('Generating index for {n}.'. format(n=name))
+    print_good('Generating index for {n}.'. format(n=name))
 
     model_run_files = sorted(glob.glob(model_dir + '/*.rst'))
 
@@ -72,7 +73,7 @@ def model_search_index_rst():
     """
     time = dt.isoformat(dt.now().replace(microsecond=0), sep=' ')
 
-    print('Generating models index')
+    print_good('Generating models index')
 
     model_dirs = [d for d in sorted(glob.glob('source/models/*')) if os.path.isdir(d)]
 

@@ -32,6 +32,7 @@ from pals_utils.data import get_site_data, pals_xray_to_df, xray_list_to_df, cop
 from ubermodel.models import get_model
 from ubermodel.evaluate import evaluate_simulation
 from ubermodel.plots import diagnostic_plots
+from ubermodel.utils import print_good
 
 
 def sim_dict_to_xray(sim_dict, old_ds):
@@ -126,7 +127,7 @@ def get_sim_nc_path(name, site):
 def PLUMBER_fit_predict_eval(model, name, site):
     nc_path = get_sim_nc_path(name, site)
     if os.path.exists(nc_path):
-        print('{n} already run at {s} - loading from {p}'.format(n=name, s=site, p=nc_path))
+        print_good('{n} already run at {s} - loading from {p}'.format(n=name, s=site, p=nc_path))
         sim_data = xray.open_dataset(nc_path)
     else:
         sim_data = PLUMBER_fit_predict(model, name, site)
@@ -134,7 +135,7 @@ def PLUMBER_fit_predict_eval(model, name, site):
 
     flux_data = get_site_data([site], 'flux')[site]
 
-    print('Evaluating data for {n} at {s}'.format(n=name, s=site))
+    print_good('Evaluating data for {n} at {s}'.format(n=name, s=site))
     eval_results = evaluate_simulation(sim_data, flux_data, name)
 
     files = diagnostic_plots(sim_data, flux_data, name)
@@ -200,7 +201,7 @@ def model_site_rst_write(model, name, site, eval_results, files):
     """
     model_site_rst_file = 'source/models/{n}/{n}_{s}.rst'.format(n=name, s=site)
 
-    print("Generating rst file for {n} at {s}.".format(n=name, s=site))
+    print_good("Generating rst file for {n} at {s}.".format(n=name, s=site))
 
     eval_text = format_evaluation(eval_results)
 
@@ -245,7 +246,7 @@ def main_eval(name, site, sim_file=None):
 
     flux_data = get_site_data([site], 'flux')[site]
 
-    print('Evaluating data for {n} at {s}'.format(n=name, s=site))
+    print_good('Evaluating data for {n} at {s}'.format(n=name, s=site))
     eval_results = evaluate_simulation(sim_data, flux_data, name)
 
     files = diagnostic_plots(sim_data, flux_data, name)
@@ -262,7 +263,7 @@ def main_import_benchmark(name):
     :returns: TODO
     """
     # Hacky solution just for PLUMBER benchmarks
-    print('Importing {n} data for: '.format(n=name), end='')
+    print_good('Importing {n} data for: '.format(n=name), end='')
     for s in DATASETS:
         print(s, end=', ')
         s_file = 'data/PALS/benchmarks/{n}/{n}_{s}Fluxnet.1.4.nc'.format(n=name, s=s)
