@@ -20,7 +20,7 @@ from sklearn.pipeline import make_pipeline
 def get_model(name):
     """return a model as defines in model_search.yaml
 
-    :returns: TODO
+    :returns: sklearn model pipeline
 
     """
     with open('model_search.yaml') as f:
@@ -36,6 +36,9 @@ def get_model(name):
         if 'pca' in transforms:
             transforms.pop('pca')
             pipe_list.append(get_pca())
+        if 'poly' in transforms:
+            args = transforms.pop('poly')
+            pipe_list.append(get_poly(args))
         if len(transforms) > 0:
             raise Exception("unknown transforms: %s" % repr(transforms))
 
@@ -51,8 +54,8 @@ def get_model(name):
 def get_scaler(scaler):
     """get a sklearn scaler from a scaler name
 
-    :scaler: TODO
-    :returns: TODO
+    :scaler: scaler identifier, one of ['standard', 'minmax']
+    :returns: sklearn scaler
 
     """
     if scaler == 'standard':
@@ -65,11 +68,22 @@ def get_scaler(scaler):
 
 def get_pca():
     """get a PCA decomposition
-    :returns: TODO
+    :returns: sklearn PCA decomposer
 
     """
     from sklearn.decomposition import PCA
     return PCA()
+
+
+def get_poly(kwargs):
+    """get a PolynomialFeatures transform
+
+    :kwargs: arguments to PolynomialFeatures
+    :returns: PolynomialFeatures instance
+
+    """
+    from sklearn.preprocessing import PolynomialFeatures
+    return PolynomialFeatures(**kwargs)
 
 
 def get_model_class(class_name, kwargs={}):
