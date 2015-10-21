@@ -150,6 +150,31 @@ DIAGNOSTIC_PLOTS = [plot_weekly_timeseries,
 # metric plots
 #######################
 
+def get_PLUMBER_plot(model_dir):
+    """generate PLUMBER plot and get filename
+
+    :name: model name
+    :returns: TODO
+
+    """
+    name = model_dir.replace('source/models/', '')
+
+    sns.set_palette(sns.color_palette(['red', 'pink', 'orange', 'black', 'blue']))
+
+    filename = plot_PLUMBER_sim_metrics(name, 'all')
+    if filename is None:
+        return
+
+    rel_path = save_plot('source/models', name + '/figures', filename)
+
+    files = [rel_path]
+
+    plots = '\n\n'.join([
+        ".. image :: {file}".format(file=f) for f in files])
+
+    return plots
+
+
 def plot_PLUMBER_sim_metrics(name, site):
     """Plot metrics from a site, with benchmarks for comparison
 
