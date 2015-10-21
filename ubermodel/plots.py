@@ -18,6 +18,22 @@ from pals_utils.data import pals_site_name, pals_xray_to_df, get_pals_benchmark,
 from pals_utils.constants import FLUX_VARS, DATASETS
 
 
+def save_plot(base_path, rel_path, filename):
+    """Save a figure and return the relative path (for rst)
+
+    :base_path: path to directory with final RST
+    :rel_path: relative path to figure directory
+    :filename: plot filename
+    :returns: rel_path/filename.png for RST
+
+    """
+    plot_path = os.path.join(base_path, rel_path, filename)
+    pl.savefig(plot_path)
+    pl.close()
+
+    return os.path.join(rel_path, filename)
+
+
 def diagnostic_plots(sim_data, flux_data, name):
     """Plot standard diagnostic plots for a single site
 
@@ -31,7 +47,9 @@ def diagnostic_plots(sim_data, flux_data, name):
 
     print('Running standard plots for %s at %s' % (name, site))
 
-    fig_path = 'source/models/{n}/figures/{s}'.format(n=name, s=site)
+    base_path = 'source/models/{n}'.format(n=name)
+    rel_path = 'figures/{s}'.format(s=site)
+    fig_path = os.path.join(base_path, rel_path)
     if not os.path.isdir(fig_path):
         os.makedirs(fig_path)
 
@@ -45,11 +63,7 @@ def diagnostic_plots(sim_data, flux_data, name):
     # Generalise if more multi-variable plots needed
     for plot in [plot_PLUMBER_sim_metrics]:
         filename = plot(name, site)
-        plot_path = os.path.join(fig_path, filename)
-        pl.savefig(plot_path)
-        pl.close()
-
-        rel_plot_path = 'figures/{s}/{f}'.format(s=site, f=filename)
+        rel_plot_path = save_plot(base_path, rel_path, filename)
         files.append(rel_plot_path)
 
     for var in FLUX_VARS:
@@ -64,11 +78,7 @@ def diagnostic_plots(sim_data, flux_data, name):
 
         for plot in DIAGNOSTIC_PLOTS:
             filename = plot(data, name, var, site)
-            plot_path = os.path.join(fig_path, filename)
-            pl.savefig(plot_path)
-            pl.close()
-
-            rel_plot_path = 'figures/{s}/{f}'.format(s=site, f=filename)
+            rel_plot_path = save_plot(base_path, rel_path, filename)
             files.append(rel_plot_path)
 
     return files
