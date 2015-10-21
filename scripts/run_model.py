@@ -67,9 +67,7 @@ def PLUMBER_fit_predict(model, name, site):
     met_data = get_site_data(DATASETS, 'met')
     flux_data = get_site_data(DATASETS, 'flux')
 
-    met_vars = MET_VARS.copy()
-    met_vars.remove('LWdown')
-    met_vars.remove('PSurf')
+    met_vars = MET_VARS
 
     flux_vars = FLUX_VARS
 
@@ -92,7 +90,7 @@ def PLUMBER_fit_predict(model, name, site):
         qc_index = (~pd.concat([met_train, flux_train_v], axis=1).isnull()).apply(all, axis=1)
         if qc_index.sum() > 0:
             print("Training {v} using {count} complete samples out of {total}"
-                    .format(v=v, count=qc_index.sum(), total=met_train.shape[0]))
+                  .format(v=v, count=qc_index.sum(), total=met_train.shape[0]))
         else:
             print("No training data, skipping variable %s" % v)
             continue
