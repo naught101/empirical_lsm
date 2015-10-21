@@ -12,7 +12,7 @@ import matplotlib.pyplot as pl
 import seaborn as sns
 import pandas as pd
 import os
-import warnings
+from warnings import warn
 
 from pals_utils.data import pals_site_name, pals_xray_to_df, get_pals_benchmark, MissingDataError
 from pals_utils.constants import FLUX_VARS, DATASETS
@@ -71,7 +71,7 @@ def diagnostic_plots(sim_data, flux_data, name):
             data = pd.concat([pals_xray_to_df(ds, [var]) for ds in
                               benchmarks + [flux_data, sim_data]], axis=1)
         except MissingDataError:
-            warnings.warn('Data missing for {v} at {s}, skipping.'.format(v=var, s=site))
+            warn('Data missing for {v} at {s}, skipping.'.format(v=var, s=site))
             continue
 
         data.columns = benchmark_names + ['observed', 'modelled']
@@ -166,19 +166,31 @@ def plot_PLUMBER_sim_metrics(name, site):
 
     metric_df = []
 
+    failures = []
     for s in sites:
-        site_metrics = pd.read_csv(csv_file.format(n=name, s=s))
-        site_metrics = pd.melt(site_metrics, id_vars='metric')
-        site_metrics['name'] = name
-        site_metrics['site'] = s
-        metric_df.append(site_metrics)
+        try:
+            site_metrics = pd.read_csv(csv_file.format(n=name, s=s))
+            site_metrics = pd.melt(site_metrics, id_vars='metric')
+            site_metrics['name'] = name
+            site_metrics['site'] = s
+            metric_df.append(site_metrics)
 
-        for b in benchmark_names:
-            benchmark_metrics = pd.read_csv(csv_file.format(n=b, s=s))
-            benchmark_metrics = pd.melt(benchmark_metrics, id_vars='metric')
-            benchmark_metrics['name'] = b
-            benchmark_metrics['site'] = s
-            metric_df.append(benchmark_metrics)
+            for b in benchmark_names:
+                benchmark_metrics = pd.read_csv(csv_file.format(n=b, s=s))
+                benchmark_metrics = pd.melt(benchmark_metrics, id_vars='metric')
+                benchmark_metrics['name'] = b
+                benchmark_metrics['site'] = s
+                metric_df.append(benchmark_metrics)
+        except Exception:
+            failures.append(s)
+            continue
+
+    if len(failures) > 0:
+        print('Skipped {l} sites: {f}'.format(l=len(failures), f=', '.join(failures)))
+
+    if len(metric_df) == 0:
+        warn('Failed to load any csv files for {n} at {s} - skipping plot.'.format(n=name, s=site))
+        return
 
     metric_df = pd.concat(metric_df).reset_index(drop=True)
 
