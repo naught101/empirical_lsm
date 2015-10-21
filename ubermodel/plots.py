@@ -12,10 +12,11 @@ import matplotlib.pyplot as pl
 import seaborn as sns
 import pandas as pd
 import os
-from warnings import warn
 
 from pals_utils.data import pals_site_name, pals_xray_to_df, get_pals_benchmark, MissingDataError
 from pals_utils.constants import FLUX_VARS, DATASETS
+
+from .utils import print_bad, print_warn
 
 
 def save_plot(base_path, rel_path, filename):
@@ -71,7 +72,7 @@ def diagnostic_plots(sim_data, flux_data, name):
             data = pd.concat([pals_xray_to_df(ds, [var]) for ds in
                               benchmarks + [flux_data, sim_data]], axis=1)
         except MissingDataError:
-            warn('Data missing for {v} at {s}, skipping.'.format(v=var, s=site))
+            print_warn('Data missing for {v} at {s}, skipping.'.format(v=var, s=site))
             continue
 
         data.columns = benchmark_names + ['observed', 'modelled']
@@ -214,7 +215,7 @@ def plot_PLUMBER_sim_metrics(name, site):
         print('Skipped {l} sites: {f}'.format(l=len(failures), f=', '.join(failures)))
 
     if len(metric_df) == 0:
-        warn('Failed to load any csv files for {n} at {s} - skipping plot.'.format(n=name, s=site))
+        print_bad('Failed to load any csv files for {n} at {s} - skipping plot.'.format(n=name, s=site))
         return
 
     metric_df = pd.concat(metric_df).reset_index(drop=True)
