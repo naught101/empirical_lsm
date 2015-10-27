@@ -119,9 +119,8 @@ def get_model_class(class_name, kwargs={}):
         from sklearn.neighbors import KNeighborsRegressor
         return KNeighborsRegressor(**kwargs)
 
-    if class_name == 'MultilayerPerceptronRegressor':
-        from sklearn.neural_network import MultilayerPerceptronRegressor
-        # This is from a pull request: https://github.com/scikit-learn/scikit-learn/pull/3939
-        return MultilayerPerceptronRegressor(**kwargs)
+    if class_name == 'MLPRegressor':
+        from sklearn.neural_network import MLPRegressor
+        return MLPRegressor(**kwargs)
 
     raise Exception("Unknown Model class")

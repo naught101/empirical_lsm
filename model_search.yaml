@@ -51,13 +51,13 @@ svm_poly:
 
 ### Multilayer Perceptron
 mlp:
-    class: MultilayerPerceptronRegressor
+    class: MLPRegressor
     transforms:
         scaler: standard
         pca: True
 
 mlp_log:
-    class: MultilayerPerceptronRegressor
+    class: MLPRegressor
     args: 
         activation: logistic
     transforms:
@@ -65,34 +65,18 @@ mlp_log:
         pca: True
 
 # Maybe sklearn.grid_search would be a better way of doing this?
-mlp_20_20_20:
-    class: MultilayerPerceptronRegressor
-    args: 
-        hidden_layer_sizes: [20,20,20,]
-    transforms:
-        scaler: standard
-        pca: True
-
-mlp_10_10:
-    class: MultilayerPerceptronRegressor
-    args: 
-        hidden_layer_sizes: [10,10,]
-    transforms:
-        scaler: standard
-        pca: True
-
-mlp_10_20:
-    class: MultilayerPerceptronRegressor
-    args: 
-        hidden_layer_sizes: [10,30,]
-    transforms:
-        scaler: standard
-        pca: True
-
 mlp_20_20:
-    class: MultilayerPerceptronRegressor
+    class: MLPRegressor
     args: 
         hidden_layer_sizes: [20,20,]
+    transforms:
+        scaler: standard
+        pca: True
+
+mlp_10_10_10:
+    class: MLPRegressor
+    args: 
+        hidden_layer_sizes: [10,10,10,]
     transforms:
         scaler: standard
         pca: True
@@ -114,7 +98,7 @@ knn_1k:
 ### Decision Trees
 tree:
     class: DecisionTreeRegressor
-    args:
+    transforms:
         scaler: standard
         pca: True
 

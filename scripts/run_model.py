@@ -85,7 +85,8 @@ def PLUMBER_fit_predict(model, name, site):
     print('Fitting and running {f} using {m}'.format(f=flux_vars, m=met_vars))
     sim_data_dict = dict()
     for v in flux_vars:
-        flux_train_v = flux_train[[v]]
+        # Might eventually want to update this to run multivariate-out models
+        flux_train_v = flux_train[v]
 
         # Ditch all of the incomplete data
         qc_index = (~pd.concat([met_train, flux_train_v], axis=1).isnull()).apply(all, axis=1)
