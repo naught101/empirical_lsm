@@ -46,9 +46,26 @@ def get_model(name):
         model = get_model_class(model_dict['class'], model_dict['args'])
     else:
         model = get_model_class(model_dict['class'])
+
+    if 'clusterregression' in model_dict:
+        from ubermodel.clusterregression import ModelByCluster
+        clusterer = model_dict['clusterregression']['class']
+        cluster_args = model_dict['clusterregression']['args']
+        model = ModelByCluster(
+            get_clusterer(clusterer, cluster_args),
+            model)
+
     pipe_list.append(model)
 
     return make_pipeline(*pipe_list)
+
+
+def get_clusterer(name, kwargs):
+    """Return a scikit-learn clusterer from name and args."""
+
+    if name == 'KMeans':
+        from sklearn.cluster import KMeans
+        return KMeans(**kwargs)
 
 
 def get_scaler(scaler):

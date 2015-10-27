@@ -110,6 +110,16 @@ extratrees:
         - actually a forest
     class: ExtraTreesRegressor
 
+### Clustered regression
+km12_lin:
+    notes:
+        - insensitive to scaling or PCA
+    clusterregression:
+        class: KMeans
+        args:
+            n_clusters: 12
+    class: LinearRegression
+    longname: Linear regression
 
 ### Lagged linear regression
 lin_lag1: 
