@@ -26,6 +26,12 @@ def get_model(name):
     with open('model_search.yaml') as f:
         model_dict = yaml.load(f)[name]
 
+    return get_model_from_dict(model_dict)
+
+
+def get_model_from_dict(model_dict):
+    """Return a sklearn model pipeline from a model_dict"""
+
     pipe_list = []
 
     if 'transforms' in model_dict:
