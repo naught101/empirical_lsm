@@ -69,12 +69,10 @@ def get_model_from_dict(model_dict):
     return make_pipeline(*pipe_list)
 
 
-def get_lagger(name, kwargs):
+def get_lagger(kwargs):
     """Return a scikit-learn lagger from name and args."""
-
-    if name == 'KMeans':
-        from .transforms import LagTransform
-        return LagTransform(**kwargs)
+    from .transforms import LagTransform
+    return LagTransform(**kwargs)
 
 
 def get_clusterer(name, kwargs):

@@ -55,7 +55,6 @@ class LagTransform(BaseEstimator, TransformerMixin):
         """
         check_is_fitted(self, ['n_input_features_', 'n_output_features_'])
 
-        X = check_array(X)
         n_samples, n_features = X.shape
 
         if n_features != self.n_input_features_:
