@@ -126,7 +126,8 @@ lin_lag1:
     notes: need to make a proper wrapper for this.
     class: LinearRegression
     transforms:
-        lag: 1
+        lag:
+            lag: 1
 
 ### Markov lagging
 markov1:
@@ -134,5 +135,6 @@ markov1:
         - use one timestep's output as an input for the next timestep"
     class: LinearRegression
     transforms:
-        markov_lag: 1
+        markov_lag:
+            lag: 1
 

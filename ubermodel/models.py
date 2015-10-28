@@ -36,6 +36,9 @@ def get_model_from_dict(model_dict):
 
     if 'transforms' in model_dict:
         transforms = model_dict['transforms'].copy()
+        if 'lag' in transforms:
+            lag = transforms.pop('lag')
+            pipe_list.append(get_lagger(lag))
         if 'scaler' in transforms:
             scaler = transforms.pop('scaler')
             pipe_list.append(get_scaler(scaler))
@@ -64,6 +67,14 @@ def get_model_from_dict(model_dict):
     pipe_list.append(model)
 
     return make_pipeline(*pipe_list)
+
+
+def get_lagger(name, kwargs):
+    """Return a scikit-learn lagger from name and args."""
+
+    if name == 'KMeans':
+        from .transforms import LagTransform
+        return LagTransform(**kwargs)
 
 
 def get_clusterer(name, kwargs):
