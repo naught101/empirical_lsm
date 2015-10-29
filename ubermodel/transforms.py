@@ -88,3 +88,53 @@ class LagTransform(BaseEstimator, TransformerMixin):
         # TODO: if predict transform, fill NAs with mean, if fit transform, drop NAs.
 
         return X_lag
+
+
+class PandasCleaner(BaseEstimator, TransformerMixin):
+    """Removes rows with NAs from both X and y, and converts to an array and back"""
+
+    def __init__(self, remove_NA=True):
+        """:remove_NA: Whether to remove NA rows from the data
+
+        :remove_NA: TODO
+
+        """
+        BaseEstimator.__init__(self)
+        TransformerMixin.__init__(self)
+
+        self._remove_NA = remove_NA
+
+    def fit(self, X, y=None):
+        """Gather pandas metadata and store it.
+
+        :X: TODO
+        :y: TODO
+        :returns: TODO
+
+        """
+        if 'site' in X.columns:
+            self.X_sites_ = X.pop('site')
+        else:
+            self.X_sites_ = None
+        self.X_columns_ = X.columns
+        self.X_index_ = X.index
+        self.X_col_types_ = [(c, X[c].dtype) for c in X.columns]
+
+        if y is not None:
+            if 'site' in y.columns:
+                self.y_sites_ = y.pop('site')
+            else:
+                self.y_sites_ = None
+            self.y_columns_ = y.columns
+            self.y_index_ = y.index
+            self.y_col_types_ = [(c, y[c].dtype) for c in y.columns]
+
+
+    def transform(self, X):
+        """Transforms
+
+        :X: TODO
+        :returns: TODO
+
+        """
+        pass
