@@ -9,28 +9,28 @@ Description: ubermodel helper functions
 """
 
 
-def print_good(string):
+def print_good(string, kwargs):
     """print string in green
     """
     okgreen = '\033[92m'
     reset = '\033[39m'
 
-    print(okgreen + string + reset)
+    print(okgreen + string + reset, **kwargs)
 
 
-def print_warn(string):
+def print_warn(string, kwargs):
     """print string in yellow
     """
     warnyellow = '\033[93m'
     reset = '\033[39m'
 
-    print(warnyellow + string + reset)
+    print(warnyellow + string + reset, **kwargs)
 
 
-def print_bad(string):
+def print_bad(string, kwargs):
     """print string in red
     """
     badred = '\033[91m'
     reset = '\033[39m'
 
-    print(badred + string + reset)
+    print(badred + string + reset, **kwargs)
