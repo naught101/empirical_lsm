@@ -72,15 +72,18 @@ def PLUMBER_fit_predict(model, name, site):
 
     flux_vars = FLUX_VARS
 
+    # TODO: fix dirty hack for loading names when required.
+    use_names = 'lag' in name
+
     print("Converting... ", end='')
     met_train = xray_list_to_df([ds for s, ds in met_data.items() if s != site],
-                                variables=met_vars, qc=True)
+                                variables=met_vars, qc=True, name=use_names)
 
     # We use gap-filled data for the testing period, or the model fails.
     met_test = pals_xray_to_df(met_data[site], variables=met_vars)
 
     flux_train = xray_list_to_df([ds for s, ds in flux_data.items() if s != site],
-                                 variables=flux_vars, qc=True)
+                                 variables=flux_vars, qc=True, name=use_names)
 
     print('Fitting and running {f} using {m}'.format(f=flux_vars, m=met_vars))
     sim_data_dict = dict()

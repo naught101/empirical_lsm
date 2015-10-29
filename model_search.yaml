@@ -127,7 +127,7 @@ lin_lag1:
     class: LinearRegression
     transforms:
         lag:
-            lag: 1
+            periods: 1
 
 ### Markov lagging
 markov1:
@@ -136,5 +136,5 @@ markov1:
     class: LinearRegression
     transforms:
         markov_lag:
-            lag: 1
+            periods: 1
 
