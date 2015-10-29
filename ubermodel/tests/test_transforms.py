@@ -10,6 +10,7 @@ Description: TODO: File description
 
 import unittest
 import numpy.testing as npt
+import numpy as np
 
 from pals_utils.data import get_site_data, xray_list_to_df
 from ubermodel.transforms import LagTransform
@@ -47,6 +48,11 @@ class TestLagTransform(unittest.TestCase):
 
         npt.assert_array_equal(transformed.ix[0, ['SWdown', 'Tair']],
                                transformed.ix[4, ['SWdown_lag', 'Tair_lag']])
+
+        # Check first two hours at each site are empty
+        npt.assert_array_equal(
+            transformed.ix[[0, 1, 2, 3, 48, 49, 50, 51], ['SWdown_lag', 'Tair_lag']],
+            np.nan)
 
         self.assertEqual(self.met_data.shape[0], transformed.shape[0])
         self.assertEqual(self.met_data.shape[1] + 2, transformed.shape[1])
