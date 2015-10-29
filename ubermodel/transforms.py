@@ -25,9 +25,9 @@ def lag_dataframe(df, periods, freq):
 
     """
     # TODO: problem: remove trailing entries. For now assume constant spacing, 1 lag
-    shifted = df.select_dtypes(include=[np.number]).shift(periods, freq)[:-1]
+    shifted = df.select_dtypes(include=[np.number]).shift(periods, freq)
     shifted.columns = [c + '_lag' for c in shifted.columns]
-    new_df = pd.concat([df, shifted], axis=1)
+    new_df = pd.merge(df, shifted, how='left', left_index=True, right_index=True)
 
     return new_df
 
@@ -74,12 +74,16 @@ class LagTransform(BaseEstimator, TransformerMixin):
 
         n_samples, n_features = X.shape
 
-        if n_features != self.n_input_features_:
-            raise ValueError("X shape does not match training shape")
+        # if n_features != self.n_input_features_:
+        #     raise ValueError("X shape does not match training shape")
 
         if 'site' in X.index.names:
             X_lag = (X.reset_index('site')
                       .groupby('site')
+                      .apply(lag_dataframe, periods=self._periods, freq=self._freq))
+
+        elif 'site' in X.columns:
+            X_lag = (X.groupby('site')
                       .apply(lag_dataframe, periods=self._periods, freq=self._freq))
         # TODO: if predict transform, fill NAs with mean, if fit transform, drop NAs.
 
