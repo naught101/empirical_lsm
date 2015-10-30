@@ -11,13 +11,16 @@ Usage:
     model_search_indexes.py
 """
 
+from docopt import docopt
+
 import glob
 import os
-from docopt import docopt
+import pandas as pd
+
 from matplotlib.cbook import dedent
 from datetime import datetime as dt
 from ubermodel.plots import get_PLUMBER_plot
-from ubermodel.utils import print_good
+from ubermodel.utils import print_good, dataframe_to_rst
 
 
 def model_site_index_rst(model_dir):
@@ -68,17 +71,71 @@ def model_site_index_rst(model_dir):
     return
 
 
+def get_metric_data(model_dirs):
+    """Get a dataframe of metric means for each model
+
+    :model_dirs: TODO
+    :returns: TODO
+
+    """
+    import re
+    import pandas as pd
+
+    pat = re.compile('[^\W_]+(?=_metrics.csv$)')
+
+    data = []
+
+    for md in model_dirs:
+        name = md.replace('source/models/', '')
+        csv_files = glob.glob(md + '/metrics/*csv')
+        if len(csv_files) == 0:
+            continue
+        model_dfs = []
+        for csvf in csv_files:
+            site = re.search(pat, csvf).group(0)
+            df = pd.DataFrame.from_csv(csvf)
+            df['site'] = site
+            model_dfs.append(df)
+        model_df = pd.concat(model_dfs)
+        model_df['name'] = name
+        data. append(model_df)
+    data = pd.concat(data)
+
+    return data
+
+
+def get_metric_table(model_dirs):
+    """Get data, average, and return as table.
+
+    :model_dirs: TODO
+    :returns: TODO
+
+    """
+    data = get_metric_data(model_dirs).reset_index()
+
+    data = (pd.melt(data, id_vars=['name', 'metric', 'site'])
+              .pivot_table(index=['variable', 'name', 'site'],
+                           columns='metric', values='value')
+              .reset_index())
+
+    summary = data.groupby(['variable', 'name']).mean()
+
+    return dataframe_to_rst(summary)
+
+
 def model_search_index_rst():
     """mail model search index
     """
+
     time = dt.isoformat(dt.now().replace(microsecond=0), sep=' ')
 
     print_good('Generating models index')
 
     model_dirs = [d for d in sorted(glob.glob('source/models/*')) if os.path.isdir(d)]
 
-    model_pages = [m.replace('source/', '') for m in model_dirs]
+    table = get_metric_table(model_dirs)
 
+    model_pages = [m.replace('source/', '') for m in model_dirs]
     model_links = '\n'.join(['    %s' % m for m in model_pages])
 
     template = dedent("""
@@ -87,6 +144,11 @@ def model_search_index_rst():
 
     {time}
 
+    summary table
+    =============
+
+    {table}
+
     .. toctree::
         :maxdepth: 1
 
@@ -94,12 +156,14 @@ def model_search_index_rst():
     """)
 
     with open('source/model_search.rst', 'w') as f:
-        f.write(template.format(time=time, links=model_links))
+        f.write(template.format(time=time, links=model_links, table=table))
 
     return
 
 
 def main(args):
+
+    # TODO: only regenerate pages that need it.
 
     model_search_index_rst()
 
