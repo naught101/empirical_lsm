@@ -24,7 +24,6 @@ import sys
 import os
 import xray
 from matplotlib.cbook import dedent
-from tabulate import tabulate
 
 from pals_utils.constants import DATASETS, MET_VARS, FLUX_VARS
 from pals_utils.data import get_site_data, pals_xray_to_df, xray_list_to_df, copy_data
@@ -32,7 +31,7 @@ from pals_utils.data import get_site_data, pals_xray_to_df, xray_list_to_df, cop
 from ubermodel.models import get_model
 from ubermodel.evaluate import evaluate_simulation
 from ubermodel.plots import diagnostic_plots
-from ubermodel.utils import print_good
+from ubermodel.utils import print_good, dataframe_to_rst
 
 
 def sim_dict_to_xray(sim_dict, old_ds):
@@ -147,12 +146,6 @@ def PLUMBER_fit_predict_eval(model, name, site):
     return eval_results, files
 
 
-def format_evaluation(eval_results):
-    """Format eval results in rst format
-    """
-    return tabulate(eval_results.round(4), headers='keys', tablefmt='rst')
-
-
 def model_site_rst_format(model, name, site, eval_text, files):
     """format all the datas into an rst!
     """
@@ -207,7 +200,7 @@ def model_site_rst_write(model, name, site, eval_results, files):
 
     print_good("Generating rst file for {n} at {s}.".format(n=name, s=site))
 
-    eval_text = format_evaluation(eval_results)
+    eval_text = dataframe_to_rst(eval_results)
 
     output = model_site_rst_format(model, name, site, eval_text, files)
 

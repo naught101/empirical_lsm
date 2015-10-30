@@ -8,6 +8,8 @@ Github: https://github.com/naught101
 Description: ubermodel helper functions
 """
 
+from tabulate import tabulate
+
 
 def print_good(string, kwargs={}):
     """print string in green
@@ -34,3 +36,9 @@ def print_bad(string, kwargs={}):
     reset = '\033[39m'
 
     print(badred + string + reset, **kwargs)
+
+
+def dataframe_to_rst(dataframe):
+    """Format eval results in rst format
+    """
+    return tabulate(dataframe.round(4), headers='keys', tablefmt='rst')
