@@ -11,7 +11,7 @@ Description: ubermodel helper functions
 from tabulate import tabulate
 
 
-def print_good(string, kwargs={}):
+def print_good(string, **kwargs):
     """print string in green
     """
     okgreen = '\033[92m'
@@ -20,7 +20,7 @@ def print_good(string, kwargs={}):
     print(okgreen + string + reset, **kwargs)
 
 
-def print_warn(string, kwargs={}):
+def print_warn(string, **kwargs):
     """print string in yellow
     """
     warnyellow = '\033[93m'
@@ -29,7 +29,7 @@ def print_warn(string, kwargs={}):
     print(warnyellow + string + reset, **kwargs)
 
 
-def print_bad(string, kwargs={}):
+def print_bad(string, **kwargs):
     """print string in red
     """
     badred = '\033[91m'
