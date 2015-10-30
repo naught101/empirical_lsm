@@ -9,7 +9,6 @@ Description: Fits and runs a basic model and produces rst output with diagnostic
 Usage:
     run_model.py run <name> <site>
     run_model.py eval <name> <site> [<file>]
-    run_model.py import-benchmark <name>
 
 Options:
     -h, --help  Show this screen and exit.
@@ -219,27 +218,6 @@ def main_eval(name, site, sim_file=None):
     return
 
 
-def main_import_benchmark(name):
-    """import a PLUMBER benchmark for all sites
-
-    :name: PLUMBER benchmark name
-    :returns: TODO
-    """
-    # Hacky solution just for PLUMBER benchmarks
-    print_good('Importing {n} data for: '.format(n=name), end='')
-    for s in DATASETS:
-        print(s, end=', ')
-        s_file = 'data/PALS/benchmarks/{n}/{n}_{s}Fluxnet.1.4.nc'.format(n=name, s=s)
-        nc_path = get_sim_nc_path(name, s)
-
-        sim_data = xray.open_dataset(s_file)
-        # WARNING! over writes existing sim!
-        sim_data.to_netcdf(nc_path)
-        sim_data.close()
-
-    return
-
-
 def main(args):
     # print(args)
     # sys.exit()
@@ -263,9 +241,6 @@ def main(args):
                 main_eval(name, s)
         else:
             main_eval(name, site, sim_file)
-
-    elif args['import-benchmark']:
-        main_import_benchmark(name)
 
     return
 
