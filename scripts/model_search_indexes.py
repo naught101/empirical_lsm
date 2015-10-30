@@ -104,7 +104,7 @@ def get_metric_data(model_dirs):
     return data
 
 
-def get_metric_table(model_dirs):
+def get_metric_tables(model_dirs):
     """Get data, average, and return as table.
 
     :model_dirs: TODO
@@ -120,7 +120,19 @@ def get_metric_table(model_dirs):
 
     summary = data.groupby(['variable', 'name']).mean()
 
-    return dataframe_to_rst(summary)
+    table_text = ''
+    for v in data.variable.unique():
+        table = dataframe_to_rst(summary.filter(like=v, axis=0)
+                                        .reset_index('variable', drop=True))
+        table_text += dedent("""
+            {variable}
+            -------------
+
+            {table}
+            """).format(variable=v, table=table)
+        table_text += "\n\n"
+
+    return table_text
 
 
 def model_search_index_rst():
@@ -133,7 +145,7 @@ def model_search_index_rst():
 
     model_dirs = [d for d in sorted(glob.glob('source/models/*')) if os.path.isdir(d)]
 
-    table = get_metric_table(model_dirs)
+    table_text = get_metric_tables(model_dirs)
 
     model_pages = [m.replace('source/', '') for m in model_dirs]
     model_links = '\n'.join(['    %s' % m for m in model_pages])
@@ -144,10 +156,13 @@ def model_search_index_rst():
 
     {time}
 
-    summary table
-    =============
+    Summary tables
+    ==============
 
-    {table}
+    {tables}
+
+    Model pages
+    ===========
 
     .. toctree::
         :maxdepth: 1
@@ -156,7 +171,7 @@ def model_search_index_rst():
     """)
 
     with open('source/model_search.rst', 'w') as f:
-        f.write(template.format(time=time, links=model_links, table=table))
+        f.write(template.format(time=time, links=model_links, tables=table_text))
 
     return
 
