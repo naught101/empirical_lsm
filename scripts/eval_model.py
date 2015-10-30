@@ -7,7 +7,7 @@ Email: ned@nedhaughton.com
 Description: Evaluates a model (sim or set of sims) and produces rst output with diagnostics
 
 Usage:
-    eval_model.py eval <name> <site> [<file>]
+    eval_model.py <name> <site> [<file>]
 
 Options:
     -h, --help  Show this screen and exit.
@@ -123,20 +123,16 @@ def main_eval(name, site, sim_file=None):
 
 
 def main(args):
-    # print(args)
-    # sys.exit()
-
     name = args['<name>']
     site = args['<site>']
+    sim_file = args['<file>']
 
-    if args['eval']:
-        sim_file = args['<file>']
-        if site == 'all':
-            # will only work if simulations are already run.
-            for s in DATASETS:
-                main_eval(name, s)
-        else:
-            main_eval(name, site, sim_file)
+    if site == 'all':
+        # will only work if simulations are already run.
+        for s in DATASETS:
+            main_eval(name, s)
+    else:
+        main_eval(name, site, sim_file)
 
     return
 

@@ -97,19 +97,16 @@ def main_run(model, name, site):
 
 
 def main(args):
-    # print(args)
-    # sys.exit()
-
     name = args['<name>']
     site = args['<site>']
 
-    if args['run']:
-        model = get_model(name)
-        if site == 'all':
-            for s in DATASETS:
-                main_run(model, name, s)
-        else:
-            main_run(model, name, site)
+    model = get_model(name)
+    if site == 'all':
+        for s in DATASETS:
+            main_run(model, name, s)
+    else:
+        main_run(model, name, site)
+
     return
 
 

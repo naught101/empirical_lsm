@@ -111,7 +111,7 @@ def main(args):
     return
 
 
-if (__name__ == '__main__'):
+if __name__ == '__main__':
     args = docopt(__doc__)
 
     main(args)

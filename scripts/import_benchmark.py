@@ -7,7 +7,7 @@ Email: ned@nedhaughton.com
 Description: imports a benchmark from a PALS dataset
 
 Usage:
-    run_model.py import-benchmark <name>
+    import-benchmark.py <name> [<site>...]
 
 Options:
     -h, --help  Show this screen and exit.
@@ -22,7 +22,7 @@ from ubermodel.utils import print_good
 from ubermodel.data import get_sim_nc_path
 
 
-def main_import_benchmark(name):
+def main_import_benchmark(name, site):
     """import a PLUMBER benchmark for all sites
 
     :name: PLUMBER benchmark name
@@ -30,7 +30,13 @@ def main_import_benchmark(name):
     """
     # Hacky solution just for PLUMBER benchmarks
     print_good('Importing {n} data for: '.format(n=name), end='')
-    for s in DATASETS:
+
+    if site is None:
+        datasets = DATASETS
+    else:
+        datasets = site
+
+    for s in datasets:
         print(s, end=', ')
         s_file = 'data/PALS/benchmarks/{n}/{n}_{s}Fluxnet.1.4.nc'.format(n=name, s=s)
         nc_path = get_sim_nc_path(name, s)
@@ -44,19 +50,15 @@ def main_import_benchmark(name):
 
 
 def main(args):
-    # print(args)
-    # sys.exit()
-
     name = args['<name>']
     site = args['<site>']
 
-    if args['import-benchmark']:
-        main_import_benchmark(name)
+    main_import_benchmark(name, site)
 
     return
 
 
-if (__name__ == '__main__'):
+if __name__ == '__main__':
     args = docopt(__doc__)
 
     main(args)
