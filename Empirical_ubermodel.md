@@ -9,8 +9,16 @@ geometry: margin=2cm
 header-includes:
     - \usepackage{lineno}
     - \linenumbers
+bibliography: Bibliography.bib
 abstract: >
-    TODO
+    The PLUMBER experiment [@Best_plumbing_LSMs_2014] showed that a broad cross-section cross-section of Land Surface Models (LSMs) are performing poorly relative to very simplistic benchmark empirical models.
+    A number of hypotheses have been put forward for this poor performance; however, follow-up analysis [@Haughton_PLUMBER2_2015] has found none of these provide a satisfactory explanation.
+    Part of the difficulty with analysing this problem is that we have no *a priori* expectation of how well LSMs *should* perform.
+    This research attempts to quantify how much information is available in the meteorological forcings and site characteristic data for predicting surface fluxes, as well as to provide one or more best-in-class benchmark empirical models.
+    We do this by analysing the data directly using information theoretic methods, as well as undertaking a broad-based model search to establish a best-performing benchmark, using a similar out-of-sample train and test methodology to that used in @Best_plumbing_LSMs_2014.
+    We then use these benchmarks to re-analyse the LSMs assessed in @Best_plumbing_LSMs_2014.
+    While there are some caveats to this kind of empirical modelling (e.g. risks of over fitting, or local minima during fitting), most of these can be mitigated to a satisfactory degree for the purposes of this research.
+
 ---
 
 *For submission to Journal of Hydrometeorology.*
@@ -18,9 +26,9 @@ abstract: >
 Introduction
 ============
 
-- Land surface models aren't performing well [@PLUMBER, @Haughton]
+- Land surface models aren't performing well [@Best_plumbing_LSMs_2014, @Haughton_PLUMBER2_2015]
     - Partly due to their complexity - at least that's a main reason why we can't figure out the problems.
-- We don't know how well they aren't performing - @PLUMBER put a lower bound on the performance improvement we should expect, but we don't know how much available information there is in the met forcings...
+- We don't know how well they aren't performing - @Best_plumbing_LSMs_2014 put a lower bound on the performance improvement we should expect, but we don't know how much available information there is in the met forcings...
     - empirical models can help us quantify the maximum available information
         - But they don't let us make inferences about the physics.
 - LSMs are partially empirical, and complex enough to suffer from equifinality - it is not certain that what they are producing is physical, and it is not certain that they will accurately represent out-of-sample behaviour.
