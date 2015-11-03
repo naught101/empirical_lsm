@@ -47,7 +47,9 @@ def model_site_rst_format(model, name, site, eval_text, files):
     Model details:
     --------------
 
-    :code:`{model}`
+    .. code:: python
+
+      `{model}`
 
     Evaluation results:
     -------------------
@@ -97,6 +99,8 @@ def main_eval(name, site, sim_file=None):
     """Main function for evaluating an existing simulation.
 
     Copies simulation data to source directory.
+
+    TODO: skip running if cached, for easier page regeneration
 
     :name: name of the model
     :site: PALS site name to run the model at

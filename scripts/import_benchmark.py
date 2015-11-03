@@ -26,7 +26,7 @@ def main_import_benchmark(name, site):
     """import a PLUMBER benchmark for all sites
 
     :name: PLUMBER benchmark name
-    :returns: TODO
+    :site: plumber site name
     """
     # Hacky solution just for PLUMBER benchmarks
     print_good('Importing {n} data for: '.format(n=name), end='')

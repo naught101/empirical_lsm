@@ -26,9 +26,7 @@ from ubermodel.utils import print_good, dataframe_to_rst
 def model_site_index_rst(model_dir):
     """list site simulations for a model and print global model plots
 
-    :model_dir: TODO
-    :returns: TODO
-
+    :model_dir: Directory to create a model index in
     """
     time = dt.isoformat(dt.now().replace(microsecond=0), sep=' ')
     name = model_dir.replace('source/models/', '')
@@ -74,8 +72,8 @@ def model_site_index_rst(model_dir):
 def get_metric_data(model_dirs):
     """Get a dataframe of metric means for each model
 
-    :model_dirs: TODO
-    :returns: TODO
+    :model_dirs: List of model directories to grab data from
+    :returns: All metric data as a pandas dataframe
 
     """
     import re
@@ -107,8 +105,8 @@ def get_metric_data(model_dirs):
 def get_metric_tables(model_dirs):
     """Get data, average, and return as table.
 
-    :model_dirs: TODO
-    :returns: TODO
+    :model_dirs: list of model directories to search for metric data
+    :returns: metric summary tables as rst source.
 
     """
     data = get_metric_data(model_dirs).reset_index()
@@ -180,6 +178,7 @@ def main(args):
 
     # TODO: only regenerate pages that need it.
 
+    # Over-all index
     model_search_index_rst()
 
     model_dirs = [d for d in sorted(glob.glob('source/models/*')) if os.path.isdir(d)]
