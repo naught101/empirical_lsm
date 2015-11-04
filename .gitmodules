@@ -1,0 +1,3 @@
+[submodule "source/sphinx_static/tablesorter"]
+	path = source/sphinx_static/tablesorter
+	url = https://github.com/Mottie/tablesorter.git

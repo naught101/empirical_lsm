@@ -126,6 +126,8 @@ def get_metric_tables(model_dirs):
             {variable}
             -------------
 
+            .. rst-class:: tablesorter
+
             {table}
             """).format(variable=v, table=table)
         table_text += "\n\n"
