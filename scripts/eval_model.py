@@ -40,7 +40,8 @@ def model_site_rst_format(model, name, site, eval_text, plot_files):
 
     plots_text = ''
     for group in sorted(plot_files):
-        plots_text += "{g}\n---------------------------\n\n".format(g=group)
+        plots_text += "{g}\n".format(g=group)
+        plots_text += "^" * len(group) + "\n\n"
         plots_text += '\n\n'.join([
             ".. image :: {file}\n    :scale: 25%".format(file=f) for f in plot_files[group]])
         plots_text += '\n\n'
@@ -68,7 +69,7 @@ def model_site_rst_format(model, name, site, eval_text, plot_files):
     {eval_text}
 
     Plots:
-    ======
+    ------
 
     {plots}
     """)
