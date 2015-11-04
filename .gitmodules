@@ -1,3 +1,6 @@
 [submodule "source/sphinx_static/tablesorter"]
 	path = source/sphinx_static/tablesorter
 	url = https://github.com/Mottie/tablesorter.git
+[submodule "source/sphinx_static/jquery"]
+	path = source/sphinx_static/jquery
+	url = git://github.com/jquery/jquery.git
