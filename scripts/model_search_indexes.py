@@ -41,9 +41,11 @@ def model_site_index_rst(model_dir):
 
     plots = get_PLUMBER_plot(model_dir)
 
+    title = '{name} simulations'.format(name=name)
+    title += '\n' + '=' * len(title)
+
     template = dedent("""
-    {name} simulations
-    ==============================
+    {title}
 
     {time}
 
@@ -61,7 +63,7 @@ def model_site_index_rst(model_dir):
     {links}
     """)
 
-    rst = template.format(time=time, links=sim_links, name=name, plots=plots)
+    rst = template.format(time=time, links=sim_links, title=title, plots=plots)
 
     with open(model_dir + '.rst', 'w') as f:
         f.write(rst)

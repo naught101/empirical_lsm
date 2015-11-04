@@ -45,9 +45,11 @@ def model_site_rst_format(model, name, site, eval_text, plot_files):
             ".. image :: {file}\n    :scale: 25%".format(file=f) for f in plot_files[group]])
         plots_text += '\n\n'
 
+    title = '{name} at {site}'.format(name=name, site=site)
+    title += '\n' + '=' * len(title)
+
     template = dedent("""
-    {name} at {site}
-    ====================
+    {title}
 
     date: :code:`{date}`
 
@@ -72,8 +74,7 @@ def model_site_rst_format(model, name, site, eval_text, plot_files):
     """)
 
     output = (template.format(model=model,
-                              name=name,
-                              site=site,
+                              title=title,
                               plots=plots_text,
                               date=date,
                               eval_text=eval_text))
