@@ -22,7 +22,7 @@ from ubermodel.utils import print_good
 from ubermodel.data import get_sim_nc_path
 
 
-def fix_benchmark(name, site_data):
+def fix_benchmark(site_data, name, site):
     """Performs checks on broken benchmarks, and fixes them inplace
 
     :name: benchmark name
@@ -35,6 +35,17 @@ def fix_benchmark(name, site_data):
         del site_data['longitude'], site_data['latitude'], lon['latitude'], lat['longitude']
         site_data['longitude'] = lon
         site_data['latitude'] = lat
+
+        defaults = dict(
+            Production_time='2013-01-01 00:00:00',
+            Production_source='Martin Best; PLUMBER',
+            PALS_dataset_name=site + 'Fluxnet',
+            PALS_dataset_version='1.4',
+            Contact='palshelp@gmail.com')
+
+        for k in defaults:
+            if k not in site_data.attrs:
+                site_data.attrs[k] = defaults[k]
 
     return
 
@@ -60,7 +71,7 @@ def main_import_benchmark(name, site):
 
         sim_data = xray.open_dataset(s_file)
 
-        fix_benchmark(name, sim_data)
+        fix_benchmark(sim_data, name, s)
 
         # WARNING! over writes existing sim!
         sim_data.to_netcdf(nc_path)
