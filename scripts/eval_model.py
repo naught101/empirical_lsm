@@ -7,7 +7,8 @@ Email: ned@nedhaughton.com
 Description: Evaluates a model (sim or set of sims) and produces rst output with diagnostics
 
 Usage:
-    eval_model.py <name> <site> [<file>]
+    eval_model.py eval <name> <site> [<file>]
+    eval_model.py rst-gen <name> <site>
 
 Options:
     -h, --help  Show this screen and exit.
@@ -15,28 +16,34 @@ Options:
 
 from docopt import docopt
 
+import xray
+import os
+import glob
+
+from matplotlib.cbook import dedent
 from datetime import datetime as dt
 
-import xray
-from matplotlib.cbook import dedent
-
-from pals_utils.constants import DATASETS
+from pals_utils.constants import DATASETS, FLUX_VARS
 from pals_utils.data import get_site_data
 
-from ubermodel.evaluate import evaluate_simulation
+from ubermodel.evaluate import evaluate_simulation, load_sim_evaluation
 from ubermodel.plots import diagnostic_plots
-from ubermodel.utils import print_good, dataframe_to_rst
+from ubermodel.utils import print_good, print_bad, dataframe_to_rst
 from ubermodel.data import get_sim_nc_path
 
 
-def model_site_rst_format(model, name, site, eval_text, files):
+def model_site_rst_format(model, name, site, eval_text, plot_files):
     """format all the datas into an rst!
     """
 
     date = dt.isoformat(dt.now().replace(microsecond=0), sep=' ')
 
-    plots = '\n\n'.join([
-        ".. image :: {file}".format(file=f) for f in files])
+    plots_text = ''
+    for group in sorted(plot_files):
+        plots_text += "{g}\n---------------------------\n\n".format(g=group)
+        plots_text += '\n\n'.join([
+            ".. image :: {file}\n    :scale: 25%".format(file=f) for f in plot_files[group]])
+        plots_text += '\n\n'
 
     template = dedent("""
     {name} at {site}
@@ -54,10 +61,12 @@ def model_site_rst_format(model, name, site, eval_text, files):
     Evaluation results:
     -------------------
 
+    .. rst-class:: tablesorter
+
     {eval_text}
 
     Plots:
-    ------
+    ======
 
     {plots}
     """)
@@ -65,14 +74,14 @@ def model_site_rst_format(model, name, site, eval_text, files):
     output = (template.format(model=model,
                               name=name,
                               site=site,
-                              plots=plots,
+                              plots=plots_text,
                               date=date,
                               eval_text=eval_text))
 
     return output
 
 
-def model_site_rst_write(model, name, site, eval_results, files):
+def model_site_rst_write(model, name, site, eval_results, plot_files):
     """run a model and generate an rst file.
 
     This is useful for importing.
@@ -87,7 +96,7 @@ def model_site_rst_write(model, name, site, eval_results, files):
 
     eval_text = dataframe_to_rst(eval_results)
 
-    output = model_site_rst_format(model, name, site, eval_text, files)
+    output = model_site_rst_format(model, name, site, eval_text, plot_files)
 
     with open(model_site_rst_file, 'w') as f:
         f.write(output)
@@ -116,12 +125,54 @@ def main_eval(name, site, sim_file=None):
 
     flux_data = get_site_data([site], 'flux')[site]
 
-    print_good('Evaluating data for {n} at {s}'.format(n=name, s=site))
-    eval_results = evaluate_simulation(sim_data, flux_data, name)
+    evaluate_simulation(sim_data, flux_data, name)
 
-    files = diagnostic_plots(sim_data, flux_data, name)
+    diagnostic_plots(sim_data, flux_data, name)
 
-    model_site_rst_write("Not generated", name, site, eval_results, files)
+    return
+
+
+def get_existing_plots(name, site):
+    """Load all plots saved in the evaluation step.
+
+    :name: TODO
+    :site: TODO
+    :returns: TODO
+
+    """
+    plot_dir = 'source/models/{n}/figures'.format(n=name)
+
+    plots = {}
+
+    plot_name = '{d}/{n}_all_PLUMBER_plot_all_metrics.png'.format(d=plot_dir, n=name, s=site)
+    if os.path.exists(plot_name):
+        plots['All variables'] = ['figures/{p}'.format(p=os.path.basename(plot_name))]
+
+    for v in FLUX_VARS:
+        plots[v] = ['figures/{s}/{p}'.format(s=site, p=os.path.basename(p)) for p in
+                    sorted(glob.glob('{d}/{s}/{n}_{v}_{s}_*.png'.format(d=plot_dir, n=name, v=v, s=site)))]
+
+    return plots
+
+
+def main_rst_gen(name, site):
+    """Main function for formatting existing simulation evaluations and plots
+
+    Copies simulation data to source directory.
+
+    :name: name of the model
+    :site: PALS site name to run the model at
+    """
+
+    try:
+        eval_results = load_sim_evaluation(name, site)
+        plot_files = get_existing_plots(name, site)
+    except OSError as e:
+        print_bad('one or more files missing for {n} at {s}: {e}'.format(
+            n=name, s=site, e=e))
+        return
+
+    model_site_rst_write("Not generated", name, site, eval_results, plot_files)
 
     return
 
@@ -131,12 +182,21 @@ def main(args):
     site = args['<site>']
     sim_file = args['<file>']
 
-    if site == 'all':
-        # will only work if simulations are already run.
-        for s in DATASETS:
-            main_eval(name, s)
-    else:
-        main_eval(name, site, sim_file)
+    if args['eval']:
+        if site == 'all':
+            # will only work if simulations are already run.
+            for s in DATASETS:
+                main_eval(name, s)
+        else:
+            main_eval(name, site, sim_file)
+
+    if args['rst-gen']:
+        if site == 'all':
+            # will only work if simulations are already evaluated.
+            for s in DATASETS:
+                main_rst_gen(name, s)
+        else:
+            main_rst_gen(name, site)
 
     return
 

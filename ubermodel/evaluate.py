@@ -14,6 +14,8 @@ import os
 from pals_utils.data import pals_site_name, FLUX_VARS
 from pals_utils.stats import run_metrics
 
+from .utils import print_good
+
 
 # Evaluate
 
@@ -25,6 +27,8 @@ def evaluate_simulation(sim_data, flux_data, name):
     TODO: Maybe get model model_name from sim_data directly (this is a PITA at
           the moment, most models don't report it).
     """
+    site = pals_site_name(flux_data)
+    print_good('Evaluating data for {n} at {s}'.format(n=name, s=site))
 
     eval_vars = list(set(FLUX_VARS).intersection(sim_data.data_vars)
                                    .intersection(flux_data.data_vars))
@@ -38,12 +42,23 @@ def evaluate_simulation(sim_data, flux_data, name):
         for m, val in run_metrics(sim_v, obs_v).items():
             metric_data.ix[m, v] = val
 
-    site = pals_site_name(flux_data)
-
     eval_dir = 'source/models/{n}/metrics/'.format(n=name)
     if not os.path.exists(eval_dir):
         os.makedirs(eval_dir)
     eval_path = '{d}/{n}_{s}_metrics.csv'.format(d=eval_dir, n=name, s=site)
     metric_data.to_csv(eval_path)
+
+    return metric_data
+
+
+def load_sim_evaluation(name, site):
+    """Load an evaluation saved from evaluate_simulation.
+
+    :name: model name
+    :site: PALS site name
+    :returns: pandas dataframe with metrics
+    """
+    eval_path = 'source/models/{n}/metrics/{n}_{s}_metrics.csv'.format(n=name, s=site)
+    metric_data = pd.DataFrame.from_csv(eval_path)
 
     return metric_data
