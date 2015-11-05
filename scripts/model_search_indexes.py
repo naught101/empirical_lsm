@@ -8,7 +8,9 @@ Github: https://github.com/naught101
 Description: create indexes for the model search
 
 Usage:
-    model_search_indexes.py
+    model_search_indexes.py all
+    model_search_indexes.py model <name>
+    model_search_indexes.py summary
 """
 
 from docopt import docopt
@@ -178,17 +180,48 @@ def model_search_index_rst():
     return
 
 
+def newest_file(path):
+    """find the most recently modified file in a path
+
+    :path: TODO
+    :returns: TODO
+
+    """
+    walk = os.walk(path)
+    max_age = 0
+    for d in walk:
+        if len(d[2]) == 0:
+            continue
+        local_max = max([os.path.getmtime("%s/%s" % (d[0], f)) for f in d[2]])
+        max_age = max(max_age, local_max)
+
+    return max_age
+
+
 def main(args):
 
-    # TODO: only regenerate pages that need it.
+    if args['model']:
+        if args['<name>'] == 'all':
+            model_dirs = [d for d in sorted(glob.glob('source/models/*')) if os.path.isdir(d)]
+        else:
+            model_dirs = ['source/models/' + args['<name>']]
+
+        for model_dir in model_dirs:
+            model_site_index_rst(model_dir)
+
+    if args['all']:
+        model_dirs = [d for d in sorted(glob.glob('source/models/*')) if os.path.isdir(d)]
+        for model_dir in model_dirs:
+            # for 'all' only regenerate pages that need it.
+            newest = newest_file(model_dir)
+            if newest > os.path.getmtime(model_dir + ".rst"):
+                model_site_index_rst(model_dir)
+            else:
+                print("skipping %s - rst is up to date" % model_dir)
 
     # Over-all index
-    model_search_index_rst()
-
-    model_dirs = [d for d in sorted(glob.glob('source/models/*')) if os.path.isdir(d)]
-
-    for model_dir in model_dirs:
-        model_site_index_rst(model_dir)
+    if args['all'] or args['summary']:
+        model_search_index_rst()
 
     return
 
