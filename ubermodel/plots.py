@@ -231,3 +231,59 @@ def plot_PLUMBER_sim_metrics(name, site):
 
     filename = '{n}_{s}_PLUMBER_plot_all_metrics.png'.format(n=name, s=site)
     return filename
+
+
+# Drought workshop plots
+
+def plot_drydown(sim_data, flux_data, met_data, name, date_range):
+    """Plot behaviour during dry-downs.
+
+    Plots rainfall, as well as Qh and Qle for obs and simulations.
+
+    :sim_data: xray dataset from a simulation
+    :flux_data: xray dataset from a simulation
+    :met_data: xray dataset from a simulation
+    :name: model name
+    :returns: plot filename
+    """
+    from dateutil.parser import parse
+    year_range = [parse(d).year for d in date_range]
+    year_range[1] += 1
+    year_range = ['%s-01-01' % d for d in year_range]
+
+    site = pals_site_name(met_data)
+
+    sns.set_palette(sns.color_palette(['#aa0000', '#ff4444', '#0000aa', '#4477ff']))
+
+    # Plot rainfall in mm
+    Rainf = (pals_xray_to_df(met_data.sel(time=slice(*year_range)), ['Rainf'])
+             .resample('1W', how='sum') * 1000)
+
+    obs = (pals_xray_to_df(flux_data.sel(time=slice(*year_range)), ['Qh', 'Qle'])
+           .resample('1D'))
+
+    sim = (pals_xray_to_df(sim_data.sel(time=slice(*year_range)), ['Qh', 'Qle'])
+           .resample('1D'))
+
+    x_vals = Rainf.index.to_pydatetime()
+
+    fig, ax = pl.subplots()
+    ax.bar(x_vals, Rainf.values, width=7, color='lightblue', linewidth=0)
+
+    x_vals = obs.index.to_pydatetime()
+    for c in obs:
+        if c == 'Qle':
+            offset = 0
+        if c == 'Qh':
+            offset = 100
+        ax.plot(x_vals, pd.rolling_mean(obs[c], 14) + offset, label='Obs %s + %d' % (c, offset))
+        ax.plot(x_vals, pd.rolling_mean(sim[c], 14) + offset, label='Sim %s + %d' % (c, offset))
+
+    ax.axvspan(parse(date_range[0]), parse(date_range[1]), color='black', alpha=0.1, zorder=-100)
+
+    pl.legend(loc=0)
+
+    pl.title('{n}: drydown plot at {s}'.format(n=name, s=site))
+
+    filename = '{n}_{s}_drydown_plot.png'.format(n=name, s=site)
+    return filename
