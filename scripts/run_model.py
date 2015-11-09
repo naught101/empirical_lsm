@@ -18,12 +18,14 @@ from docopt import docopt
 
 import pandas as pd
 import sys
+import os
 
 from pals_utils.constants import DATASETS, MET_VARS, FLUX_VARS
-from pals_utils.data import get_site_data, pals_xray_to_df, xray_list_to_df
+from pals_utils.data import get_met_data, get_flux_data, pals_xray_to_df, xray_list_to_df
 
 from ubermodel.models import get_model
 from ubermodel.data import sim_dict_to_xray
+from ubermodel.utils import print_good, print_warn
 
 
 def PLUMBER_fit_predict(model, name, site):
@@ -35,25 +37,30 @@ def PLUMBER_fit_predict(model, name, site):
     :returns: xray dataset of simulation
 
     """
-    print("Loading all data... ", end='')
-    met_data = get_site_data(DATASETS, 'met')
-    flux_data = get_site_data(DATASETS, 'flux')
-
     met_vars = MET_VARS
-
     flux_vars = FLUX_VARS
 
     # TODO: fix dirty hack for loading names when required.
     use_names = 'lag' in name
 
+    print("Loading all data... ", end='')
+
+    if site not in DATASETS:
+        # Using a non-PLUMBER site, train on all PLUMBER sites.
+        train_sets = DATASETS
+    else:
+        # Using a PLUMBER site, leave one out.
+        train_sets = [s for s in DATASETS if s != site]
+
     print("Converting... ", end='')
-    met_train = xray_list_to_df([ds for s, ds in met_data.items() if s != site],
+    met_train = xray_list_to_df(get_met_data(train_sets).values(),
                                 variables=met_vars, qc=True, name=use_names)
 
     # We use gap-filled data for the testing period, or the model fails.
-    met_test = pals_xray_to_df(met_data[site], variables=met_vars)
+    met_test_xray = get_met_data(site)
+    met_test = pals_xray_to_df(met_test_xray, variables=met_vars)
 
-    flux_train = xray_list_to_df([ds for s, ds in flux_data.items() if s != site],
+    flux_train = xray_list_to_df(get_flux_data(train_sets).values(),
                                  variables=flux_vars, qc=True, name=use_names)
 
     print('Fitting and running {f} using {m}'.format(f=flux_vars, m=met_vars))
@@ -79,7 +86,7 @@ def PLUMBER_fit_predict(model, name, site):
         print("No fluxes successfully fitted, quitting")
         sys.exit()
 
-    sim_data = sim_dict_to_xray(sim_data_dict, met_data[site])
+    sim_data = sim_dict_to_xray(sim_data_dict, met_test_xray)
 
     return sim_data
 
@@ -91,7 +98,19 @@ def main_run(model, name, site):
     :name: name of the model
     :site: PALS site name to run the model at
     """
-    PLUMBER_fit_predict(model, name, site)
+    sim_dir = 'source/models/{n}/sim_data'.format(n=name)
+    if not os.path.exists(sim_dir):
+        os.makedirs(sim_dir)
+
+    nc_file = 'source/models/{n}/sim_data/{n}_{s}.nc'.format(n=name, s=site)
+
+    sim_data = PLUMBER_fit_predict(model, name, site)
+
+    if os.path.exists(nc_file):
+        print_warn("Overwriting sim file at {f}".format(f=nc_file))
+    else:
+        print_good("Writing sim file at {f}".format(f=nc_file))
+    sim_data.to_netcdf(nc_file)
 
     return
 
