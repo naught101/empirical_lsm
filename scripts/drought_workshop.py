@@ -113,7 +113,7 @@ def model_drydown_rst_format(name, plot_files):
         plots_text += "{g}\n".format(g=group)
         plots_text += "^" * len(group) + "\n\n"
         plots_text += '\n\n'.join([
-            ".. image :: {file}\n    :width: 200px".format(file=f) for f in plot_files[group]])
+            ".. image :: {file}\n    :width: 400px".format(file=f) for f in plot_files[group]])
         plots_text += '\n\n'
 
     title = '{name} drydown analysis'.format(name=name)
@@ -204,7 +204,7 @@ def site_drydown_rst_format(site, plot_files):
         plots_text += "{g}\n".format(g=group)
         plots_text += "^" * len(group) + "\n\n"
         plots_text += '\n\n'.join([
-            ".. image :: {file}\n    :width: 200px".format(file=f.replace('source/', '../')) for f in plot_files[group]])
+            ".. image :: {file}\n    :width: 400px".format(file=f.replace('source/', '../')) for f in plot_files[group]])
         plots_text += '\n\n'
 
     title = '{s} drydown analysis'.format(s=site)
