@@ -302,24 +302,24 @@ def plot_drydown_daily_cycles(sim_data, flux_data, met_data, name, date_range):
     :name: model name
     :returns: plot filename
     """
-    date_range = [np.datetime64(parse(d)) for d in date_range]
+    d_range = [np.datetime64(parse(d)) for d in date_range]
     del_t = np.timedelta64(7, 'D')
-    first_cycle = date_range[0] + [-del_t, del_t]
-    last_cycle = date_range[1] + [-del_t, del_t]
+    first_cycle = d_range[0] + [-del_t, del_t]
+    last_cycle = d_range[1] + [-del_t, del_t]
 
     site = pals_site_name(met_data)
 
     sns.set_palette(sns.color_palette(['#aa0000', '#ff4444', '#0000aa', '#4477ff']))
 
-    pl.subplots(2, 1, sharey=True)
+    fig, _ = pl.subplots(2, 1, sharey=True)
 
     periods = {0: 'start', 1: 'end'}
 
-    for i, drange in enumerate([first_cycle, last_cycle]):
-        obs_df = pals_xray_to_df(flux_data.sel(time=slice(*drange)), ['Qh', 'Qle'])
+    for i, dr in enumerate([first_cycle, last_cycle]):
+        obs_df = pals_xray_to_df(flux_data.sel(time=slice(*dr)), ['Qh', 'Qle'])
         obs = obs_df.groupby(obs_df.index.time).mean()
 
-        sim_df = pals_xray_to_df(sim_data.sel(time=slice(*drange)), ['Qh', 'Qle'])
+        sim_df = pals_xray_to_df(sim_data.sel(time=slice(*dr)), ['Qh', 'Qle'])
         sim = sim_df.groupby(sim_df.index.time).mean()
 
         x_vals = obs.index.values
@@ -329,12 +329,14 @@ def plot_drydown_daily_cycles(sim_data, flux_data, met_data, name, date_range):
                 offset = 0
             if c == 'Qh':
                 offset = 100
-            ax.plot(x_vals, pd.rolling_mean(obs[c], 14) + offset, label='Obs %s + %d' % (c, offset))
-            ax.plot(x_vals, pd.rolling_mean(sim[c], 14) + offset, label='Sim %s + %d' % (c, offset))
+            ax.plot(x_vals, obs[c] + offset, label='Obs %s + %d' % (c, offset))
+            ax.plot(x_vals, sim[c] + offset, label='Sim %s + %d' % (c, offset))
 
         pl.title('{n}: daily cycles for {p} of drydown at {s}'.format(n=name, s=site, p=periods[i]))
 
         pl.legend(loc=0)
+
+    fig.tight_layout()
 
     filename = '{n}_{s}_drydown_daily_cycles_plot.png'.format(n=name, s=site)
     return filename
