@@ -12,6 +12,9 @@ import matplotlib.pyplot as pl
 import seaborn as sns
 import pandas as pd
 import os
+import numpy as np
+
+from dateutil.parser import parse
 
 from pals_utils.data import pals_site_name, pals_xray_to_df, get_pals_benchmark, MissingDataError
 from pals_utils.constants import FLUX_VARS, DATASETS
@@ -246,7 +249,6 @@ def plot_drydown(sim_data, flux_data, met_data, name, date_range):
     :name: model name
     :returns: plot filename
     """
-    from dateutil.parser import parse
     year_range = [parse(d).year for d in date_range]
     year_range[1] += 1
     year_range = ['%s-01-01' % d for d in year_range]
@@ -286,4 +288,53 @@ def plot_drydown(sim_data, flux_data, met_data, name, date_range):
     pl.title('{n}: drydown plot at {s}'.format(n=name, s=site))
 
     filename = '{n}_{s}_drydown_plot.png'.format(n=name, s=site)
+    return filename
+
+
+def plot_drydown_daily_cycles(sim_data, flux_data, met_data, name, date_range):
+    """Plot daily cycle behaviour during dry-downs.
+
+    Plots rainfall, as well as Qh and Qle for obs and simulations.
+
+    :sim_data: xray dataset from a simulation
+    :flux_data: xray dataset from a simulation
+    :met_data: xray dataset from a simulation
+    :name: model name
+    :returns: plot filename
+    """
+    date_range = [np.datetime64(parse(d)) for d in date_range]
+    del_t = np.timedelta64(7, 'D')
+    first_cycle = date_range[0] + [-del_t, del_t]
+    last_cycle = date_range[1] + [-del_t, del_t]
+
+    site = pals_site_name(met_data)
+
+    sns.set_palette(sns.color_palette(['#aa0000', '#ff4444', '#0000aa', '#4477ff']))
+
+    pl.subplots(2, 1, sharey=True)
+
+    periods = {0: 'start', 1: 'end'}
+
+    for i, drange in enumerate([first_cycle, last_cycle]):
+        obs_df = pals_xray_to_df(flux_data.sel(time=slice(*drange)), ['Qh', 'Qle'])
+        obs = obs_df.groupby(obs_df.index.time).mean()
+
+        sim_df = pals_xray_to_df(sim_data.sel(time=slice(*drange)), ['Qh', 'Qle'])
+        sim = sim_df.groupby(sim_df.index.time).mean()
+
+        x_vals = obs.index.values
+        ax = pl.subplot(2, 1, i + 1)
+        for c in obs:
+            if c == 'Qle':
+                offset = 0
+            if c == 'Qh':
+                offset = 100
+            ax.plot(x_vals, pd.rolling_mean(obs[c], 14) + offset, label='Obs %s + %d' % (c, offset))
+            ax.plot(x_vals, pd.rolling_mean(sim[c], 14) + offset, label='Sim %s + %d' % (c, offset))
+
+        pl.title('{n}: daily cycles for {p} of drydown at {s}'.format(n=name, s=site, p=periods[i]))
+
+        pl.legend(loc=0)
+
+    filename = '{n}_{s}_drydown_daily_cycles_plot.png'.format(n=name, s=site)
     return filename
