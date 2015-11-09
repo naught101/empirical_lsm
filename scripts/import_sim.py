@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-File: import_benchmark.py
+File: import_sim.py
 Author: ned haughton
 Email: ned@nedhaughton.com
 Description: imports a benchmark from a PALS dataset
 
 Usage:
-    import-benchmark.py <name> [<site>...]
+    import_sim.py benchmark <name> [<site>...]
+    import_sim.py sim <name> <site> <file>
 
 Options:
     -h, --help  Show this screen and exit.
@@ -81,11 +82,38 @@ def main_import_benchmark(name, site):
     return
 
 
+def main_import_sim(name, site, sim_file):
+    """import a PLUMBER benchmark for all sites
+
+    :name: PLUMBER benchmark name
+    :site: plumber site name
+    """
+    # Hacky solution just for PLUMBER benchmarks
+    print_good('Importing {n} data for: '.format(n=name))
+
+    nc_path = get_sim_nc_path(name, site)
+
+    sim_data = xray.open_dataset(sim_file)
+
+    # WARNING! over writes existing sim!
+    sim_data.to_netcdf(nc_path)
+
+    sim_data.close()
+
+    return
+
+
 def main(args):
     name = args['<name>']
-    site = args['<site>']
 
-    main_import_benchmark(name, site)
+    if args['benchmark']:
+        site = args['<site>']
+        main_import_benchmark(name, site)
+
+    if args['sim']:
+        site = args['<site>']
+        sim_file = args['<file>']
+        main_import_sim(name, site, sim_file)
 
     return
 
