@@ -276,12 +276,12 @@ def main_drydown_index_rst_gen():
     date = dt.isoformat(dt.now().replace(microsecond=0), sep=' ')
 
     site_files = glob.glob('source/drydowns/*_drydown.rst')
-    site_files = [f.replace('source/', '    ').replace('.rst', '') for f in site_files]
+    site_files = sorted([f.replace('source/', '    ').replace('.rst', '') for f in site_files])
 
     site_links = "\n".join(site_files)
 
     model_files = glob.glob('source/models/*/*_drydown.rst')
-    model_files = [f.replace('source/', '    ').replace('.rst', '') for f in model_files]
+    model_files = sorted([f.replace('source/', '    ').replace('.rst', '') for f in model_files])
 
     model_links = "\n".join(model_files)
 
