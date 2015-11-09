@@ -287,7 +287,7 @@ def plot_drydown(sim_data, flux_data, met_data, name, date_range):
 
     pl.title('{n}: drydown plot at {s}'.format(n=name, s=site))
 
-    filename = '{n}_{s}_drydown_plot.png'.format(n=name, s=site)
+    filename = '{n}_{s}_drydown_timeseries_plot.png'.format(n=name, s=site)
     return filename
 
 
