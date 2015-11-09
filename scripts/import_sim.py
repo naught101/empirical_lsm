@@ -111,7 +111,7 @@ def main(args):
         main_import_benchmark(name, site)
 
     if args['sim']:
-        site = args['<site>']
+        site = args['<site>'][0]
         sim_file = args['<file>']
         main_import_sim(name, site, sim_file)
 
