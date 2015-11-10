@@ -212,12 +212,16 @@ def main(args):
     if args['all']:
         model_dirs = [d for d in sorted(glob.glob('source/models/*')) if os.path.isdir(d)]
         for model_dir in model_dirs:
-            # for 'all' only regenerate pages that need it.
-            newest = newest_file(model_dir)
-            if newest > os.path.getmtime(model_dir + ".rst"):
-                model_site_index_rst(model_dir)
+            rst_path = model_dir + ".rst"
+            if os.path.exists(rst_path):
+                # for 'all' only regenerate pages that need it.
+                newest = newest_file(model_dir)
+                if newest > os.path.getmtime(rst_path):
+                    model_site_index_rst(model_dir)
+                else:
+                    print("skipping %s - rst is up to date" % model_dir)
             else:
-                print("skipping %s - rst is up to date" % model_dir)
+                model_site_index_rst(model_dir)
 
     # Over-all index
     if args['all'] or args['summary']:
