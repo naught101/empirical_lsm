@@ -78,8 +78,8 @@ def diagnostic_plots(sim_data, flux_data, name):
         try:
             data = pd.concat([pals_xray_to_df(ds, [var]) for ds in
                               benchmarks + [flux_data, sim_data]], axis=1)
-        except MissingDataError:
-            print_warn('Data missing for {v} at {s}, skipping.'.format(v=var, s=site))
+        except Exception as e:
+            print_warn('Data missing for {v} at {s}, skipping. {e}'.format(v=var, s=site, e=e))
             continue
 
         data.columns = benchmark_names + ['observed', 'modelled']
