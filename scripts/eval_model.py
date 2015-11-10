@@ -118,12 +118,21 @@ def main_eval(name, site, sim_file=None):
     :sim_file: Path to simulation netcdf
     """
     nc_path = get_sim_nc_path(name, site)
+
+    if sim_file is None:
+        filename = nc_path
+    else:
+        filename = sim_file
+
+    try:
+        sim_data = xray.open_dataset(filename)
+    except RuntimeError as e:
+        print_bad("Sim file ({f}) doesn't exist. What are you doing? {e}".format(f=filename, e=e))
+        return
+
     if sim_file is not None:
-        sim_data = xray.open_dataset(sim_file)
         # WARNING! over writes existing sim!
         sim_data.to_netcdf(nc_path)
-    else:
-        sim_data = xray.open_dataset(nc_path)
 
     flux_data = get_site_data([site], 'flux')[site]
 
