@@ -16,7 +16,7 @@ import numpy as np
 
 from dateutil.parser import parse
 
-from pals_utils.data import pals_site_name, pals_xray_to_df, get_pals_benchmark, MissingDataError
+from pals_utils.data import pals_site_name, pals_xray_to_df, get_pals_benchmark
 from pals_utils.constants import FLUX_VARS, DATASETS
 
 from .utils import print_bad, print_warn
