@@ -60,7 +60,11 @@ def diagnostic_plots(sim_data, flux_data, name):
     files = []
 
     benchmark_names = ['1lin', '2lin', '3km27']
-    benchmarks = [get_pals_benchmark(bname, site) for bname in benchmark_names]
+    try:
+        benchmarks = [get_pals_benchmark(bname, site) for bname in benchmark_names]
+    except RuntimeError as e:
+        print_warn("Benchmark(s) not available at {s}, skipping. {e}".format(s=site, e=e))
+        return
 
     sns.set_palette(sns.color_palette(['red', 'pink', 'orange', 'black', 'blue']))
 
