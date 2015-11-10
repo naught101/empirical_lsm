@@ -315,11 +315,14 @@ def plot_drydown_daily_cycles(sim_data, flux_data, met_data, name, date_range):
 
     periods = {0: 'start', 1: 'end'}
 
+    flux_vars = list(set(['Qh', 'Qle']).intersection(list(sim_data.data_vars))
+                                       .intersection(list(sim_data.data_vars)))
+
     for i, dr in enumerate([first_cycle, last_cycle]):
-        obs_df = pals_xray_to_df(flux_data.sel(time=slice(*dr)), ['Qh', 'Qle'])
+        obs_df = pals_xray_to_df(flux_data.sel(time=slice(*dr)), flux_vars)
         obs = obs_df.groupby(obs_df.index.time).mean()
 
-        sim_df = pals_xray_to_df(sim_data.sel(time=slice(*dr)), ['Qh', 'Qle'])
+        sim_df = pals_xray_to_df(sim_data.sel(time=slice(*dr)), flux_vars)
         sim = sim_df.groupby(sim_df.index.time).mean()
 
         x_vals = obs.index.values
