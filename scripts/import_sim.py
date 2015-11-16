@@ -89,7 +89,7 @@ def main_import_sim(name, site, sim_file):
     :site: plumber site name
     """
     # Hacky solution just for PLUMBER benchmarks
-    print_good('Importing {n} data for: '.format(n=name))
+    print_good('Importing {n} data for: {s}'.format(n=name, s=site))
 
     nc_path = get_sim_nc_path(name, site)
 

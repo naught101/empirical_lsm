@@ -84,7 +84,7 @@ def diagnostic_plots(sim_data, flux_data, name):
 
         data.columns = benchmark_names + ['observed', 'modelled']
 
-        for plot in DIAGNOSTIC_PLOTS:
+        for plot in DIAGNOSTIC_PLOTS.values():
             filename = plot(data, name, var, site)
             rel_plot_path = save_plot(base_path, rel_path, filename)
             files.append(rel_plot_path)
@@ -146,12 +146,14 @@ def plot_residuals(data, name, var, site):
     return filename
 
 
-DIAGNOSTIC_PLOTS = [plot_weekly_timeseries,
-                    plot_scatter,
-                    plot_annual_cycle,
-                    plot_daily_cycle,
-                    plot_qq_plot,
-                    plot_residuals]
+DIAGNOSTIC_PLOTS = {
+    "source/models/{n}/figures/{s}/{n}_{v}_{s}_annual_cycle.png": plot_annual_cycle,
+    "source/models/{n}/figures/{s}/{n}_{v}_{s}_daily_cycle.png": plot_daily_cycle,
+    "source/models/{n}/figures/{s}/{n}_{v}_{s}_qq_plot.png": plot_qq_plot,
+    "source/models/{n}/figures/{s}/{n}_{v}_{s}_residual_plot.png": plot_residuals,
+    "source/models/{n}/figures/{s}/{n}_{v}_{s}_scatterplot.png": plot_scatter,
+    "source/models/{n}/figures/{s}/{n}_{v}_{s}_weekly_timeseries.png": plot_weekly_timeseries,
+}
 
 
 #######################
@@ -238,6 +240,11 @@ def plot_PLUMBER_sim_metrics(name, site):
 
     filename = '{n}_{s}_PLUMBER_plot_all_metrics.png'.format(n=name, s=site)
     return filename
+
+PLUMBER_PLOTS = {
+    "source/models/{n}/figures/{n}_all_PLUMBER_plot_all_metrics.png": get_PLUMBER_plot,
+    "source/models/{n}/figures/{s}/{n}_{s}_PLUMBER_plot_all_metrics.png": plot_PLUMBER_sim_metrics,
+}
 
 
 # Drought workshop plots
@@ -347,3 +354,13 @@ def plot_drydown_daily_cycles(sim_data, flux_data, met_data, name, date_range):
 
     filename = '{n}_{s}_drydown_daily_cycles_plot.png'.format(n=name, s=site)
     return filename
+
+DRYDOWN_PLOTS = {
+    "source/models/{n}/figures/{s}/{n}_{s}_drydown_daily_cycles_plot.png": plot_drydown_daily_cycles,
+    "source/models/{n}/figures/{s}/{n}_{s}_drydown_timeseries_plot.png": plot_drydown,
+}
+
+ALL_PLOTS = dict()
+ALL_PLOTS.update(DIAGNOSTIC_PLOTS)
+ALL_PLOTS.update(PLUMBER_PLOTS)
+ALL_PLOTS.update(DRYDOWN_PLOTS)
