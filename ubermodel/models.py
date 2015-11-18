@@ -35,10 +35,8 @@ def get_model_from_dict(model_dict):
     pipe_list = []
 
     if 'transforms' in model_dict:
+        # For basic scikit-learn transforms
         transforms = model_dict['transforms'].copy()
-        if 'lag' in transforms:
-            lag = transforms.pop('lag')
-            pipe_list.append(get_lagger(lag))
         if 'scaler' in transforms:
             scaler = transforms.pop('scaler')
             pipe_list.append(get_scaler(scaler))
@@ -66,13 +64,28 @@ def get_model_from_dict(model_dict):
 
     pipe_list.append(model)
 
-    return make_pipeline(*pipe_list)
+    pipe = make_pipeline(*pipe_list)
+
+    if 'lag' in model_dict:
+        params = model_dict['lag']
+        return get_lagger(pipe, params)
+    elif 'markov' in model_dict:
+        params = model_dict['markov']
+        return get_markov_wrapper(pipe, params)
+    else:
+        return pipe
 
 
-def get_lagger(kwargs):
-    """Return a scikit-learn lagger from name and args."""
+def get_lagger(pipe, kwargs):
+    """Return a Lag wrapper for a pipeline."""
     from .transforms import LagTransform
-    return LagTransform(**kwargs)
+    return LagTransform(pipe, **kwargs)
+
+
+def get_markov_wrapper(pipe, kwargs):
+    """Return a markov wrapper for a pipeline."""
+    from .transforms import MarkovTransform
+    return MarkovTransform(pipe, **kwargs)
 
 
 def get_clusterer(name, kwargs):

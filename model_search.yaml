@@ -125,16 +125,14 @@ km12_lin:
 lin_lag1: 
     notes: need to make a proper wrapper for this.
     class: LinearRegression
-    transforms:
-        lag:
-            periods: 1
+    lag:
+        periods: 1
 
 ### Markov lagging
 markov1:
     notes: "TODO: need a wrapper that handles the running as well as the fitting.
         - use one timestep's output as an input for the next timestep"
     class: LinearRegression
-    transforms:
-        markov_lag:
-            periods: 1
+    markov:
+        periods: 1
 
