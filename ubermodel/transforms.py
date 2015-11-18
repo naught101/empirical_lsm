@@ -32,15 +32,15 @@ def lag_dataframe(df, periods, freq):
     return new_df
 
 
-class LagTransform(BaseEstimator, TransformerMixin):
+class LagWrapper(BaseEstimator, TransformerMixin):
 
-    """Docstring for LagTransform. """
+    """Wraps a scikit-learn pipeline, lags the data, and deals with NAs."""
 
-    def __init__(self, periods=1, freq='30min'):
+    def __init__(self, pipeline, periods=1, freq='30min'):
         """Lags a dataset.
 
         Lags all features.
-        Missing data is dropped for fitting, and replaced with the mean for transform.
+        Missing data is dropped for fitting, and replaced with the mean for predict.
 
         :periods: Number of timesteps to lag by
         """
@@ -50,20 +50,33 @@ class LagTransform(BaseEstimator, TransformerMixin):
         self._periods = periods
         self._freq = freq
 
+        self._pipeline = pipeline
+
     def fit(self, X, y=None):
         """Fit the model with X
 
         compute number of output features
+
+        :X: pandas dataframe
+        :y: Pandas series or vector
         """
+        if 'site' in X.columns:
+            raise ValueError("site should be an index, not a column")
+
         n_features = X.select_dtypes(include=[np.number]).shape[1]
         self.n_input_features_ = n_features
         self.n_output_features_ = 2 * n_features
 
-        self.X_mean = X.mean()
+        self._X_mean = X.mean()
+        self._X_cols = X.columns
+
+        X_lag = self.transform(X, dropna=True)
+
+        self._pipeline.fit(X_lag, y)
 
         return self
 
-    def transform(self, X):
+    def transform(self, X, dropna=False):
         """Add lagged features to X
 
         :X: TODO
@@ -74,20 +87,36 @@ class LagTransform(BaseEstimator, TransformerMixin):
 
         n_samples, n_features = X.shape
 
-        # if n_features != self.n_input_features_:
-        #     raise ValueError("X shape does not match training shape")
+        if n_features != self.n_input_features_:
+            raise ValueError("X shape does not match training shape")
 
         if 'site' in X.index.names:
-            X_lag = (X.reset_index('site')
-                      .groupby('site')
+            X_lag = (X.groupby(level='site')
                       .apply(lag_dataframe, periods=self._periods, freq=self._freq))
+        else:
+            X_lag = X.apply(lag_dataframe, periods=self._periods, freq=self._freq)
 
-        elif 'site' in X.columns:
-            X_lag = (X.groupby('site')
-                      .apply(lag_dataframe, periods=self._periods, freq=self._freq))
-        # TODO: if predict transform, fill NAs with mean, if fit transform, drop NAs.
+        if dropna:
+            return X_lag.dropna()
+        else:
+            return X_lag
 
-        return X_lag
+    def predict(self, X):
+        """Predicts with a pipeline using lagged X
+
+        :X: TODO
+        :returns: TODO
+
+        """
+
+        X_lag = self.transform(X)
+
+        # Replace NAs with mean values from fitting step
+        replace = {c + '_lag': {np.nan: self._X_mean[c]} for c in self._X_cols}
+
+        X_lag.replace(replace, inplace=True)
+
+        return self._pipeline.predict(X)
 
 
 class PandasCleaner(BaseEstimator, TransformerMixin):
@@ -128,7 +157,6 @@ class PandasCleaner(BaseEstimator, TransformerMixin):
             self.y_columns_ = y.columns
             self.y_index_ = y.index
             self.y_col_types_ = [(c, y[c].dtype) for c in y.columns]
-
 
     def transform(self, X):
         """Transforms
