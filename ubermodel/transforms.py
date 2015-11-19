@@ -70,16 +70,17 @@ class LagWrapper(BaseEstimator, TransformerMixin):
         self.X_mean = X.mean()
         self.X_cols = X.columns
 
-        X_lag = self.transform(X, dropna=True)
+        X_lag = self.transform(X, nans='drop')
 
         self.pipeline.fit(X_lag, y)
 
         return self
 
-    def transform(self, X, dropna=False):
+    def transform(self, X, nans=None):
         """Add lagged features to X
 
         :X: TODO
+        :dropna: 'drop' to drop NAs, 'fill' to fill with mean values, None to leave NAs in place.
         :returns: TODO
 
         """
@@ -96,9 +97,15 @@ class LagWrapper(BaseEstimator, TransformerMixin):
         else:
             X_lag = X.apply(lag_dataframe, periods=self.periods, freq=self.freq)
 
-        if dropna:
+        if nans == 'drop':
             return X_lag.dropna()
+        elif nans == 'fill':
+            # Replace NAs in lagged columns with mean values from fitting step
+            replace = {c + '_lag': {np.nan: self.X_mean[c]} for c in self.X_cols}
+            X_lag.replace(replace, inplace=True)
+            return X_lag
         else:
+            # return with NAs
             return X_lag
 
     def predict(self, X):
@@ -109,14 +116,9 @@ class LagWrapper(BaseEstimator, TransformerMixin):
 
         """
 
-        X_lag = self.transform(X)
+        X_lag = self.transform(X, nans='fill')
 
-        # Replace NAs in lagged columns with mean values from fitting step
-        replace = {c + '_lag': {np.nan: self.X_mean[c]} for c in self.X_cols}
-
-        X_lag.replace(replace, inplace=True)
-
-        return self.pipeline.predict(X)
+        return self.pipeline.predict(X_lag)
 
 
 class PandasCleaner(BaseEstimator, TransformerMixin):
