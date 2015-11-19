@@ -25,7 +25,9 @@ def lag_dataframe(df, periods, freq):
 
     """
     # TODO: problem: remove trailing entries. For now assume constant spacing, 1 lag
-    shifted = df.select_dtypes(include=[np.number]).shift(periods, freq)
+    if not all(df.dtypes == 'float64'):
+        raise ValueError('One or more columns are non-numeric.')
+    shifted = df.shift(periods, freq)
     shifted.columns = [c + '_lag' for c in shifted.columns]
     new_df = pd.merge(df, shifted, how='left', left_index=True, right_index=True)
 
