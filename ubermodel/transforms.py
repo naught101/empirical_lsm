@@ -24,7 +24,6 @@ def lag_dataframe(df, periods, freq):
     :returns: TODO
 
     """
-    # TODO: problem: remove trailing entries. For now assume constant spacing, 1 lag
     if not all(df.dtypes == 'float64'):
         raise ValueError('One or more columns are non-numeric.')
     shifted = df.shift(periods, freq)
@@ -49,10 +48,10 @@ class LagWrapper(BaseEstimator, TransformerMixin):
         BaseEstimator.__init__(self)
         TransformerMixin.__init__(self)
 
-        self._periods = periods
-        self._freq = freq
+        self.periods = periods
+        self.freq = freq
 
-        self._pipeline = pipeline
+        self.pipeline = pipeline
 
     def fit(self, X, y=None):
         """Fit the model with X
@@ -65,16 +64,15 @@ class LagWrapper(BaseEstimator, TransformerMixin):
         if 'site' in X.columns:
             raise ValueError("site should be an index, not a column")
 
-        n_features = X.select_dtypes(include=[np.number]).shape[1]
-        self.n_input_features_ = n_features
-        self.n_output_features_ = 2 * n_features
+        self.n_features = X.shape[1]
+        self.n_outputs = y.shape[1]
 
-        self._X_mean = X.mean()
-        self._X_cols = X.columns
+        self.X_mean = X.mean()
+        self.X_cols = X.columns
 
         X_lag = self.transform(X, dropna=True)
 
-        self._pipeline.fit(X_lag, y)
+        self.pipeline.fit(X_lag, y)
 
         return self
 
@@ -85,18 +83,18 @@ class LagWrapper(BaseEstimator, TransformerMixin):
         :returns: TODO
 
         """
-        check_is_fitted(self, ['n_input_features_', 'n_output_features_'])
+        check_is_fitted(self, ['_n_features', '_n_outputs'])
 
         n_samples, n_features = X.shape
 
-        if n_features != self.n_input_features_:
+        if n_features != self.n_features:
             raise ValueError("X shape does not match training shape")
 
         if 'site' in X.index.names:
             X_lag = (X.groupby(level='site')
-                      .apply(lag_dataframe, periods=self._periods, freq=self._freq))
+                      .apply(lag_dataframe, periods=self.periods, freq=self.freq))
         else:
-            X_lag = X.apply(lag_dataframe, periods=self._periods, freq=self._freq)
+            X_lag = X.apply(lag_dataframe, periods=self.periods, freq=self.freq)
 
         if dropna:
             return X_lag.dropna()
@@ -113,12 +111,12 @@ class LagWrapper(BaseEstimator, TransformerMixin):
 
         X_lag = self.transform(X)
 
-        # Replace NAs with mean values from fitting step
-        replace = {c + '_lag': {np.nan: self._X_mean[c]} for c in self._X_cols}
+        # Replace NAs in lagged columns with mean values from fitting step
+        replace = {c + '_lag': {np.nan: self.X_mean[c]} for c in self.X_cols}
 
         X_lag.replace(replace, inplace=True)
 
-        return self._pipeline.predict(X)
+        return self.pipeline.predict(X)
 
 
 class PandasCleaner(BaseEstimator, TransformerMixin):
@@ -133,7 +131,7 @@ class PandasCleaner(BaseEstimator, TransformerMixin):
         BaseEstimator.__init__(self)
         TransformerMixin.__init__(self)
 
-        self._remove_NA = remove_NA
+        self.remove_NA = remove_NA
 
     def fit(self, X, y=None):
         """Gather pandas metadata and store it.
@@ -144,21 +142,21 @@ class PandasCleaner(BaseEstimator, TransformerMixin):
 
         """
         if 'site' in X.columns:
-            self.X_sites_ = X.pop('site')
+            self.X_sites = X.pop('site')
         else:
-            self.X_sites_ = None
-        self.X_columns_ = X.columns
-        self.X_index_ = X.index
-        self.X_col_types_ = [(c, X[c].dtype) for c in X.columns]
+            self.X_sites = None
+        self.X_columns = X.columns
+        self.X_index = X.index
+        self.X_col_types = X.dtypes
 
         if y is not None:
             if 'site' in y.columns:
-                self.y_sites_ = y.pop('site')
+                self.y_sites = y.pop('site')
             else:
-                self.y_sites_ = None
-            self.y_columns_ = y.columns
-            self.y_index_ = y.index
-            self.y_col_types_ = [(c, y[c].dtype) for c in y.columns]
+                self.y_sites = None
+            self.y_columns = y.columns
+            self.y_index = y.index
+            self.y_col_types = [(c, y[c].dtype) for c in y.columns]
 
     def transform(self, X):
         """Transforms
