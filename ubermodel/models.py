@@ -78,14 +78,14 @@ def get_model_from_dict(model_dict):
 
 def get_lagger(pipe, kwargs):
     """Return a Lag wrapper for a pipeline."""
-    from .transforms import LagTransform
-    return LagTransform(pipe, **kwargs)
+    from .transforms import LagWrapper
+    return LagWrapper(pipe, **kwargs)
 
 
 def get_markov_wrapper(pipe, kwargs):
     """Return a markov wrapper for a pipeline."""
-    from .transforms import MarkovTransform
-    return MarkovTransform(pipe, **kwargs)
+    from .transforms import MarkovWrapper
+    return MarkovWrapper(pipe, **kwargs)
 
 
 def get_clusterer(name, kwargs):

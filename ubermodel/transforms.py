@@ -201,7 +201,7 @@ class MarkovWrapper(LagWrapper):
 
         for i in range(1, n_steps):
             if i % 100 == 0:
-                print('Predicting, step {i} of {n}'.format(i=i, n=n_steps))
+                print('Predicting, step {i} of {n}'.format(i=i, n=n_steps), end="\r")
             x = pd.concat([X.iloc[i], results[i - 1]])
             results.append(self.pipeline.predict(x))
 
