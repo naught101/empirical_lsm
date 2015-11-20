@@ -15,24 +15,6 @@ from sklearn.utils.validation import check_is_fitted
 from sklearn.base import BaseEstimator, TransformerMixin
 
 
-def lag_dataframe(df, periods, freq):
-    """Helper for lagging a dataframe
-
-    :df: TODO
-    :periods: TODO
-    :freq: TODO
-    :returns: TODO
-
-    """
-    if not all(df.dtypes == 'float64'):
-        raise ValueError('One or more columns are non-numeric.')
-    shifted = df.shift(periods, freq)
-    shifted.columns = [c + '_lag' for c in shifted.columns]
-    new_df = pd.merge(df, shifted, how='left', left_index=True, right_index=True)
-
-    return new_df
-
-
 class LagWrapper(BaseEstimator, TransformerMixin):
 
     """Wraps a scikit-learn pipeline, lags the data, and deals with NAs."""
@@ -76,11 +58,46 @@ class LagWrapper(BaseEstimator, TransformerMixin):
 
         return self
 
+    def lag_dataframe(self, df):
+        """Helper for lagging a dataframe
+
+        :df: Pandas dataframe with a time index
+        :returns: Dataframe with all columns copied and lagged
+
+        """
+        if not all(df.dtypes == 'float64'):
+            raise ValueError('One or more columns are non-numeric.')
+        shifted = df.shift(self.periods, self.freq)
+        shifted.columns = [c + '_lag' for c in shifted.columns]
+        new_df = pd.merge(df, shifted, how='left', left_index=True, right_index=True)
+
+        return new_df
+
+    def fix_nans(self, lagged_df, nans=None):
+        """Remove NAs, replace with mean, or do nothing
+
+        :df: Pandas dataframe
+        :nans: 'drop' to drop NAs, 'fill' to fill with mean values, None to leave NAs in place.
+        :returns: TODO
+
+        """
+        if nans == 'drop':
+            return lagged_df.dropna()
+        elif nans == 'fill':
+            # Replace NAs in lagged columns with mean values from fitting step
+            replace = {c + '_lag': {np.nan: self.X_mean[c]} for c in self.X_cols}
+            replace.update({c + '_lag': {np.nan: self.y_mean[c]} for c in self.y_cols})
+            lagged_df.replace(replace, inplace=True)
+            return lagged_df
+        else:
+            # return with NAs
+            return lagged_df
+
     def transform(self, X, nans=None):
         """Add lagged features to X
 
         :X: TODO
-        :dropna: 'drop' to drop NAs, 'fill' to fill with mean values, None to leave NAs in place.
+        :nans: 'drop' to drop NAs, 'fill' to fill with mean values, None to leave NAs in place.
         :returns: TODO
 
         """
@@ -92,21 +109,11 @@ class LagWrapper(BaseEstimator, TransformerMixin):
             raise ValueError("X shape does not match training shape")
 
         if 'site' in X.index.names:
-            X_lag = (X.groupby(level='site')
-                      .apply(lag_dataframe, periods=self.periods, freq=self.freq))
+            X_lag = X.groupby(level='site').apply(self.lag_dataframe)
         else:
-            X_lag = X.apply(lag_dataframe, periods=self.periods, freq=self.freq)
+            X_lag = X.apply(self.lag_dataframe)
 
-        if nans == 'drop':
-            return X_lag.dropna()
-        elif nans == 'fill':
-            # Replace NAs in lagged columns with mean values from fitting step
-            replace = {c + '_lag': {np.nan: self.X_mean[c]} for c in self.X_cols}
-            X_lag.replace(replace, inplace=True)
-            return X_lag
-        else:
-            # return with NAs
-            return X_lag
+        return self.fix_nans(X_lag, nans)
 
     def predict(self, X):
         """Predicts with a pipeline using lagged X
