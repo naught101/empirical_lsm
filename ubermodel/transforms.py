@@ -127,6 +127,91 @@ class LagWrapper(BaseEstimator, TransformerMixin):
         return self.pipeline.predict(X_lag)
 
 
+class MarkovWrapper(LagWrapper):
+
+    """Wraps a scikit-learn pipeline, Markov-lags the data (includes y values), and deals with NAs."""
+
+    def fit(self, X, y):
+        """Fit the model with X
+
+        compute number of output features
+
+        :X: pandas dataframe
+        :y: Pandas series or vector
+        """
+        if 'site' in X.columns:
+            raise ValueError("site should be an index, not a column")
+
+        self.n_features = X.shape[1]
+        self.n_outputs = y.shape[1]
+
+        self.X_mean = X.mean()
+        self.X_cols = X.columns
+
+        self.y_mean = y.mean()
+        self.y_cols = y.columns
+
+        X_lag = self.transform(X, y, nans='drop')
+
+        self.pipeline.fit(X_lag, y)
+
+        return self
+
+    def transform(self, X, y, nans=None):
+        """Add lagged features of X and y to X
+
+        :X: features dataframe
+        :y: outputs dataframe
+        :returns: X dataframe with X and y lagged columns
+
+        """
+        check_is_fitted(self, ['_n_features', '_n_outputs'])
+
+        n_samples, n_features = X.shape
+
+        if n_features != self.n_features:
+            raise ValueError("X shape does not match training shape")
+
+        if 'site' in X.index.names:
+            X_lag = X.groupby(level='site').apply(self.lag_dataframe)
+            y_lag = y.groupby(level='site').shift(self.periods, self.freq)
+            y_lag.columns = [c + '_lag' for c in y_lag.columns]
+            X_lag = pd.merge(X_lag, y_lag, how='left', left_index=True, right_index=True)
+        else:
+            X_lag = X.apply(self.lag_dataframe)
+            y_lag = y.shift(self.periods, self.freq)
+            y_lag.columns = [c + '_lag' for c in y_lag.columns]
+            X_lag = pd.merge(X_lag, y_lag, how='left', left_index=True, right_index=True)
+
+        return self.fix_nans(X_lag, nans)
+
+    def predict(self, X):
+        """Predicts with a pipeline using lagged X
+
+        :X: Dataframe matching the fit frame
+        :returns: Dataframe of predictions
+        """
+
+        # initialise with mean flux values
+        init = pd.concat([X.iloc[0], self.y_mean])
+        results = []
+        results.append(self.pipeline.predict(init))
+        n_steps = X.shape[0]
+        print('Predicting, step 0 of {n}'.format(n=n_steps))
+
+        for i in range(1, n_steps):
+            if i % 100 == 0:
+                print('Predicting, step {i} of {n}'.format(i=i, n=n_steps))
+            x = pd.concat([X.iloc[i], results[i - 1]])
+            results.append(self.pipeline.predict(x))
+
+        results = pd.DataFrame.from_records(results)
+        results.index = X.index
+        results.columns = self.y_cols
+
+        return results
+
+
 class PandasCleaner(BaseEstimator, TransformerMixin):
     """Removes rows with NAs from both X and y, and converts to an array and back"""
 
