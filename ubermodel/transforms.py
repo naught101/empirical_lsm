@@ -78,7 +78,7 @@ class LagWrapper(BaseEstimator, TransformerMixin):
 
         :df: Pandas dataframe
         :nans: 'drop' to drop NAs, 'fill' to fill with mean values, None to leave NAs in place.
-        :returns: TODO
+        :returns: Dataframe with NANs modified
 
         """
         if nans == 'drop':
@@ -96,9 +96,9 @@ class LagWrapper(BaseEstimator, TransformerMixin):
     def transform(self, X, nans=None):
         """Add lagged features to X
 
-        :X: TODO
+        :X: Dataframe matching the fit frame.
         :nans: 'drop' to drop NAs, 'fill' to fill with mean values, None to leave NAs in place.
-        :returns: TODO
+        :returns: Dataframe with lagged duplicate columns
 
         """
         check_is_fitted(self, ['_n_features', '_n_outputs'])
@@ -118,9 +118,8 @@ class LagWrapper(BaseEstimator, TransformerMixin):
     def predict(self, X):
         """Predicts with a pipeline using lagged X
 
-        :X: TODO
-        :returns: TODO
-
+        :X: Dataframe matching the fit dataframe
+        :returns: prediction based on X
         """
 
         X_lag = self.transform(X, nans='fill')
