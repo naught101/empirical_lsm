@@ -23,7 +23,7 @@ def get_model(name):
     :returns: sklearn model pipeline
 
     """
-    with open('model_search.yaml') as f:
+    with open('data/model_search.yaml') as f:
         model_dict = yaml.load(f)[name]
 
     return get_model_from_dict(model_dict)
