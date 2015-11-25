@@ -41,7 +41,7 @@ class LagWrapper(BaseEstimator, TransformerMixin):
         compute number of output features
 
         :X: pandas dataframe
-        :y: Pandas series or vector
+        :y: Pandas dataframe or series or vector
         """
         if 'site' in X.columns:
             raise ValueError("site should be an index, not a column")
@@ -58,20 +58,27 @@ class LagWrapper(BaseEstimator, TransformerMixin):
 
         return self
 
-    def lag_dataframe(self, df):
+    def lag_dataframe(self, df, grouping=None, lagged_only=False):
         """Helper for lagging a dataframe
 
         :df: Pandas dataframe with a time index
         :returns: Dataframe with all columns copied and lagged
 
         """
+        df = pd.DataFrame(df)
         if not all(df.dtypes == 'float64'):
             raise ValueError('One or more columns are non-numeric.')
-        shifted = df.shift(self.periods, self.freq)
-        shifted.columns = [c + '_lag' for c in shifted.columns]
-        new_df = pd.merge(df, shifted, how='left', left_index=True, right_index=True)
 
-        return new_df
+        if grouping is not None:
+            shifted = df.groupby(grouping).shift(self.periods, self.freq)
+        else:
+            shifted = df.shift(self.periods, self.freq)
+        shifted.columns = [c + '_lag' for c in shifted.columns]
+
+        if lagged_only:
+            return shifted
+        else:
+            return df.join(shifted)
 
     def fix_nans(self, lagged_df, nans=None):
         """Remove NAs, replace with mean, or do nothing
@@ -109,9 +116,9 @@ class LagWrapper(BaseEstimator, TransformerMixin):
             raise ValueError("X shape does not match training shape")
 
         if 'site' in X.index.names:
-            X_lag = X.groupby(level='site').apply(self.lag_dataframe)
+            X_lag = self.lag_dataframe(X, grouping='site')
         else:
-            X_lag = X.apply(self.lag_dataframe)
+            X_lag = self.lag_dataframe(X)
 
         return self.fix_nans(X_lag, nans)
 
@@ -137,7 +144,7 @@ class MarkovWrapper(LagWrapper):
         compute number of output features
 
         :X: pandas dataframe
-        :y: Pandas series or vector
+        :y: Pandas dataframe or series or vector
         """
         if 'site' in X.columns:
             raise ValueError("site should be an index, not a column")
@@ -173,12 +180,11 @@ class MarkovWrapper(LagWrapper):
             raise ValueError("X shape does not match training shape")
 
         if 'site' in X.index.names:
-            X_lag = X.groupby(level='site').apply(self.lag_dataframe)
-            y_lag = y.groupby(level='site').shift(self.periods, self.freq)
-            y_lag.columns = [c + '_lag' for c in y_lag.columns]
+            X_lag = self.lag_dataframe(X, grouping='site')
+            y_lag = self.lag_dataframe(y, grouping='site', lagged_only=True)
             X_lag = pd.merge(X_lag, y_lag, how='left', left_index=True, right_index=True)
         else:
-            X_lag = X.apply(self.lag_dataframe)
+            X_lag = self.lag_dataframe(X)
             y_lag = y.shift(self.periods, self.freq)
             y_lag.columns = [c + '_lag' for c in y_lag.columns]
             X_lag = pd.merge(X_lag, y_lag, how='left', left_index=True, right_index=True)
