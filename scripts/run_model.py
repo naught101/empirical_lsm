@@ -28,6 +28,29 @@ from ubermodel.data import sim_dict_to_xray
 from ubermodel.utils import print_good, print_warn
 
 
+def get_multisite_df(sites, typ, variables, name=False, qc=False):
+    """Load some data and convert it to a dataframe
+
+    :sites: str or list of strs: site names
+    :variables: list of variable names
+    :qc: Whether to replace bad quality data with NAs
+    :names: Whether to include site-names
+    :returns: pandas dataframe
+
+    """
+    if isinstance(sites, str):
+        sites = [sites]
+
+    if typ == 'met':
+        return xray_list_to_df(get_met_data(sites).values(),
+                               variables=variables, qc=True, name=name)
+    elif typ == 'flux':
+        return xray_list_to_df(get_flux_data(sites).values(),
+                               variables=variables, qc=True, name=name)
+    else:
+        assert False, "Bad dataset type: %s" % typ
+
+
 def PLUMBER_fit_predict(model, name, site):
     """Fit and predict a model
 
@@ -53,15 +76,13 @@ def PLUMBER_fit_predict(model, name, site):
         train_sets = [s for s in DATASETS if s != site]
 
     print("Converting... ", end='', flush=True)
-    met_train = xray_list_to_df(get_met_data(train_sets).values(),
-                                variables=met_vars, qc=True, name=use_names)
+    met_train = get_multisite_df(train_sets, typ='met', variables=met_vars, qc=True, name=use_names)
 
     # We use gap-filled data for the testing period, or the model fails.
     met_test_xray = get_met_data(site)
     met_test = pals_xray_to_df(met_test_xray, variables=met_vars)
 
-    flux_train = xray_list_to_df(get_flux_data(train_sets).values(),
-                                 variables=flux_vars, qc=True, name=use_names)
+    flux_train = get_multisite_df(train_sets, typ='flux', variables=flux_vars, qc=True, name=use_names)
 
     print('Fitting and running {f} using {m}'.format(f=flux_vars, m=met_vars))
     sim_data_dict = dict()
