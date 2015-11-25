@@ -101,7 +101,7 @@ class LagWrapper(BaseEstimator, TransformerMixin):
         :returns: Dataframe with lagged duplicate columns
 
         """
-        check_is_fitted(self, ['_n_features', '_n_outputs'])
+        check_is_fitted(self, ['n_features', 'n_outputs'])
 
         n_samples, n_features = X.shape
 
@@ -165,7 +165,7 @@ class MarkovWrapper(LagWrapper):
         :returns: X dataframe with X and y lagged columns
 
         """
-        check_is_fitted(self, ['_n_features', '_n_outputs'])
+        check_is_fitted(self, ['n_features', 'n_outputs'])
 
         n_samples, n_features = X.shape
 

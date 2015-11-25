@@ -43,7 +43,7 @@ def PLUMBER_fit_predict(model, name, site):
     # TODO: fix dirty hack for loading names when required.
     use_names = 'lag' in name
 
-    print("Loading all data... ", end='')
+    print("Loading all data... ", end='', flush=True)
 
     if site not in DATASETS:
         # Using a non-PLUMBER site, train on all PLUMBER sites.
@@ -52,7 +52,7 @@ def PLUMBER_fit_predict(model, name, site):
         # Using a PLUMBER site, leave one out.
         train_sets = [s for s in DATASETS if s != site]
 
-    print("Converting... ", end='')
+    print("Converting... ", end='', flush=True)
     met_train = xray_list_to_df(get_met_data(train_sets).values(),
                                 variables=met_vars, qc=True, name=use_names)
 
@@ -66,7 +66,8 @@ def PLUMBER_fit_predict(model, name, site):
     print('Fitting and running {f} using {m}'.format(f=flux_vars, m=met_vars))
     sim_data_dict = dict()
     for v in flux_vars:
-        # Might eventually want to update this to run multivariate-out models
+        # TODO: Might eventually want to update this to run multivariate-out models
+        # There isn't much point right now, because there is almost no data where
         flux_train_v = flux_train[v]
 
         # Ditch all of the incomplete data
