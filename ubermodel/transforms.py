@@ -54,6 +54,8 @@ class LagWrapper(BaseEstimator, TransformerMixin):
 
         X_lag = self.transform(X, nans='drop')
 
+        print("Data lagged, now fitting.")
+
         self.pipeline.fit(X_lag, y)
 
         return self
@@ -131,6 +133,8 @@ class LagWrapper(BaseEstimator, TransformerMixin):
 
         X_lag = self.transform(X, nans='fill')
 
+        print("Data lagged, now predicting.")
+
         return self.pipeline.predict(X_lag)
 
 
@@ -159,6 +163,8 @@ class MarkovWrapper(LagWrapper):
         self.y_cols = y.columns
 
         X_lag = self.transform(X, y, nans='drop')
+
+        print("Data lagged, now fitting.")
 
         self.pipeline.fit(X_lag, y)
 
@@ -201,6 +207,8 @@ class MarkovWrapper(LagWrapper):
         """
 
         X_lag = self.transform(X, nans='fill')
+
+        print("Data lagged, now predicting, step by step.")
 
         # initialise with mean flux values
         init = pd.concat([X_lag.iloc[0], self.y_mean])

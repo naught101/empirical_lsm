@@ -105,8 +105,10 @@ def PLUMBER_fit_predict(model, name, site):
             continue
 
         model.fit(X=met_train[qc_index], y=flux_train_v[qc_index])
+        print("Fitting complete.")
 
         sim_data_dict[v] = model.predict(met_test)
+        print("Prediction complete.")
 
     if len(sim_data_dict) < 1:
         print("No fluxes successfully fitted, quitting")
