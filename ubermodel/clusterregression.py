@@ -37,7 +37,7 @@ class ModelByCluster(BaseEstimator):
             est = clone(self.estimator)
             est.fit(X[safe_mask(X, mask)], y[safe_mask(y, mask)])
             self.estimators_.append(est)
-    
+
         return self
 
     def predict(self, X):
@@ -47,8 +47,9 @@ class ModelByCluster(BaseEstimator):
         idx = []
         for c, est in enumerate(self.estimators_):
             mask = clusters == c
-            idx.append(np.flatnonzero(mask))
-            y_tmp.append(est.predict(X[safe_mask(X, mask)]))
+            if mask.any():
+                idx.append(np.flatnonzero(mask))
+                y_tmp.append(est.predict(X[safe_mask(X, mask)]))
 
         y_tmp = np.concatenate(y_tmp)
         idx = np.concatenate(idx)
