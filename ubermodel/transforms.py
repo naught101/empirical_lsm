@@ -200,21 +200,23 @@ class MarkovWrapper(LagWrapper):
         :returns: Dataframe of predictions
         """
 
+        X_lag = self.transform(X, nans='fill')
+
         # initialise with mean flux values
-        init = pd.concat([X.iloc[0], self.y_mean])
+        init = pd.concat([X_lag.iloc[0], self.y_mean])
         results = []
         results.append(self.pipeline.predict(init))
-        n_steps = X.shape[0]
+        n_steps = X_lag.shape[0]
         print('Predicting, step 0 of {n}'.format(n=n_steps))
 
         for i in range(1, n_steps):
             if i % 100 == 0:
                 print('Predicting, step {i} of {n}'.format(i=i, n=n_steps), end="\r")
-            x = pd.concat([X.iloc[i], results[i - 1]])
+            x = pd.concat([X_lag.iloc[i], results[i - 1]])
             results.append(self.pipeline.predict(x))
 
         results = pd.DataFrame.from_records(results)
-        results.index = X.index
+        results.index = X_lag.index
         results.columns = self.y_cols
 
         return results
