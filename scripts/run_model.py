@@ -70,6 +70,8 @@ def PLUMBER_fit_predict(model, name, site):
     # TODO: fix dirty hack for loading names when required.
     use_names = 'lag' in name
 
+    print_good("Running {n} at {s}".format(n=name, s=site))
+
     print("Loading all data... ")
 
     if site not in DATASETS:
@@ -80,13 +82,13 @@ def PLUMBER_fit_predict(model, name, site):
         train_sets = [s for s in DATASETS if s != site]
 
     print("Converting... ")
-    met_train = get_multisite_df_cached(train_sets, typ='met', variables=met_vars, qc=True, name=use_names)
+    met_train = get_multisite_df(train_sets, typ='met', variables=met_vars, qc=True, name=use_names)
 
     # We use gap-filled data for the testing period, or the model fails.
     met_test_xray = get_met_data(site)
     met_test = pals_xray_to_df(met_test_xray, variables=met_vars)
 
-    flux_train = get_multisite_df_cached(train_sets, typ='flux', variables=flux_vars, qc=True, name=use_names)
+    flux_train = get_multisite_df(train_sets, typ='flux', variables=flux_vars, qc=True, name=use_names)
 
     print('Fitting and running {f} using {m}'.format(f=flux_vars, m=met_vars))
     sim_data_dict = dict()
