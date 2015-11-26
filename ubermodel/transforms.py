@@ -164,11 +164,12 @@ class MarkovWrapper(LagWrapper):
 
         return self
 
-    def transform(self, X, y, nans=None):
+    def transform(self, X, y=None, nans=None):
         """Add lagged features of X and y to X
 
         :X: features dataframe
         :y: outputs dataframe
+        :nans: 'drop' to drop NAs, 'fill' to fill with mean values, None to leave NAs in place.
         :returns: X dataframe with X and y lagged columns
 
         """
@@ -181,13 +182,14 @@ class MarkovWrapper(LagWrapper):
 
         if 'site' in X.index.names:
             X_lag = self.lag_dataframe(X, grouping='site')
-            y_lag = self.lag_dataframe(y, grouping='site', lagged_only=True)
-            X_lag = pd.merge(X_lag, y_lag, how='left', left_index=True, right_index=True)
+            if y is not None:
+                y_lag = self.lag_dataframe(y, grouping='site', lagged_only=True)
+                X_lag = pd.merge(X_lag, y_lag, how='left', left_index=True, right_index=True)
         else:
             X_lag = self.lag_dataframe(X)
-            y_lag = y.shift(self.periods, self.freq)
-            y_lag.columns = [c + '_lag' for c in y_lag.columns]
-            X_lag = pd.merge(X_lag, y_lag, how='left', left_index=True, right_index=True)
+            if y is not None:
+                y_lag = self.lag_dataframe(y, lagged_only=True)
+                X_lag = pd.merge(X_lag, y_lag, how='left', left_index=True, right_index=True)
 
         return self.fix_nans(X_lag, nans)
 
