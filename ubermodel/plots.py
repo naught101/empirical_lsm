@@ -160,7 +160,7 @@ DIAGNOSTIC_PLOTS = {
 # metric plots
 #######################
 
-def get_PLUMBER_plot(model_dir):
+def get_PLUMBER_plot(model_dir, site='all', metrics='all'):
     """generate PLUMBER plot and get filename
 
     :name: model name
@@ -171,7 +171,9 @@ def get_PLUMBER_plot(model_dir):
 
     sns.set_palette(sns.color_palette(['red', 'pink', 'orange', 'black', 'blue']))
 
-    filename = plot_PLUMBER_sim_metrics(name, 'all')
+    metric_df = get_PLUMBER_metrics(name, site, metrics)
+
+    filename = p_plumber_metrics(metric_df, name, site, metrics)
     if filename is None:
         return
 
@@ -185,8 +187,23 @@ def get_PLUMBER_plot(model_dir):
     return plots
 
 
-def plot_PLUMBER_sim_metrics(name, site):
+def plot_PLUMBER_sim_metrics(name, site, metrics='all'):
     """Plot metrics from a site, with benchmarks for comparison
+
+    :name: TODO
+    :site: TODO
+    :returns: TODO
+
+    """
+    metric_df = get_PLUMBER_metrics(name, site, metrics)
+
+    filename = p_plumber_metrics(metric_df, name, site, metrics)
+
+    return filename
+
+
+def get_PLUMBER_metrics(name, site='all'):
+    """get metrics dataframe from a site, with benchmarks for comparison
 
     :returns: TODO
     """
@@ -233,13 +250,34 @@ def plot_PLUMBER_sim_metrics(name, site):
 
     metric_df['rank'] = metric_df.groupby(['variable', 'metric', 'site'])['value'].rank()
 
+    return metric_df
+
+
+def p_plumber_metrics(metric_df, name, site='all', metrics='all'):
+    """Plot metric results as averages over site and metric
+
+    :metric_df: pandas dataframe of results
+    :name: site name for title
+    :metrics: metrics to include: 'all', 'standard', 'distribution'
+    :returns: TODO
+
+    """
+    if metrics == 'standard':
+        metrics_list = ['nme', 'mbe', 'sd_diff', 'corr']
+        metric_df = metric_df[metric_df.metric.isin(metrics_list)]
+    if metrics == 'distribution':
+        metrics_list = ['extreme_5', 'extreme_95', 'skewness', 'kurtosis', 'overlap']
+        metric_df = metric_df[metric_df.metric.isin(metrics_list)]
+
     mean_df = metric_df.groupby(['variable', 'name'])['rank'].mean().reset_index()
 
     mean_df.pivot(index='variable', columns='name', values='rank').plot()
     pl.title('{n}: PLUMBER plot: all metrics at {s}'.format(n=name, s=site))
 
     filename = '{n}_{s}_PLUMBER_plot_all_metrics.png'.format(n=name, s=site)
+
     return filename
+
 
 PLUMBER_PLOTS = {
     "source/models/{n}/figures/{n}_all_PLUMBER_plot_all_metrics.png": get_PLUMBER_plot,

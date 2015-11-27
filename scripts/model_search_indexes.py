@@ -31,6 +31,7 @@ def model_site_index_rst(model_dir):
     :model_dir: Directory to create a model index in
     """
     time = dt.isoformat(dt.now().replace(microsecond=0), sep=' ')
+
     name = model_dir.replace('source/models/', '')
 
     print_good('Generating index for {n}.'. format(n=name))
