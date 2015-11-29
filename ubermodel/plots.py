@@ -160,7 +160,7 @@ DIAGNOSTIC_PLOTS = {
 # metric plots
 #######################
 
-def get_PLUMBER_plot(model_dir, site='all', metrics='all'):
+def get_PLUMBER_plot(model_dir, site='all'):
     """generate PLUMBER plot and get filename
 
     :name: model name
@@ -171,18 +171,15 @@ def get_PLUMBER_plot(model_dir, site='all', metrics='all'):
 
     sns.set_palette(sns.color_palette(['red', 'pink', 'orange', 'black', 'blue']))
 
-    metric_df = get_PLUMBER_metrics(name, site, metrics)
+    metric_df = get_PLUMBER_metrics(name, site)
 
-    filename = p_plumber_metrics(metric_df, name, site, metrics)
-    if filename is None:
-        return
-
-    rel_path = save_plot('source/models', name + '/figures', filename)
-
-    files = [rel_path]
+    rel_paths = []
+    for metrics in ['all', 'standard', 'distribution']:
+        filename = p_plumber_metrics(metric_df, name, site, metrics)
+        rel_paths.append(save_plot('source/models', name + '/figures', filename))
 
     plots = '\n\n'.join([
-        ".. image :: {file}".format(file=f) for f in files])
+        ".. image :: {file}".format(file=f) for f in rel_paths])
 
     return plots
 
@@ -195,7 +192,7 @@ def plot_PLUMBER_sim_metrics(name, site, metrics='all'):
     :returns: TODO
 
     """
-    metric_df = get_PLUMBER_metrics(name, site, metrics)
+    metric_df = get_PLUMBER_metrics(name, site)
 
     filename = p_plumber_metrics(metric_df, name, site, metrics)
 
@@ -272,16 +269,16 @@ def p_plumber_metrics(metric_df, name, site='all', metrics='all'):
     mean_df = metric_df.groupby(['variable', 'name'])['rank'].mean().reset_index()
 
     mean_df.pivot(index='variable', columns='name', values='rank').plot()
-    pl.title('{n}: PLUMBER plot: all metrics at {s}'.format(n=name, s=site))
+    pl.title('{n}: PLUMBER plot: {m} metrics at {s}'.format(n=name, s=site, m=metrics))
 
-    filename = '{n}_{s}_PLUMBER_plot_all_metrics.png'.format(n=name, s=site)
+    filename = '{n}_{s}_PLUMBER_plot_{m}_metrics.png'.format(n=name, s=site, m=metrics)
 
     return filename
 
 
 PLUMBER_PLOTS = {
-    "source/models/{n}/figures/{n}_all_PLUMBER_plot_all_metrics.png": get_PLUMBER_plot,
-    "source/models/{n}/figures/{s}/{n}_{s}_PLUMBER_plot_all_metrics.png": plot_PLUMBER_sim_metrics,
+    "source/models/{n}/figures/{n}_all_PLUMBER_plot_{m}_metrics.png": get_PLUMBER_plot,
+    "source/models/{n}/figures/{s}/{n}_{s}_PLUMBER_plot_{m}_metrics.png": plot_PLUMBER_sim_metrics,
 }
 
 
