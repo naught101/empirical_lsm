@@ -28,6 +28,7 @@ class LagWrapper(BaseEstimator, TransformerMixin):
         :periods: Number of timesteps to lag by
         """
         assert isinstance(model, BaseEstimator), "`model` isn't a scikit-learn model"
+
         BaseEstimator.__init__(self)
         TransformerMixin.__init__(self)
 
@@ -42,7 +43,7 @@ class LagWrapper(BaseEstimator, TransformerMixin):
         compute number of output features
 
         :X: pandas dataframe
-        :y: Pandas dataframe or series or vector
+        :y: Pandas dataframe or series
         """
         if 'site' in X.columns:
             raise ValueError("site should be an index, not a column")
@@ -57,7 +58,7 @@ class LagWrapper(BaseEstimator, TransformerMixin):
 
         print("Data lagged, now fitting.")
 
-        self.model.fit(X_lag, y)
+        self.model.fit(X_lag, y.ix[X_lag.index])
 
         return self
 
@@ -85,7 +86,7 @@ class LagWrapper(BaseEstimator, TransformerMixin):
         shifted.columns = [c + '_lag' for c in shifted.columns]
 
         if lagged_only:
-            return shifted
+            return shifted.ix[df.index]
         else:
             return df.join(shifted)
 
@@ -155,7 +156,7 @@ class MarkovWrapper(LagWrapper):
         compute number of output features
 
         :X: pandas dataframe
-        :y: Pandas dataframe or series or vector
+        :y: Pandas dataframe or series
         """
         if 'site' in X.columns:
             raise ValueError("site should be an index, not a column")
