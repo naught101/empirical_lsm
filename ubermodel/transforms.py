@@ -103,7 +103,8 @@ class LagWrapper(BaseEstimator, TransformerMixin):
         elif nans == 'fill':
             # Replace NAs in lagged columns with mean values from fitting step
             replace = {c + '_lag': {np.nan: self.X_mean[c]} for c in self.X_cols}
-            replace.update({c + '_lag': {np.nan: self.y_mean[c]} for c in self.y_cols})
+            if hasattr(self, 'y_cols'):
+                replace.update({c + '_lag': {np.nan: self.y_mean[c]} for c in self.y_cols})
             lagged_df.replace(replace, inplace=True)
             return lagged_df
         else:
