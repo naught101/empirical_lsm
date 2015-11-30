@@ -68,7 +68,7 @@ def PLUMBER_fit_predict(model, name, site):
     flux_vars = FLUX_VARS
 
     # TODO: fix dirty hack for loading names when required.
-    use_names = 'lag' in name
+    use_names = 'lag' in name or 'markov' in name
 
     print_good("Running {n} at {s}".format(n=name, s=site))
 
