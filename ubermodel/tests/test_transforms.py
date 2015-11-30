@@ -10,6 +10,7 @@ Description: TODO: File description
 
 import unittest
 import numpy.testing as npt
+import pandas as pd
 import numpy as np
 from sklearn.linear_model import LinearRegression
 
@@ -26,6 +27,8 @@ class TestLagWrapper(unittest.TestCase):
 
         self.met_data = xray_list_to_df(met_data, ['SWdown', 'Tair'], qc=True, name=True)
 
+        self.y = pd.DataFrame(dict(test=list(range(96))), index=self.met_data.index)
+
     def tearDown(self):
         pass
 
@@ -33,7 +36,7 @@ class TestLagWrapper(unittest.TestCase):
 
         lag_transform = LagWrapper(LinearRegression(), 1, '30min')
 
-        transformed = lag_transform.fit_transform(self.met_data)
+        transformed = lag_transform.fit_transform(self.met_data, self.y)
 
         npt.assert_array_equal(transformed.ix[0, ['SWdown', 'Tair']],
                                transformed.ix[1, ['SWdown_lag', 'Tair_lag']])
@@ -45,7 +48,7 @@ class TestLagWrapper(unittest.TestCase):
 
         lag_transform = LagWrapper(LinearRegression(), 2, 'H')
 
-        transformed = lag_transform.fit_transform(self.met_data)
+        transformed = lag_transform.fit_transform(self.met_data, self.y)
 
         npt.assert_array_equal(transformed.ix[0, ['SWdown', 'Tair']],
                                transformed.ix[4, ['SWdown_lag', 'Tair_lag']])
