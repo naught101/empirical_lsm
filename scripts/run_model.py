@@ -94,7 +94,7 @@ def PLUMBER_fit_predict(model, name, site):
     sim_data_dict = dict()
     for v in flux_vars:
         # TODO: Might eventually want to update this to run multivariate-out models
-        # There isn't much point right now, because there is almost no data where
+        # There isn't much point right now, because there is almost no data where all variables are available.
         flux_train_v = flux_train[[v]]
 
         # Ditch all of the incomplete data
