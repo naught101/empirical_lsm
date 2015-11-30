@@ -72,7 +72,7 @@ class LagWrapper(BaseEstimator, TransformerMixin):
             raise ValueError('One or more columns are non-numeric.')
 
         if grouping is not None:
-            shifted = df.groupby(grouping).shift(self.periods, self.freq)
+            shifted = df.groupby(level=grouping).shift(self.periods, self.freq)
         else:
             shifted = df.shift(self.periods, self.freq)
         shifted.columns = [c + '_lag' for c in shifted.columns]
