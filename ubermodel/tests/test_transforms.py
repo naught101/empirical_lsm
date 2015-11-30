@@ -11,13 +11,14 @@ Description: TODO: File description
 import unittest
 import numpy.testing as npt
 import numpy as np
+from sklearn.linear_model import LinearRegression
 
 from pals_utils.data import get_site_data, xray_list_to_df
-from ubermodel.transforms import LagTransform
+from ubermodel.transforms import LagWrapper
 
 
-class TestLagTransform(unittest.TestCase):
-    """Test LagTransform"""
+class TestLagWrapper(unittest.TestCase):
+    """Test LagWrapper"""
 
     def setUp(self):
         met_data = [ds.isel(time=slice(0, 48)) for ds in
@@ -30,7 +31,7 @@ class TestLagTransform(unittest.TestCase):
 
     def test_shift_30(self):
 
-        lag_transform = LagTransform(1, '30min')
+        lag_transform = LagWrapper(LinearRegression(), 1, '30min')
 
         transformed = lag_transform.fit_transform(self.met_data)
 
@@ -42,7 +43,7 @@ class TestLagTransform(unittest.TestCase):
 
     def test_shift_2H(self):
 
-        lag_transform = LagTransform(2, 'H')
+        lag_transform = LagWrapper(LinearRegression(), 2, 'H')
 
         transformed = lag_transform.fit_transform(self.met_data)
 
