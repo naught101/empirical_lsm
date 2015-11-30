@@ -17,9 +17,9 @@ from sklearn.base import BaseEstimator, TransformerMixin
 
 class LagWrapper(BaseEstimator, TransformerMixin):
 
-    """Wraps a scikit-learn pipeline, lags the data, and deals with NAs."""
+    """Wraps a scikit-learn model, lags the data, and deals with NAs."""
 
-    def __init__(self, pipeline, periods=1, freq='30min'):
+    def __init__(self, model, periods=1, freq='30min'):
         """Lags a dataset.
 
         Lags all features.
@@ -27,13 +27,14 @@ class LagWrapper(BaseEstimator, TransformerMixin):
 
         :periods: Number of timesteps to lag by
         """
+        assert isinstance(model, BaseEstimator), "`model` isn't a scikit-learn model"
         BaseEstimator.__init__(self)
         TransformerMixin.__init__(self)
 
         self.periods = periods
         self.freq = freq
 
-        self.pipeline = pipeline
+        self.model = model
 
     def fit(self, X, y=None):
         """Fit the model with X
@@ -56,7 +57,7 @@ class LagWrapper(BaseEstimator, TransformerMixin):
 
         print("Data lagged, now fitting.")
 
-        self.pipeline.fit(X_lag, y)
+        self.model.fit(X_lag, y)
 
         return self
 
@@ -131,7 +132,7 @@ class LagWrapper(BaseEstimator, TransformerMixin):
         return self.fix_nans(X_lag, nans)
 
     def predict(self, X):
-        """Predicts with a pipeline using lagged X
+        """Predicts with a model using lagged X
 
         :X: Dataframe matching the fit dataframe
         :returns: prediction based on X
@@ -141,12 +142,12 @@ class LagWrapper(BaseEstimator, TransformerMixin):
 
         print("Data lagged, now predicting.")
 
-        return self.pipeline.predict(X_lag)
+        return self.model.predict(X_lag)
 
 
 class MarkovWrapper(LagWrapper):
 
-    """Wraps a scikit-learn pipeline, Markov-lags the data (includes y values), and deals with NAs."""
+    """Wraps a scikit-learn model, Markov-lags the data (includes y values), and deals with NAs."""
 
     def fit(self, X, y):
         """Fit the model with X
@@ -172,7 +173,7 @@ class MarkovWrapper(LagWrapper):
 
         print("Data lagged, now fitting.")
 
-        self.pipeline.fit(X_lag, y)
+        self.model.fit(X_lag, y)
 
         return self
 
@@ -206,7 +207,7 @@ class MarkovWrapper(LagWrapper):
         return self.fix_nans(X_lag, nans)
 
     def predict(self, X):
-        """Predicts with a pipeline using lagged X
+        """Predicts with a model using lagged X
 
         :X: Dataframe matching the fit frame
         :returns: Dataframe of predictions
@@ -219,7 +220,7 @@ class MarkovWrapper(LagWrapper):
         # initialise with mean flux values
         init = pd.concat([X_lag.iloc[0], self.y_mean])
         results = []
-        results.append(self.pipeline.predict(init))
+        results.append(self.model.predict(init))
         n_steps = X_lag.shape[0]
         print('Predicting, step 0 of {n}'.format(n=n_steps))
 
@@ -227,7 +228,7 @@ class MarkovWrapper(LagWrapper):
             if i % 100 == 0:
                 print('Predicting, step {i} of {n}'.format(i=i, n=n_steps), end="\r")
             x = pd.concat([X_lag.iloc[i], results[i - 1]])
-            results.append(self.pipeline.predict(x))
+            results.append(self.model.predict(x))
 
         results = pd.DataFrame.from_records(results)
         results.index = X_lag.index
