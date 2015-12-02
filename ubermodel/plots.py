@@ -137,8 +137,9 @@ def plot_qq_plot(data, name, var, site):
 def plot_residuals(data, name, var, site):
     """Residual errors plot
     """
-    data['residuals'] = data['modelled'] - data['observed']
-    data.plot.scatter('observed', 'residuals', c='black', s=1, alpha=0.5)
+    residuals = data[['observed']].copy()
+    residuals['residuals'] = data['modelled'] - data['observed']
+    residuals.plot.scatter('observed', 'residuals', c='black', s=1, alpha=0.5)
 
     pl.title('{n}: residual plot for {v} at {s}'.format(n=name, v=var, s=site))
 
