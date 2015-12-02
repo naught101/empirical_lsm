@@ -175,7 +175,7 @@ class MarkovWrapper(LagWrapper):
 
         print("Data lagged, now fitting.")
 
-        self.model.fit(X_lag, y)
+        self.model.fit(X_lag, y.ix[X_lag.index])
 
         return self
 
@@ -220,21 +220,19 @@ class MarkovWrapper(LagWrapper):
         print("Data lagged, now predicting, step by step.")
 
         # initialise with mean flux values
-        init = pd.concat([X_lag.iloc[0], self.y_mean])
+        init = pd.concat([X_lag.iloc[0], self.y_mean]).reshape(1, -1)
         results = []
-        results.append(self.model.predict(init))
+        results.append(self.model.predict(init).ravel())
         n_steps = X_lag.shape[0]
         print('Predicting, step 0 of {n}'.format(n=n_steps))
 
         for i in range(1, n_steps):
             if i % 100 == 0:
                 print('Predicting, step {i} of {n}'.format(i=i, n=n_steps), end="\r")
-            x = pd.concat([X_lag.iloc[i], results[i - 1]])
-            results.append(self.model.predict(x))
+            x = np.concatenate([X_lag.iloc[i], results[i - 1]]).reshape(1, -1)
+            results.append(self.model.predict(x).ravel())
 
-        results = pd.DataFrame.from_records(results)
-        results.index = X_lag.index
-        results.columns = self.y_cols
+        results = pd.DataFrame.from_records(results, index=X_lag.index, columns=self.y_cols)
 
         return results
 
