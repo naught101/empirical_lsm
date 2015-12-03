@@ -224,13 +224,14 @@ class MarkovWrapper(LagWrapper):
         results = []
         results.append(self.model.predict(init).ravel())
         n_steps = X_lag.shape[0]
-        print('Predicting, step 0 of {n}'.format(n=n_steps))
+        print('Predicting, step 0 of {n}'.format(n=n_steps), end='\r')
 
         for i in range(1, n_steps):
             if i % 100 == 0:
                 print('Predicting, step {i} of {n}'.format(i=i, n=n_steps), end="\r")
             x = np.concatenate([X_lag.iloc[i], results[i - 1]]).reshape(1, -1)
             results.append(self.model.predict(x).ravel())
+        print('Predicting, step {i} of {n}'.format(i=n_steps, n=n_steps))
 
         results = pd.DataFrame.from_records(results, index=X_lag.index, columns=self.y_cols)
 
