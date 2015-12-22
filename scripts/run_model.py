@@ -64,7 +64,11 @@ def PLUMBER_fit_predict(model, name, site):
     :returns: xray dataset of simulation
 
     """
-    met_vars = MET_VARS
+    if hasattr(model, 'variables'):
+        met_vars = model.variables
+    else:
+        met_vars = MET_VARS
+
     flux_vars = FLUX_VARS
 
     # TODO: fix dirty hack for loading names when required.
