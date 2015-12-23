@@ -54,8 +54,7 @@ def diagnostic_plots(sim_data, flux_data, name):
     base_path = 'source/models/{n}'.format(n=name)
     rel_path = 'figures/{s}'.format(s=site)
     fig_path = os.path.join(base_path, rel_path)
-    if not os.path.isdir(fig_path):
-        os.makedirs(fig_path)
+    os.makedirs(fig_path, exist_ok=True)
 
     files = []
 

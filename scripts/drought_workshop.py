@@ -70,8 +70,7 @@ def main_drydown_eval(name, site, sim_file=None):
     base_path = 'source/models/{n}'.format(n=name)
     rel_path = 'figures/{s}'.format(s=site)
     fig_path = os.path.join(base_path, rel_path)
-    if not os.path.isdir(fig_path):
-        os.makedirs(fig_path)
+    os.makedirs(fig_path, exist_ok=True)
 
     filename = plot_drydown(sim_data, flux_data, met_data, name, date_range)
     save_plot(base_path, rel_path, filename)
@@ -235,8 +234,7 @@ def site_drydown_rst_write(site, plot_files):
 
     :site: PALS site name to run the model at
     """
-    if not os.path.exists('source/drydowns'):
-        os.makedirs('source/drydowns')
+    os.makedirs('source/drydowns', exist_ok=True)
 
     site_drydown_rst_file = 'source/drydowns/{s}_drydown.rst'.format(s=site)
 

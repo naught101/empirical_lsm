@@ -133,8 +133,7 @@ def main_run(model, name, site):
     :site: PALS site name to run the model at
     """
     sim_dir = 'source/models/{n}/sim_data'.format(n=name)
-    if not os.path.exists(sim_dir):
-        os.makedirs(sim_dir)
+    os.makedirs(sim_dir, exist_ok=True)
 
     nc_file = 'source/models/{n}/sim_data/{n}_{s}.nc'.format(n=name, s=site)
 

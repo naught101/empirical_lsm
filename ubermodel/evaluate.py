@@ -43,8 +43,7 @@ def evaluate_simulation(sim_data, flux_data, name):
             metric_data.ix[m, v] = val
 
     eval_dir = 'source/models/{n}/metrics/'.format(n=name)
-    if not os.path.exists(eval_dir):
-        os.makedirs(eval_dir)
+    os.makedirs(eval_dir, exist_ok=True)
     eval_path = '{d}/{n}_{s}_metrics.csv'.format(d=eval_dir, n=name, s=site)
     metric_data.to_csv(eval_path)
 

@@ -43,8 +43,7 @@ def get_sim_nc_path(name, site):
     :returns: sim netcdf path
     """
     model_path = 'source/models/{n}/sim_data/'.format(n=name)
-    if not os.path.exists(model_path):
-        os.makedirs(model_path)
+    os.makedirs(model_path, exist_ok=True)
     nc_path = '{p}{n}_{s}.nc'.format(p=model_path, n=name, s=site)
 
     return nc_path
