@@ -18,10 +18,11 @@ Options:
 from docopt import docopt
 
 import numpy as np
+import pandas as pd
 import pals_utils as pu
 
 
-def entropy(x, bins=1000):
+def entropy(x, bins=10000):
     """Calculate entropy of a variable based on a histrogram
 
     :x: TODO
@@ -35,7 +36,7 @@ def entropy(x, bins=1000):
     return entropy
 
 
-def mutual_info(x, y, bins=[1000, 1000]):
+def mutual_info(x, y, bins=[10000, 10000]):
     """Calculate mutual information based on 2D histrograms
 
     :x: TODO
@@ -60,13 +61,67 @@ def mutual_info(x, y, bins=[1000, 1000]):
     return info
 
 
+def get_df_MI_matrix(df):
+    """TODO: Docstring for get_self_measures.
+
+    :df: TODO
+    :returns: TODO
+
+    """
+    MI_matrix = dict()
+    for var1 in df.columns:
+        MI_matrix[var1] = dict()
+        for var2 in df.columns:
+            MI_matrix[var1][var2] = mutual_info(df[var1], df[var2])
+    return MI_matrix
+
+
+def get_measures(flux_df, met_df):
+    """TODO: Docstring for get_measures.
+
+    :flux_df: TODO
+    :met_df: TODO
+    :returns: TODO
+
+    """
+    results = dict()
+    for flux_var in flux_df.columns:
+        # lag by half hours, up to 24 hours
+        for lag in range(49):
+            met_lag = met_df.shift(lag)
+            for met_var in met_df.columns:
+                results[flux_var][met_var] = dict(mutual_info=dict(), corr=dict())
+                results[flux_var][met_var]['mutual_info']['lag_' + lag] = \
+                    mutual_info(flux_df[flux_var], met_lag[flux_var])
+                results[flux_var][met_var]['corr']['lag_' + lag] = \
+                    np.corrcoef(flux_df[flux_var], flux_df[flux_var])[0, 1]
+
+        # Lag by day, up to 10 days
+        met_roll_24 = pd.rolling_mean(met_df, 48)
+        for lag in range(10):
+            met_lag = met_roll_24.shift(lag * 48)
+            for met_var in met_df.columns:
+                results[flux_var][met_var] = dict(mutual_info=dict(), corr=dict())
+                results[flux_var][met_var]['mutual_info']['lag_day_' + lag] = \
+                    mutual_info(flux_df[flux_var], met_lag[flux_var])
+                results[flux_var][met_var]['corr']['lag_day_' + lag] = \
+                    np.corrcoef(flux_df[flux_var], flux_df[flux_var])[0, 1]
+
+    return results
+
+
 def main(args):
 
     # Load all data
     # (split by site/site type?)
     sites = ['Tumba']
-    met_df = pu.data.get_met_data(sites)
-    flux_df = pu.data.get_flux_data(sites)
+    met_df = pu.data.get_met_df(sites)
+    flux_df = pu.data.get_flux_df(sites)
+    all_df = pd.concat([flux_df, met_df], axis=1)
+
+    MI_matrix = get_df_MI_matrix(all_df)
+
+    cov_matrix = all_df.cov()
 
     # run a sensitivity study on:
     #    past 10(?) days,
@@ -74,16 +129,6 @@ def main(args):
     #    autocorrelation?
     #    other?
 
-    results = dict()
-    for flux_var in flux_df.columns:
-
-        results[flux_var] = dict()
-        results[flux_var]['entropy'] = entropy(flux_df[flux_var])
-        # Autocorrelation:
-
-        for met_var in met_df.columns:
-            results[flux_var][met_var] = dict()
-            results[flux_var][met_var]['mutual_info'] = mutual_info(flux_df[flux_var], flux_df[flux_var])
 
     # plot results, decide on thresholds, based on limiting the number of input variabels?
 
