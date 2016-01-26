@@ -21,10 +21,10 @@ import sys
 import os
 
 from pals_utils.constants import DATASETS, MET_VARS, FLUX_VARS
-from pals_utils.data import get_met_data, get_flux_data, pals_xray_to_df, xray_list_to_df
+from pals_utils.data import get_met_data, get_flux_data, pals_xr_to_df, xr_list_to_df
 
 from ubermodel.models import get_model
-from ubermodel.data import sim_dict_to_xray
+from ubermodel.data import sim_dict_to_xr
 from ubermodel.utils import print_good, print_warn
 
 
@@ -42,11 +42,11 @@ def get_multisite_df(sites, typ, variables, name=False, qc=False):
         sites = [sites]
 
     if typ == 'met':
-        return xray_list_to_df(get_met_data(sites).values(),
-                               variables=variables, qc=True, name=name)
+        return xr_list_to_df(get_met_data(sites).values(),
+                             variables=variables, qc=True, name=name)
     elif typ == 'flux':
-        return xray_list_to_df(get_flux_data(sites).values(),
-                               variables=variables, qc=True, name=name)
+        return xr_list_to_df(get_flux_data(sites).values(),
+                             variables=variables, qc=True, name=name)
     else:
         assert False, "Bad dataset type: %s" % typ
 
@@ -61,7 +61,7 @@ def PLUMBER_fit_predict(model, name, site):
     :model: sklearn-style model or pipeline (regression estimator)
     :name: name of the model
     :site: PALS site name to run the model at
-    :returns: xray dataset of simulation
+    :returns: xarray dataset of simulation
 
     """
     if hasattr(model, 'variables'):
@@ -89,8 +89,8 @@ def PLUMBER_fit_predict(model, name, site):
     met_train = get_multisite_df(train_sets, typ='met', variables=met_vars, qc=True, name=use_names)
 
     # We use gap-filled data for the testing period, or the model fails.
-    met_test_xray = get_met_data(site)
-    met_test = pals_xray_to_df(met_test_xray, variables=met_vars)
+    met_test_xr = get_met_data(site)
+    met_test = pals_xr_to_df(met_test_xr, variables=met_vars)
 
     flux_train = get_multisite_df(train_sets, typ='flux', variables=flux_vars, qc=True, name=use_names)
 
@@ -120,7 +120,7 @@ def PLUMBER_fit_predict(model, name, site):
         print("No fluxes successfully fitted, quitting")
         sys.exit()
 
-    sim_data = sim_dict_to_xray(sim_data_dict, met_test_xray)
+    sim_data = sim_dict_to_xr(sim_data_dict, met_test_xr)
 
     return sim_data
 

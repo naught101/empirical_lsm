@@ -15,7 +15,7 @@ Options:
 """
 
 from docopt import docopt
-import xray
+import xarray as xr
 
 from pals_utils.constants import DATASETS
 
@@ -27,7 +27,7 @@ def fix_benchmark(site_data, name, site):
     """Performs checks on broken benchmarks, and fixes them inplace
 
     :name: benchmark name
-    :site_data: xray dataset (will be modified inplace
+    :site_data: xarray dataset (will be modified inplace
     """
 
     if name in ['Manabe_Bucket.2', 'Penman_Monteith.1']:
@@ -70,7 +70,7 @@ def main_import_benchmark(name, site):
         s_file = 'data/PALS/benchmarks/{n}/{n}_{s}Fluxnet.1.4.nc'.format(n=name, s=s)
         nc_path = get_sim_nc_path(name, s)
 
-        sim_data = xray.open_dataset(s_file)
+        sim_data = xr.open_dataset(s_file)
 
         fix_benchmark(sim_data, name, s)
 
@@ -93,7 +93,7 @@ def main_import_sim(name, site, sim_file):
 
     nc_path = get_sim_nc_path(name, site)
 
-    sim_data = xray.open_dataset(sim_file)
+    sim_data = xr.open_dataset(sim_file)
 
     # WARNING! over writes existing sim!
     sim_data.to_netcdf(nc_path)

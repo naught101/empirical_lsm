@@ -14,7 +14,7 @@ import pandas as pd
 import numpy as np
 from sklearn.linear_model import LinearRegression
 
-from pals_utils.data import get_site_data, xray_list_to_df
+from pals_utils.data import get_site_data, xr_list_to_df
 from ubermodel.transforms import LagWrapper, MarkovWrapper
 
 
@@ -25,7 +25,7 @@ class TestLagWrapper(unittest.TestCase):
         X = [ds.isel(time=slice(0, 48)) for ds in
              get_site_data(['Amplero', 'Tumba'], 'met').values()]
 
-        self.X = xray_list_to_df(X, ['SWdown', 'Tair'], qc=True, name=True)
+        self.X = xr_list_to_df(X, ['SWdown', 'Tair'], qc=True, name=True)
 
         self.y = pd.DataFrame(dict(test=list(range(96))), index=self.X.index)
 

@@ -20,7 +20,7 @@ Options:
 
 from docopt import docopt
 
-import xray
+import xarray as xr
 import os
 import glob
 import pandas as pd
@@ -58,11 +58,11 @@ def main_drydown_eval(name, site, sim_file=None):
 
     nc_path = get_sim_nc_path(name, site)
     if sim_file is not None:
-        sim_data = xray.open_dataset(sim_file)
+        sim_data = xr.open_dataset(sim_file)
         # WARNING! over writes existing sim!
         sim_data.to_netcdf(nc_path)
     else:
-        sim_data = xray.open_dataset(nc_path)
+        sim_data = xr.open_dataset(nc_path)
 
     flux_data = get_flux_data(site)
     met_data = get_met_data(site)

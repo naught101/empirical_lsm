@@ -16,7 +16,7 @@ import numpy as np
 
 from dateutil.parser import parse
 
-from pals_utils.data import pals_site_name, pals_xray_to_df, get_pals_benchmark
+from pals_utils.data import pals_site_name, pals_xr_to_df, get_pals_benchmark
 from pals_utils.constants import FLUX_VARS, DATASETS
 
 from .utils import print_bad, print_warn
@@ -75,7 +75,7 @@ def diagnostic_plots(sim_data, flux_data, name):
 
     for var in FLUX_VARS:
         try:
-            data = pd.concat([pals_xray_to_df(ds, [var]) for ds in
+            data = pd.concat([pals_xr_to_df(ds, [var]) for ds in
                               benchmarks + [flux_data, sim_data]], axis=1)
         except Exception as e:
             print_warn('Data missing for {v} at {s}, skipping. {e}'.format(v=var, s=site, e=e))
@@ -289,9 +289,9 @@ def plot_drydown(sim_data, flux_data, met_data, name, date_range):
 
     Plots rainfall, as well as Qh and Qle for obs and simulations.
 
-    :sim_data: xray dataset from a simulation
-    :flux_data: xray dataset from a simulation
-    :met_data: xray dataset from a simulation
+    :sim_data: xarray dataset from a simulation
+    :flux_data: xarray dataset from a simulation
+    :met_data: xarray dataset from a simulation
     :name: model name
     :returns: plot filename
     """
@@ -304,13 +304,13 @@ def plot_drydown(sim_data, flux_data, met_data, name, date_range):
     sns.set_palette(sns.color_palette(['#aa0000', '#ff4444', '#0000aa', '#4477ff']))
 
     # Plot rainfall in mm
-    Rainf = (pals_xray_to_df(met_data.sel(time=slice(*year_range)), ['Rainf'])
+    Rainf = (pals_xr_to_df(met_data.sel(time=slice(*year_range)), ['Rainf'])
              .resample('1W', how='sum') * 1000)
 
-    obs = (pals_xray_to_df(flux_data.sel(time=slice(*year_range)), ['Qh', 'Qle'])
+    obs = (pals_xr_to_df(flux_data.sel(time=slice(*year_range)), ['Qh', 'Qle'])
            .resample('1D'))
 
-    sim = (pals_xray_to_df(sim_data.sel(time=slice(*year_range)), ['Qh', 'Qle'])
+    sim = (pals_xr_to_df(sim_data.sel(time=slice(*year_range)), ['Qh', 'Qle'])
            .resample('1D'))
 
     x_vals = Rainf.index.to_pydatetime()
@@ -342,9 +342,9 @@ def plot_drydown_daily_cycles(sim_data, flux_data, met_data, name, date_range):
 
     Plots rainfall, as well as Qh and Qle for obs and simulations.
 
-    :sim_data: xray dataset from a simulation
-    :flux_data: xray dataset from a simulation
-    :met_data: xray dataset from a simulation
+    :sim_data: xarray dataset from a simulation
+    :flux_data: xarray dataset from a simulation
+    :met_data: xarray dataset from a simulation
     :name: model name
     :returns: plot filename
     """
@@ -365,10 +365,10 @@ def plot_drydown_daily_cycles(sim_data, flux_data, met_data, name, date_range):
                                        .intersection(list(sim_data.data_vars)))
 
     for i, dr in enumerate([first_cycle, last_cycle]):
-        obs_df = pals_xray_to_df(flux_data.sel(time=slice(*dr)), flux_vars)
+        obs_df = pals_xr_to_df(flux_data.sel(time=slice(*dr)), flux_vars)
         obs = obs_df.groupby(obs_df.index.time).mean()
 
-        sim_df = pals_xray_to_df(sim_data.sel(time=slice(*dr)), flux_vars)
+        sim_df = pals_xr_to_df(sim_data.sel(time=slice(*dr)), flux_vars)
         sim = sim_df.groupby(sim_df.index.time).mean()
 
         x_vals = obs.index.values

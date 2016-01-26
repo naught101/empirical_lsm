@@ -16,7 +16,7 @@ Options:
 
 from docopt import docopt
 
-import xray
+import xarray as xr
 import os
 import glob
 
@@ -125,7 +125,7 @@ def main_eval(name, site, sim_file=None):
         filename = sim_file
 
     try:
-        sim_data = xray.open_dataset(filename)
+        sim_data = xr.open_dataset(filename)
     except RuntimeError as e:
         print_bad("Sim file ({f}) doesn't exist. What are you doing? {e}".format(f=filename, e=e))
         return
