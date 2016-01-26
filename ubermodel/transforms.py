@@ -19,7 +19,7 @@ class LagWrapper(BaseEstimator, TransformerMixin):
 
     """Wraps a scikit-learn model, lags the data, and deals with NAs."""
 
-    def __init__(self, model, periods=1, freq='30min'):
+    def __init__(self, model, periods=1, freq='30min', variables=None):
         """Lags a dataset.
 
         Lags all features.
@@ -34,6 +34,7 @@ class LagWrapper(BaseEstimator, TransformerMixin):
 
         self.periods = periods
         self.freq = freq
+        self.variables = variables
 
         self.model = model
 
@@ -62,7 +63,7 @@ class LagWrapper(BaseEstimator, TransformerMixin):
 
         return self
 
-    def lag_dataframe(self, df, grouping=None, lagged_only=False):
+    def lag_dataframe(self, df, grouping=None, lagged_only=False, variables=None):
         """Helper for lagging a dataframe
 
         :df: Pandas dataframe with a time index
@@ -73,16 +74,21 @@ class LagWrapper(BaseEstimator, TransformerMixin):
         if not all(df.dtypes == 'float64'):
             raise ValueError('One or more columns are non-numeric.')
 
+        if variables is None:
+            shifted = df
+        else:
+            shifted = df[variables]
+
         if grouping is not None:
-            shifted = (df.reset_index(grouping)
-                         .groupby(grouping)
-                         .shift(self.periods, self.freq)
-                         .reset_index(grouping, drop=True)
-                         .set_index(grouping, append=True))
+            shifted = (shifted.reset_index(grouping)
+                              .groupby(grouping)
+                              .shift(self.periods, self.freq)
+                              .reset_index(grouping, drop=True)
+                              .set_index(grouping, append=True))
             # it would be nice to do this, but https://github.com/pydata/pandas/issues/114524
             # shifted = df.groupby(level=grouping).shift(self.periods, self.freq)
         else:
-            shifted = df.shift(self.periods, self.freq)
+            shifted = shifted.shift(self.periods, self.freq)
         shifted.columns = [c + '_lag' for c in shifted.columns]
 
         if lagged_only:
