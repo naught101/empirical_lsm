@@ -8,7 +8,7 @@ Github: https://github.com/naught101
 Description: create indexes for the model search
 
 Usage:
-    model_search_indexes.py all
+    model_search_indexes.py all [--rebuild]
     model_search_indexes.py model <name>
     model_search_indexes.py summary
 """
@@ -22,7 +22,7 @@ import pandas as pd
 from matplotlib.cbook import dedent
 from datetime import datetime as dt
 from ubermodel.plots import get_PLUMBER_plot
-from ubermodel.utils import print_good, dataframe_to_rst
+from ubermodel.utils import print_good, print_warn, dataframe_to_rst
 
 
 def model_site_index_rst(model_dir):
@@ -42,7 +42,11 @@ def model_site_index_rst(model_dir):
 
     sim_links = '\n'.join(['    %s' % m for m in sim_pages])
 
-    plots = get_PLUMBER_plot(model_dir)
+    try:
+        plots = get_PLUMBER_plot(model_dir)
+    except AttributeError as e:
+        print_warn('No plots found, skipping {n}: {e}'.format(n=name, e=e))
+        return
 
     title = '{name} simulations'.format(name=name)
     title += '\n' + '=' * len(title)
@@ -214,7 +218,7 @@ def main(args):
         model_dirs = [d for d in sorted(glob.glob('source/models/*')) if os.path.isdir(d)]
         for model_dir in model_dirs:
             rst_path = model_dir + ".rst"
-            if os.path.exists(rst_path):
+            if os.path.exists(rst_path) and not args['--rebuild']:
                 # for 'all' only regenerate pages that need it.
                 newest = newest_file(model_dir)
                 if newest > os.path.getmtime(rst_path):
