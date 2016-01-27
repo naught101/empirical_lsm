@@ -4,7 +4,7 @@
 File: sensitivity_analysis.py
 Author: naught101
 Email: naught101@email.com
-Description: TODO: File description
+Description: Investigation into dependence between met and flux in the PLUMBER datasets
 
 Usage:
     sensitivity_analysis.py command <opt1> [--timeout=<seconds>]
@@ -20,15 +20,17 @@ from docopt import docopt
 import numpy as np
 import pandas as pd
 import pals_utils as pu
+import matplotlib.pyplot as plt
 
 
-def entropy(x, bins=10000):
+def entropy(x, bins='auto'):
     """Calculate entropy of a variable based on a histrogram
-
-    :x: TODO
-    :returns: TODO
-
     """
+    if bins == 'auto':
+        # Rule of thumb based on http://stats.stackexchange.com/a/181195/9007
+        b = np.floor(np.sqrt(len(x) / 5))
+        bins = [b, b]
+
     counts = np.histogram(x, bins, density=True)[0]
     probs = counts / np.sum(counts)
     entropy = - (probs * np.ma.log2(probs)).sum()
@@ -36,13 +38,14 @@ def entropy(x, bins=10000):
     return entropy
 
 
-def mutual_info(x, y, bins=[10000, 10000]):
+def mutual_info(x, y, bins='auto'):
     """Calculate mutual information based on 2D histrograms
-
-    :x: TODO
-    :y: TODO
-    :returns: TODO
     """
+    if bins == 'auto':
+        # Rule of thumb based on http://stats.stackexchange.com/a/181195/9007
+        b = np.floor(np.sqrt(len(x) / 5))
+        bins = [b, b]
+
     hist = np.histogram2d(x, y, bins, normed=True)[0]
     joint_prob = hist / np.sum(hist)
 
@@ -52,37 +55,27 @@ def mutual_info(x, y, bins=[10000, 10000]):
     hist = np.histogram(y, bins[1], density=True)[0]
     probs_y = hist / np.sum(hist)
 
-    probs = np.divide(np.divide(joint_prob,
-                                np.reshape(probs_x, [-1, 1])),
-                      probs_y)
+    probs = joint_prob / (np.reshape(probs_x, [-1, 1]) * probs_y)
 
+    # use masked array to avoid NaNs
     info = (joint_prob * np.ma.log2(probs)).sum()
 
     return info
 
 
 def get_df_MI_matrix(df):
-    """TODO: Docstring for get_self_measures.
-
-    :df: TODO
-    :returns: TODO
-
+    """Gets the mutual information of each pair of variables in a dataframe
     """
     MI_matrix = dict()
     for var1 in df.columns:
         MI_matrix[var1] = dict()
         for var2 in df.columns:
             MI_matrix[var1][var2] = mutual_info(df[var1], df[var2])
-    return MI_matrix
+    return pd.DataFrame(MI_matrix)
 
 
 def get_measures(flux_df, met_df):
-    """TODO: Docstring for get_measures.
-
-    :flux_df: TODO
-    :met_df: TODO
-    :returns: TODO
-
+    """Gets mutual information and covariance for multiple lags of a dataset.
     """
     results = dict()
     for flux_var in flux_df.columns:
@@ -110,6 +103,18 @@ def get_measures(flux_df, met_df):
     return results
 
 
+def plot_matrix(mat, names):
+    """plot a square covariance matrix
+    """
+    im = plt.imshow(mat, interpolation='nearest')
+    im.axes.set_xticks(range(mat.shape[0]))
+    im.axes.set_yticks(range(mat.shape[1]))
+    im.axes.set_xticklabels(names, rotation=90)
+    im.axes.set_yticklabels(names)
+
+    return im
+
+
 def main(args):
 
     # Load all data
@@ -117,11 +122,16 @@ def main(args):
     sites = ['Tumba']
     met_df = pu.data.get_met_df(sites)
     flux_df = pu.data.get_flux_df(sites)
+
     all_df = pd.concat([flux_df, met_df], axis=1)
+    normed_df = all_df.apply(lambda x: (x - np.mean(x)) / (np.std(x)))
 
-    MI_matrix = get_df_MI_matrix(all_df)
+    var_names = all_df.columns
 
-    cov_matrix = all_df.cov()
+    # Calculate pairwise measures
+    MI_matrix = get_df_MI_matrix(normed_df)
+
+    cov_matrix = normed_df.cov()
 
     # run a sensitivity study on:
     #    past 10(?) days,
@@ -129,8 +139,20 @@ def main(args):
     #    autocorrelation?
     #    other?
 
-
     # plot results, decide on thresholds, based on limiting the number of input variabels?
+    plt.subplot(1, 2, 1)
+    plot_matrix(MI_matrix, var_names)
+    plt.axvline(4.5, color="w")
+    plt.axhline(4.5, color="w")
+    plt.colorbar(shrink=0.7)
+    plt.title("Mutual Information matrix")
+
+    plt.subplot(1, 2, 2)
+    plot_matrix(cov_matrix, var_names)
+    plt.axvline(4.5, color="w")
+    plt.axhline(4.5, color="w")
+    plt.colorbar(shrink=0.7)
+    plt.title("Covariance matrix")
 
     return
 
