@@ -115,6 +115,49 @@ def plot_matrix(mat, names):
     return im
 
 
+def hexplot_matrix(df):
+    """Plot matrix of variables in the dataframe against each other
+    """
+    dim = df.shape[1]
+    nbins = np.floor(np.sqrt(df.shape[0] / 40))
+
+    fig, axes = plt.subplots(dim, dim, gridspec_kw=dict(wspace=0.01, hspace=0.01))
+
+    for i in range(dim):
+        icol = df.columns[i]
+        ax = axes[i, i]
+        ax.hist(df[icol], bins=nbins)
+        ax.set_yticklabels([])
+        if i == 0:
+            ax.set_ylabel(icol)
+
+        # Below diagonal: scatter plots
+        for j in range(i):
+            jcol = df.columns[j]
+            ax = axes[i, j]
+            ax.scatter(df[icol], df[jcol], alpha=0.05, s=5, marker='.')
+            if i != dim - 1:
+                ax.set_xticklabels([])
+            if j != 0:
+                ax.set_yticklabels([])
+            if j == 0:
+                ax.set_ylabel(icol)
+            if i == dim - 1:
+                ax.set_xlabel(jcol)
+
+        # Above diagonal: hexbin plots
+        for j in range(i + 1, dim):
+            jcol = df.columns[j]
+            ax = axes[i, j]
+            ax.hexbin(df[icol], df[jcol], gridsize=nbins, bins='log',
+                      cmap=plt.get_cmap('Blues'))  # , norm=mc.LogNorm(vmin=1, vmax=10))
+            ax.set_xticklabels([])
+            if j == dim - 1:
+                ax.yaxis.set_ticks_position('right')
+            else:
+                ax.set_yticklabels([])
+
+
 def main(args):
 
     # Load all data
