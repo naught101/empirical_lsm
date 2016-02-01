@@ -22,6 +22,8 @@ import pandas as pd
 import pals_utils as pu
 import matplotlib.pyplot as plt
 
+from mutual_info.mutual_info import mutual_information_2d
+
 
 def entropy(x, bins='auto'):
     """Calculate entropy of a variable based on a histrogram
@@ -70,7 +72,7 @@ def get_df_MI_matrix(df):
     for var1 in df.columns:
         MI_matrix[var1] = dict()
         for var2 in df.columns:
-            MI_matrix[var1][var2] = mutual_info(df[var1], df[var2])
+            MI_matrix[var1][var2] = mutual_information_2d(df[var1], df[var2])
     return pd.DataFrame(MI_matrix)
 
 
@@ -85,7 +87,7 @@ def get_measures(flux_df, met_df):
             for met_var in met_df.columns:
                 results[flux_var][met_var] = dict(mutual_info=dict(), corr=dict())
                 results[flux_var][met_var]['mutual_info']['lag_' + lag] = \
-                    mutual_info(flux_df[flux_var], met_lag[flux_var])
+                    mutual_information_2d(flux_df[flux_var], met_lag[flux_var])
                 results[flux_var][met_var]['corr']['lag_' + lag] = \
                     np.corrcoef(flux_df[flux_var], flux_df[flux_var])[0, 1]
 
@@ -96,7 +98,7 @@ def get_measures(flux_df, met_df):
             for met_var in met_df.columns:
                 results[flux_var][met_var] = dict(mutual_info=dict(), corr=dict())
                 results[flux_var][met_var]['mutual_info']['lag_day_' + lag] = \
-                    mutual_info(flux_df[flux_var], met_lag[flux_var])
+                    mutual_information_2d(flux_df[flux_var], met_lag[flux_var])
                 results[flux_var][met_var]['corr']['lag_day_' + lag] = \
                     np.corrcoef(flux_df[flux_var], flux_df[flux_var])[0, 1]
 
