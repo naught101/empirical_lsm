@@ -160,23 +160,13 @@ def hexplot_matrix(df):
                 ax.set_yticklabels([])
 
 
-def main(args):
-
-    # Load all data
-    # (split by site/site type?)
-    sites = ['Tumba']
-    met_df = pu.data.get_met_df(sites)
-    flux_df = pu.data.get_flux_df(sites)
-
-    all_df = pd.concat([flux_df, met_df], axis=1)
-    normed_df = all_df.apply(lambda x: (x - np.mean(x)) / (np.std(x)))
-
-    var_names = all_df.columns
+def plot_MI_cov_matrices(df):
+    var_names = df.columns
 
     # Calculate pairwise measures
-    MI_matrix = get_df_MI_matrix(normed_df)
+    MI_matrix = get_df_MI_matrix(df)
 
-    cov_matrix = normed_df.cov()
+    cov_matrix = df.cov()
 
     # run a sensitivity study on:
     #    past 10(?) days,
@@ -198,6 +188,20 @@ def main(args):
     plt.axhline(4.5, color="w")
     plt.colorbar(shrink=0.7)
     plt.title("Covariance matrix")
+
+
+def main(args):
+
+    # Load all data
+    # (split by site/site type?)
+    sites = ['Tumba']
+    met_df = pu.data.get_met_df(sites)
+    flux_df = pu.data.get_flux_df(sites)
+
+    all_df = pd.concat([flux_df, met_df], axis=1)
+    normed_df = all_df.apply(lambda x: (x - np.mean(x)) / (np.std(x)))
+
+    plot_MI_cov_matrices(normed_df)
 
     return
 
