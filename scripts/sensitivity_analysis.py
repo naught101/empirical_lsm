@@ -21,6 +21,8 @@ import numpy as np
 import pandas as pd
 import pals_utils as pu
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
+import scipy.stats as ss
 
 from mutual_info.mutual_info import mutual_information_2d
 
@@ -117,47 +119,118 @@ def plot_matrix(mat, names):
     return im
 
 
+def plot_lin_reg_CI(x, y, ax=None):
+    """Plot linear regression with confidence limits
+
+    Modified from https://tomholderness.wordpress.com/2013/01/10/confidence_intervals/
+
+    References:
+    - Statistics in Geography by David Ebdon (ISBN: 978-0631136880)
+    - Reliability Engineering Resource Website:
+    - http://www.weibull.com/DOEWeb/confidence_intervals_in_simple_linear_regression.htm
+    - University of Glascow, Department of Statistics:
+    - http://www.stats.gla.ac.uk/steps/glossary/confidence_intervals.html#conflim
+    """
+
+    # fit a curve to the data using a least squares 1st order polynomial fit
+    z = np.polyfit(x, y, 1)
+    p = np.poly1d(z)
+
+    # get the coordinates for the fit curve
+    c_x = np.percentile(x, [1, 99])
+    c_y = p(c_x)
+
+    # predict y values of origional data using the fit
+    p_y = z[0] * x + z[1]
+
+    # calculate the y-error (residuals)
+    y_err = y - p_y
+
+    # R-squared for plots 1-SSresid/SStot
+    r2 = 1 - np.sum(y_err**2) / np.sum((y - np.mean(y))**2)
+
+    # create series of new test x-values to predict for
+    p_x = np.linspace(c_x[0], c_x[1], 100)
+
+    # now calculate confidence intervals for new test x-series
+    mean_x = np.mean(x)                 # mean of x
+    n = len(x)                          # number of samples in origional fit
+    t = ss.t.ppf(0.99975, n - 1)          # appropriate t value (where n=9, two tailed 95%)
+    s_err = np.sum(np.power(y_err, 2))  # sum of the squares of the residuals
+
+    confs = t * np.sqrt((s_err / (n - 2)) *
+                        (1.0 / n + (np.power(p_x - mean_x, 2) /
+                         (np.sum(np.power(x, 2)) - n * np.power(mean_x, 2)))
+                         ))
+
+    # now predict y based on test x-values
+    p_y = z[0] * p_x + z[1]
+
+    # get lower and upper confidence limits based on predicted y and confidence intervals
+    lower = p_y - abs(confs)
+    upper = p_y + abs(confs)
+
+    # import ipdb; ipdb.set_trace()
+
+    # plot line of best fit
+    ax.plot(c_x, c_y, 'r-', label='Regression line')
+
+    # plot confidence limits
+    ax.plot(p_x, lower, 'r--', label='Lower confidence limit (95%)')
+    ax.plot(p_x, upper, 'r--', label='Upper confidence limit (95%)')
+    plt.annotate('R^2 = {0:.2f}'.format(r2), xy=(0.9, 0.9), xycoords='axes fraction')
+
+
 def hexplot_matrix(df):
     """Plot matrix of variables in the dataframe against each other
     """
     dim = df.shape[1]
     nbins = np.floor(np.sqrt(df.shape[0] / 40))
 
-    fig, axes = plt.subplots(dim, dim, gridspec_kw=dict(wspace=0.01, hspace=0.01))
+    fig, axes = plt.subplots(dim, dim, gridspec_kw=dict(wspace=0.05, hspace=0.05))
 
     for i in range(dim):
         icol = df.columns[i]
-        ax = axes[i, i]
-        ax.hist(df[icol], bins=nbins)
-        ax.set_yticklabels([])
-        if i == 0:
-            ax.set_ylabel(icol)
 
-        # Below diagonal: scatter plots
-        for j in range(i):
+        for j in range(dim):
             jcol = df.columns[j]
             ax = axes[i, j]
-            ax.scatter(df[icol], df[jcol], alpha=0.05, s=5, marker='.')
-            if i != dim - 1:
+            # Diagonals: histograms
+            if i == j:
+                ax.hist(df[icol], bins=nbins)
+
+            # Below diagonal: scatter plots
+            if j < i:
+                ax.scatter(df[jcol], df[icol], alpha=0.05, s=5, marker='.')
+
+            # Above diagonal: hexbin plots
+            if j > i:
+                if j == dim - 1:
+                    ax.yaxis.set_ticks_position('right')
+
+                ax.hexbin(df[jcol], df[icol], gridsize=nbins, bins='log',
+                          cmap=plt.get_cmap('Blues'))
                 ax.set_xticklabels([])
-            if j != 0:
-                ax.set_yticklabels([])
+
+            # linear regressions on each plot
+            if j != i:
+                plot_lin_reg_CI(df[jcol], df[icol], ax=axes[i, j])
+
+            # Add labels to rows and columns
             if j == 0:
                 ax.set_ylabel(icol)
+                ax.yaxis.set_major_locator(MaxNLocator(prune='both'))
             if i == dim - 1:
                 ax.set_xlabel(jcol)
+                ax.xaxis.set_major_locator(MaxNLocator(prune='both'))
 
-        # Above diagonal: hexbin plots
-        for j in range(i + 1, dim):
-            jcol = df.columns[j]
-            ax = axes[i, j]
-            ax.hexbin(df[icol], df[jcol], gridsize=nbins, bins='log',
-                      cmap=plt.get_cmap('Blues'))  # , norm=mc.LogNorm(vmin=1, vmax=10))
-            ax.set_xticklabels([])
-            if j == dim - 1:
-                ax.yaxis.set_ticks_position('right')
-            else:
+            # remove stuff from all but the side rows:
+            if j > 0:
                 ax.set_yticklabels([])
+            if j != 0:
+                ax.set_yticklabels([])
+            if i != dim - 1:
+                ax.set_xticklabels([])
 
 
 def plot_MI_cov_matrices(df):
