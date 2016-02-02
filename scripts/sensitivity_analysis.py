@@ -67,15 +67,16 @@ def mutual_info(x, y, bins='auto'):
     return info
 
 
-def get_df_MI_matrix(df):
+def get_df_MI_df(df):
     """Gets the mutual information of each pair of variables in a dataframe
     """
-    MI_matrix = dict()
+    MI_df = dict()
     for var1 in df.columns:
-        MI_matrix[var1] = dict()
+        MI_df[var1] = dict()
         for var2 in df.columns:
-            MI_matrix[var1][var2] = mutual_information_2d(df[var1], df[var2])
-    return pd.DataFrame(MI_matrix)
+            MI_df[var1][var2] = mutual_information_2d(df[var1], df[var2])
+    MI_df = pd.DataFrame(MI_df).ix[df.columns, df.columns]
+    return MI_df
 
 
 def get_measures(flux_df, met_df):
@@ -234,10 +235,8 @@ def hexplot_matrix(df):
 
 
 def plot_MI_cov_matrices(df):
-    var_names = df.columns
-
     # Calculate pairwise measures
-    MI_matrix = get_df_MI_matrix(df)
+    MI_df = get_df_MI_df(df)
 
     cov_matrix = df.cov()
 
@@ -249,14 +248,17 @@ def plot_MI_cov_matrices(df):
 
     # plot results, decide on thresholds, based on limiting the number of input variabels?
     plt.subplot(1, 2, 1)
-    plot_matrix(MI_matrix, var_names)
+    MI_normed = MI_df
+    for i in range(len(MI_df)):
+        MI_normed.ix[i, i] = MI_normed.ix[i, i] / 3
+    plot_matrix(MI_df, MI_df.columns)
     plt.axvline(4.5, color="w")
     plt.axhline(4.5, color="w")
     plt.colorbar(shrink=0.7)
     plt.title("Mutual Information matrix")
 
     plt.subplot(1, 2, 2)
-    plot_matrix(cov_matrix, var_names)
+    plot_matrix(cov_matrix, df.columns)
     plt.axvline(4.5, color="w")
     plt.axhline(4.5, color="w")
     plt.colorbar(shrink=0.7)
