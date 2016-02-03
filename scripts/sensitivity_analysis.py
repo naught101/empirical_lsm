@@ -33,7 +33,7 @@ def entropy(x, bins='auto'):
     if bins == 'auto':
         # Rule of thumb based on http://stats.stackexchange.com/a/181195/9007
         b = np.floor(np.sqrt(len(x) / 5))
-        bins = [b, b]
+        bins = b
 
     counts = np.histogram(x, bins, density=True)[0]
     probs = counts / np.sum(counts)
@@ -240,12 +240,6 @@ def plot_MI_cov_matrices(df):
 
     cov_matrix = df.cov()
 
-    # run a sensitivity study on:
-    #    past 10(?) days,
-    #    past 24 hours averagess
-    #    autocorrelation?
-    #    other?
-
     # plot results, decide on thresholds, based on limiting the number of input variabels?
     plt.subplot(1, 2, 1)
     MI_normed = MI_df
@@ -258,11 +252,11 @@ def plot_MI_cov_matrices(df):
     plt.title("Mutual Information matrix")
 
     plt.subplot(1, 2, 2)
-    plot_matrix(cov_matrix, df.columns)
+    plot_matrix(abs(cov_matrix), df.columns)
     plt.axvline(4.5, color="w")
     plt.axhline(4.5, color="w")
     plt.colorbar(shrink=0.7)
-    plt.title("Covariance matrix")
+    plt.title("Absolute Covariance matrix")
 
 
 def main(args):
@@ -277,6 +271,12 @@ def main(args):
     normed_df = all_df.apply(lambda x: (x - np.mean(x)) / (np.std(x)))
 
     plot_MI_cov_matrices(normed_df)
+
+    # run a sensitivity study on:
+    #    past 10(?) days,
+    #    past 24 hours averagess
+    #    autocorrelation?
+    #    other?
 
     return
 
