@@ -2,7 +2,9 @@
 
 MODELS=$@
 
-for m in $MODELS ; do
+N=8
+for m in $MODELS ; do ((i=i%N))
+    ((i++==0)) && wait
     for s in `cat data/sites.txt` ; do
         scripts/run_model.py run $m $s
         for a in eval rst-gen ; do

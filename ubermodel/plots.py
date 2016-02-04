@@ -58,7 +58,9 @@ def diagnostic_plots(sim_data, flux_data, name):
 
     files = []
 
-    benchmark_names = ['1lin', '2lin', '3km27']
+    # benchmark_names = ['1lin', '2lin', '3km27']
+    benchmark_names = ['S_lin', 'ST_lin', 'STH_km27']
+
     try:
         benchmarks = [get_pals_benchmark(bname, site) for bname in benchmark_names]
     except RuntimeError as e:
@@ -206,7 +208,8 @@ def get_PLUMBER_metrics(name, site='all'):
     """
     csv_file = './source/models/{n}/metrics/{n}_{s}_metrics.csv'
 
-    benchmark_names = ['1lin', '2lin', '3km27']
+    # benchmark_names = ['1lin', '2lin', '3km27']
+    benchmark_names = ['S_lin', 'ST_lin', 'STH_km27']
 
     if site == 'all':
         sites = DATASETS
