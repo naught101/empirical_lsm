@@ -19,7 +19,7 @@ class LagWrapper(BaseEstimator, TransformerMixin):
 
     """Wraps a scikit-learn model, lags the data, and deals with NAs."""
 
-    def __init__(self, model, periods=1, freq='30min', variables=None):
+    def __init__(self, model, periods=1, freq='30min'):
         """Lags a dataset.
 
         Lags all features.
@@ -34,7 +34,6 @@ class LagWrapper(BaseEstimator, TransformerMixin):
 
         self.periods = periods
         self.freq = freq
-        self.variables = variables
 
         self.model = model
 

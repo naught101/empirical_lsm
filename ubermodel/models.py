@@ -66,15 +66,15 @@ def get_model_from_dict(model_dict):
 
     pipe = make_pipeline(*pipe_list)
 
-    if 'variables' in model_dict:
-        pipe.variables = model_dict['variables']
-
     if 'lag' in model_dict:
         params = model_dict['lag']
         pipe = get_lagger(pipe, params)
     elif 'markov' in model_dict:
         params = model_dict['markov']
         pipe = get_markov_wrapper(pipe, params)
+
+    if 'variables' in model_dict:
+        pipe.variables = model_dict['variables']
 
     return pipe
 
