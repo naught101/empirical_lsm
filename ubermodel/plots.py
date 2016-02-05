@@ -75,7 +75,7 @@ def diagnostic_plots(sim_data, flux_data, name):
     files = []
 
     # benchmark_names = ['1lin', '2lin', '3km27']
-    benchmark_names = ['S_lin', 'ST_lin', 'STH_km27']
+    benchmark_names = ['S_lin', 'ST_lin', 'STH_km27_lin']
 
     try:
         benchmarks = [get_benchmark(bname, site) for bname in benchmark_names]
@@ -191,15 +191,9 @@ def get_PLUMBER_plot(model_dir, site='all'):
 
     metric_df = get_PLUMBER_metrics(name, site)
 
-    rel_paths = []
     for metrics in ['all', 'standard', 'distribution']:
         filename = p_plumber_metrics(metric_df, name, site, metrics)
-        rel_paths.append(save_plot('source/models', name + '/figures', filename))
-
-    plots = '\n\n'.join([
-        ".. image :: {file}".format(file=f) for f in rel_paths])
-
-    return plots
+        save_plot('source/models', name + '/figures', filename)
 
 
 def plot_PLUMBER_sim_metrics(name, site, metrics='all'):
@@ -225,7 +219,7 @@ def get_PLUMBER_metrics(name, site='all'):
     csv_file = './source/models/{n}/metrics/{n}_{s}_metrics.csv'
 
     # benchmark_names = ['1lin', '2lin', '3km27']
-    benchmark_names = ['S_lin', 'ST_lin', 'STH_km27']
+    benchmark_names = ['S_lin', 'ST_lin', 'STH_km27_lin']
 
     if site == 'all':
         sites = DATASETS
@@ -278,6 +272,8 @@ def p_plumber_metrics(metric_df, name, site='all', metrics='all'):
     :returns: TODO
 
     """
+    models = ['S_lin', 'ST_lin', 'STH_km27_lin', name]
+
     if metrics == 'standard':
         metrics_list = ['nme', 'mbe', 'sd_diff', 'corr']
         metric_df = metric_df[metric_df.metric.isin(metrics_list)]
@@ -287,7 +283,9 @@ def p_plumber_metrics(metric_df, name, site='all', metrics='all'):
 
     mean_df = metric_df.groupby(['variable', 'name'])['rank'].mean().reset_index()
 
-    mean_df.pivot(index='variable', columns='name', values='rank').plot()
+    mean_df_wide = mean_df.pivot(index='variable', columns='name', values='rank')
+
+    mean_df_wide[models].plot()
     pl.title('{n}: PLUMBER plot: {m} metrics at {s}'.format(n=name, s=site, m=metrics))
 
     filename = '{n}_{s}_PLUMBER_plot_{m}_metrics.png'.format(n=name, s=site, m=metrics)

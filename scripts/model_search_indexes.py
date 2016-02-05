@@ -32,18 +32,22 @@ def model_site_index_rst(model_dir):
     """
     time = dt.isoformat(dt.now().replace(microsecond=0), sep=' ')
 
-    name = model_dir.replace('source/models/', '')
+    name = os.path.basename(model_dir.rstrip('/'))
 
     print_good('Generating index for {n}.'. format(n=name))
 
-    model_run_files = sorted(glob.glob(model_dir + '/*.rst'))
+    model_run_files = sorted(glob.glob('{d}/{n}*.rst'.format(d=model_dir, n=name)))
 
-    sim_pages = [m.replace('source/models/', '').replace('.rst', '') for m in model_run_files]
+    sim_pages = [os.path.splitext(os.path.basename(m))[0] for m in model_run_files]
 
-    sim_links = '\n'.join(['    %s' % m for m in sim_pages])
+    sim_links = '\n'.join(['    {0}'.format(m) for m in sim_pages])
 
     try:
-        plots = get_PLUMBER_plot(model_dir)
+        get_PLUMBER_plot(model_dir)
+        plot_files = glob.glob('{d}/figures/*.png'.format(d=model_dir))
+        rel_paths = ['figures/' + os.path.basename(p) for p in plot_files]
+        plots = '\n\n'.join([
+            ".. image :: {file}\n    :width: 300px".format(file=f) for f in rel_paths])
     except AttributeError as e:
         print_warn('No plots found, skipping {n}: {e}'.format(n=name, e=e))
         return
@@ -147,7 +151,7 @@ def get_metric_tables(model_dirs):
 
 
 def model_search_index_rst():
-    """mail model search index
+    """main model search index
     """
 
     time = dt.isoformat(dt.now().replace(microsecond=0), sep=' ')
@@ -158,7 +162,7 @@ def model_search_index_rst():
 
     table_text = get_metric_tables(model_dirs)
 
-    model_pages = [m.replace('source/', '') for m in model_dirs]
+    model_pages = [m.replace('source/', '') + '/index' for m in model_dirs]
     model_links = '\n'.join(['    %s' % m for m in model_pages])
 
     template = dedent("""
