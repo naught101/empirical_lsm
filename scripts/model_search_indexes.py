@@ -72,7 +72,9 @@ def model_site_index_rst(model_dir):
 
     rst = template.format(time=time, links=sim_links, title=title, plots=plots)
 
-    with open(model_dir + '.rst', 'w') as f:
+    rst_index = model_dir + '/index.rst'
+
+    with open(rst_index, 'w') as f:
         f.write(rst)
 
     return
