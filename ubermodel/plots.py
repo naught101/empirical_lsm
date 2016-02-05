@@ -13,10 +13,11 @@ import seaborn as sns
 import pandas as pd
 import os
 import numpy as np
+import xray as xr
 
 from dateutil.parser import parse
 
-from pals_utils.data import pals_site_name, pals_xr_to_df, get_pals_benchmark
+from pals_utils.data import pals_site_name, pals_xr_to_df
 from pals_utils.constants import FLUX_VARS, DATASETS
 
 from .utils import print_bad, print_warn
@@ -36,6 +37,21 @@ def save_plot(base_path, rel_path, filename):
     pl.close()
 
     return os.path.join(rel_path, filename)
+
+
+def get_benchmark(name, site):
+    """returns an xarray dataset
+
+    :name: TODO
+    :site: TODO
+    :returns: TODO
+
+    """
+    file_path = 'model_data/{name}/{name}_{site}.nc'
+
+    benchmark = xr.open_dataset(file_path.format(name=name, site=site))
+
+    return benchmark
 
 
 def diagnostic_plots(sim_data, flux_data, name):
@@ -62,7 +78,7 @@ def diagnostic_plots(sim_data, flux_data, name):
     benchmark_names = ['S_lin', 'ST_lin', 'STH_km27']
 
     try:
-        benchmarks = [get_pals_benchmark(bname, site) for bname in benchmark_names]
+        benchmarks = [get_benchmark(bname, site) for bname in benchmark_names]
     except RuntimeError as e:
         print_warn("Benchmark(s) not available at {s}, skipping. {e}".format(s=site, e=e))
         return

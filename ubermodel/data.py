@@ -42,7 +42,7 @@ def get_sim_nc_path(name, site):
     :site: PALS site name to run the model at
     :returns: sim netcdf path
     """
-    model_path = 'source/models/{n}/sim_data/'.format(n=name)
+    model_path = 'model_data/{n}/'.format(n=name)
     os.makedirs(model_path, exist_ok=True)
     nc_path = '{p}{n}_{s}.nc'.format(p=model_path, n=name, s=site)
 

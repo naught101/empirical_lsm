@@ -197,7 +197,7 @@ def main(args):
         if site == 'all':
             # will only work if simulations are already run.
             datasets = DATASETS + ['Castel', 'Rocca1', 'Tharandt']
-            for s in DATASETS:
+            for s in datasets:
                 main_eval(name, s)
         else:
             main_eval(name, site, sim_file)
