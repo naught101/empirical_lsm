@@ -23,6 +23,7 @@ import os
 from pals_utils.constants import DATASETS, MET_VARS, FLUX_VARS
 from pals_utils.data import get_met_data, get_flux_data, pals_xr_to_df, xr_list_to_df
 
+from ubermodel.transforms import LagWrapper
 from ubermodel.models import get_model
 from ubermodel.data import sim_dict_to_xr
 from ubermodel.utils import print_good, print_warn
@@ -71,8 +72,7 @@ def PLUMBER_fit_predict(model, name, site):
 
     flux_vars = FLUX_VARS
 
-    # TODO: fix dirty hack for loading names when required.
-    use_names = 'lag' in name or 'markov' in name
+    use_names = isinstance(model, LagWrapper)
 
     print_good("Running {n} at {s}".format(n=name, s=site))
 
