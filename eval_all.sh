@@ -10,7 +10,7 @@ for m in $MODELS ; do ((i=i%N))
         scripts/eval_model.py eval $m $s ;
         scripts/eval_model.py rst-gen $m $s ;
     done
-    scripts/model_search_indexes.py model $m
+    scripts/model_search_indexes.py model $m &
 done    
 
 scripts/model_search_indexes.py all
