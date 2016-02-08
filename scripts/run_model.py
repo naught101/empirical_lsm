@@ -132,10 +132,10 @@ def main_run(model, name, site):
     :name: name of the model
     :site: PALS site name to run the model at
     """
-    sim_dir = 'source/models/{n}/sim_data'.format(n=name)
+    sim_dir = 'model_data/{n}'.format(n=name)
     os.makedirs(sim_dir, exist_ok=True)
 
-    nc_file = 'source/models/{n}/sim_data/{n}_{s}.nc'.format(n=name, s=site)
+    nc_file = '{d}/{n}_{s}.nc'.format(d=sim_dir, n=name, s=site)
 
     sim_data = PLUMBER_fit_predict(model, name, site)
 
