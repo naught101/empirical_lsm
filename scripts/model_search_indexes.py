@@ -40,14 +40,14 @@ def model_site_index_rst(model_dir):
 
     sim_pages = [os.path.splitext(os.path.basename(m))[0] for m in model_run_files]
 
-    sim_links = '\n'.join(['    {0}'.format(m) for m in sim_pages])
+    sim_links = '\n'.join(['    {0}'.format(m) for m in sorted(sim_pages)])
 
     try:
         get_PLUMBER_plot(model_dir)
         plot_files = glob.glob('{d}/figures/*.png'.format(d=model_dir))
         rel_paths = ['figures/' + os.path.basename(p) for p in plot_files]
         plots = '\n\n'.join([
-            ".. image :: {file}\n    :width: 300px".format(file=f) for f in rel_paths])
+            ".. image :: {file}\n    :width: 300px".format(file=f) for f in sorted(rel_paths)])
     except AttributeError as e:
         print_warn('No plots found, skipping {n}: {e}'.format(n=name, e=e))
         return
@@ -163,7 +163,7 @@ def model_search_index_rst():
     table_text = get_metric_tables(model_dirs)
 
     model_pages = [m.replace('source/', '') + '/index' for m in model_dirs]
-    model_links = '\n'.join(['    %s' % m for m in model_pages])
+    model_links = '\n'.join(['    %s' % m for m in sorted(model_pages)])
 
     template = dedent("""
     Model Search

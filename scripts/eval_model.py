@@ -43,7 +43,7 @@ def model_site_rst_format(model, name, site, eval_text, plot_files):
         plots_text += "{g}\n".format(g=group)
         plots_text += "^" * len(group) + "\n\n"
         plots_text += '\n\n'.join([
-            ".. image :: {file}\n    :width: 200px".format(file=f) for f in plot_files[group]])
+            ".. image :: {file}\n    :width: 200px".format(file=f) for f in sorted(plot_files[group])])
         plots_text += '\n\n'
 
     title = '{name} at {site}'.format(name=name, site=site)
