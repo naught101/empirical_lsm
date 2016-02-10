@@ -412,6 +412,47 @@ DRYDOWN_PLOTS = {
     "source/models/{n}/figures/{s}/{n}_{s}_drydown_timeseries_plot.png": plot_drydown,
 }
 
+
+# PLUMBER replacement: Parallel coordinate plots
+def p_parallel_coord(df):
+    """Parallel coordinate plot, replacement for PLUMBER plots
+    """
+    required = ['site', 'model', 'variable', 'metric', 'value']
+    missing = [c for c in required if c not in df.columns]
+    assert len(missing), "Dataframe is missing variables: {0}".format(missing)
+
+    df['value'] = (df.groupby(['variable', 'metric'])['value']
+                     .apply(quantile_normalise))
+
+    metrics = df.metric.unique()
+    variables = df.variable.unique()
+    models = df.name.unique()
+    sites = df.site.unique()
+
+    col_idx = list(range(len(metrics)))
+    colours = ['b', 'r', 'g', 'k']
+
+    fig, axes = pl.subplots(len(variables), 1)
+    for v, var in enumerate(variables):
+        ax = axes[v]
+        for m, mod in enumerate(models):
+            # for s, site in enumerate(sites):
+            mat = (df.ix[(df.variable == var) & (df.name == mod), ['site', 'metric', 'value']]
+                     .pivot(index='site', columns='metric', values='value')[metrics])
+            for site in sites:
+                if site in mat.index:
+                    ax.plot(col_idx, mat.loc[site], c=colours[m], alpha=0.3)
+        ax.xaxis.set_ticklabels(metrics)
+        ax.yaxis.set_label(var)
+
+
+def quantile_normalise(x, dist='uniform'):
+    """Quantile normalise to a standard distribution
+    """
+    if dist == 'uniform':
+        return np.argsort(np.argsort(x)) / (len(x) - 1)
+
+
 ALL_PLOTS = dict()
 ALL_PLOTS.update(DIAGNOSTIC_PLOTS)
 ALL_PLOTS.update(PLUMBER_PLOTS)
