@@ -201,15 +201,14 @@ class MarkovWrapper(LagWrapper):
             raise ValueError("X shape does not match training shape")
 
         if 'site' in X.index.names:
-            X_lag = self.lag_dataframe(X, grouping='site')
-            if y is not None:
-                y_lag = self.lag_dataframe(y, grouping='site', lagged_only=True)
-                X_lag = pd.merge(X_lag, y_lag, how='left', left_index=True, right_index=True)
+            grouping = 'site'
         else:
-            X_lag = self.lag_dataframe(X)
-            if y is not None:
-                y_lag = self.lag_dataframe(y, lagged_only=True)
-                X_lag = pd.merge(X_lag, y_lag, how='left', left_index=True, right_index=True)
+            grouping = None
+
+        X_lag = self.lag_dataframe(X, grouping=grouping)
+        if y is not None:
+            y_lag = self.lag_dataframe(y, grouping=grouping, lagged_only=True)
+            X_lag = pd.merge(X_lag, y_lag, how='left', left_index=True, right_index=True)
 
         return self.fix_nans(X_lag, nans)
 
