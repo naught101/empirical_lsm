@@ -430,7 +430,7 @@ def p_parallel_coord(df):
     sites = df.site.unique()
 
     col_idx = list(range(len(metrics)))
-    colours = ['b', 'r', 'g', 'k']
+    colours = ['k', 'r', 'pink', 'orange']
 
     fig, axes = pl.subplots(len(variables), 1)
     for v, var in enumerate(variables):
@@ -441,9 +441,13 @@ def p_parallel_coord(df):
                      .pivot(index='site', columns='metric', values='value')[metrics])
             for site in sites:
                 if site in mat.index:
-                    ax.plot(col_idx, mat.loc[site], c=colours[m], alpha=0.3)
+                    ax.plot(col_idx, mat.loc[site], c=colours[m], alpha=0.3, label=mod)
         ax.xaxis.set_ticklabels(metrics)
-        ax.yaxis.set_label(var)
+        ax.yaxis.set_label_text(var)
+
+    labels = ax.get_legend_handles_labels()
+    unique_labels = {v: k for k, v in {v: k for k, v in dict(zip(*labels)).items()}.items()}
+    fig.legend(unique_labels.keys(), unique_labels.values())
 
 
 def quantile_normalise(x, dist='uniform'):
