@@ -153,8 +153,16 @@ class LagWrapper(BaseEstimator, TransformerMixin):
 
 
 class MarkovWrapper(LagWrapper):
-
     """Wraps a scikit-learn model, Markov-lags the data (includes y values), and deals with NAs."""
+
+    def __init__(self, model, periods=1, freq='30min', lag_X=True):
+        """Markov lagged dataset
+
+        :periods: Number of timesteps to lag by
+        """
+        super(self.__class__, self).__init__(model, periods, freq)
+
+        self.lag_X = lag_X
 
     def fit(self, X, y):
         """Fit the model with X
@@ -205,7 +213,11 @@ class MarkovWrapper(LagWrapper):
         else:
             grouping = None
 
-        X_lag = self.lag_dataframe(X, grouping=grouping)
+        if self.lag_X:
+            X_lag = self.lag_dataframe(X, grouping=grouping)
+        else:
+            X_lag = X
+
         if y is not None:
             y_lag = self.lag_dataframe(y, grouping=grouping, lagged_only=True)
             X_lag = pd.merge(X_lag, y_lag, how='left', left_index=True, right_index=True)
