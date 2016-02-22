@@ -441,13 +441,27 @@ def p_parallel_coord(df):
                      .pivot(index='site', columns='metric', values='value')[metrics])
             for site in sites:
                 if site in mat.index:
-                    ax.plot(col_idx, mat.loc[site], c=colours[m], alpha=0.3, label=mod)
+                    ax.plot(col_idx, mat.loc[site], c=colours[m], alpha=0.5, label=mod)
         ax.xaxis.set_ticklabels(metrics)
         ax.yaxis.set_label_text(var)
 
     labels = ax.get_legend_handles_labels()
     unique_labels = {v: k for k, v in {v: k for k, v in dict(zip(*labels)).items()}.items()}
     fig.legend(unique_labels.keys(), unique_labels.values())
+
+
+# PLUMBER replacement: Parallel coordinate plots
+def p_parallel_coord_summary(df):
+    """Parallel coordinate plot, replacement for PLUMBER plots
+    """
+    required = ['site', 'model', 'variable', 'metric', 'value']
+    missing = [c for c in required if c not in df.columns]
+    assert len(missing), "Dataframe is missing variables: {0}".format(missing)
+
+    df['quants'] = (df.groupby(['variable', 'metric'])['value']
+                      .apply(quantile_normalise))
+
+    df_wide = df.set_index(['site', 'metric', 'name', 'variable'])['quants'].unstack()
 
 
 def quantile_normalise(x, dist='uniform'):
