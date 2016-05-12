@@ -8,13 +8,14 @@ Github: https://github.com/naught101/
 Description: TODO: File description
 
 Usage:
-    gridded_benchmarks.py generate <benchmark> <forcing>
+    gridded_benchmarks.py generate <benchmark> <forcing> [--years=<years>]
     gridded_benchmarks.py (-h | --help | --version)
 
 Options:
-    benchmark:    1lin, etc.
-    forcing:      Princeton, etc.
-    -h, --help    Show this screen and exit.
+    benchmark:       1lin, etc.
+    forcing:         Princeton, etc.
+    --years=<years>  2012-2013, python style
+    -h, --help       Show this screen and exit.
 """
 
 from docopt import docopt
@@ -149,7 +150,7 @@ def predict_gridded(model, forcing_data, flux_vars):
                       forcing_data.dims['lat'],
                       forcing_data.dims['time']],
                      np.nan)
-    print("predicting for lon:     ")
+    print("lon:     ", end='')
     for lon in range(len(forcing_data['lon'])):
         print("\b\b\b\b\b", str(lon).rjust(4), end='', flush=True)
         for lat in range(len(forcing_data['lat'])):
@@ -170,7 +171,7 @@ def predict_gridded(model, forcing_data, flux_vars):
     return prediction
 
 
-def fit_and_predict(benchmark, forcing):
+def fit_and_predict(benchmark, forcing, years='2012-2013'):
     """Fit a benchmark to some PALS files, then generate an output matching a gridded dataset
     """
 
@@ -189,21 +190,27 @@ def fit_and_predict(benchmark, forcing):
     model.fit(met_data.ix[qc_index, :], flux_data.ix[qc_index, :])
 
     # prediction datasets
-    print("Predicting for: ", end='')
     outdir = "{d}/gridded_benchmarks/{f}".format(d=get_data_dir(), f=forcing)
     os.makedirs(outdir, exist_ok=True)
-    outfile_tpl = outdir + "/gridded_metrics/{f}/{b}_{f}_{y}.nc"
-    for year in range(2012, 2013):
-        print(year, end=': ', flush=True)
+    outfile_tpl = outdir + "/{b}_{f}_{y}.nc"
+    years = [int(s) for s in years.split('-')]
+    for year in range(*years):
+        print("Predicting ", year, end=': ', flush=True)
         data = get_forcing_data(forcing, met_vars, year)
         result = predict_gridded(model, data, flux_vars)
+        print("saving to %s" % outfile_tpl.format(b=benchmark, f=forcing, y=year))
         result.to_netcdf(outfile_tpl.format(b=benchmark, f=forcing, y=year))
+
+    return
 
 
 def main(args):
 
     if args['generate']:
-        fit_and_predict(args['<benchmark>'], args['<forcing>'])
+        if args['--years'] is not None:
+            fit_and_predict(args['<benchmark>'], args['<forcing>'], args['--years'])
+        else:
+            fit_and_predict(args['<benchmark>'], args['<forcing>'])
     return
 
 
