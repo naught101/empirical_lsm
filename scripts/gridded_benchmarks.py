@@ -155,9 +155,7 @@ def predict_gridded(model, forcing_data, flux_vars):
         print("\b\b\b\b\b", str(lon).rjust(4), end='', flush=True)
         for lat in range(len(forcing_data['lat'])):
             result[:, lon, lat, :] = model.predict(
-                forcing_data.isel(lat=lat, lon=lon)
-                            .to_dataframe()
-                            .drop(['lat', 'lon'], axis=1)
+                forcing_data.isel(lat=lat, lon=lon).to_array().T
             ).T
     print("")
     for i, fv in enumerate(flux_vars):
@@ -192,14 +190,16 @@ def fit_and_predict(benchmark, forcing, years='2012-2013'):
     # prediction datasets
     outdir = "{d}/gridded_benchmarks/{f}".format(d=get_data_dir(), f=forcing)
     os.makedirs(outdir, exist_ok=True)
-    outfile_tpl = outdir + "/{b}_{f}_{y}.nc"
+    outfile_tpl = outdir + "/{b}_{f}_{v}_{y}.nc"
     years = [int(s) for s in years.split('-')]
     for year in range(*years):
         print("Predicting ", year, end=': ', flush=True)
         data = get_forcing_data(forcing, met_vars, year)
         result = predict_gridded(model, data, flux_vars)
-        print("saving to %s" % outfile_tpl.format(b=benchmark, f=forcing, y=year))
-        result.to_netcdf(outfile_tpl.format(b=benchmark, f=forcing, y=year))
+        for fv in flux_vars:
+            filename = outfile_tpl.format(b=benchmark, f=forcing, v=fv, y=year)
+            print("saving to ", filename )
+            result[[fv]].to_netcdf(filename)
 
     return
 
