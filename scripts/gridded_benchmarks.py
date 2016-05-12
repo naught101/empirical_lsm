@@ -19,6 +19,7 @@ Options:
 
 from docopt import docopt
 
+import os
 import sys
 import glob
 import numpy as np
@@ -32,14 +33,16 @@ import pals_utils.data as pud
 def get_data_dir():
     """get data directory """
 
-    return 'data/'
+    return './data'
 
 
 def get_sites():
 
+    return ['Tumba']
+
     data_dir = get_data_dir()
 
-    with open(data_dir + 'PALS/datasets/sites.txt') as f:
+    with open(data_dir + '/PALS/datasets/sites.txt') as f:
         sites = [s.strip() for s in f.readlines()]
 
     return sites
@@ -129,7 +132,7 @@ def get_benchmark_model(benchmark):
         sys.exit("Unknown benchmark {b}".format(b=benchmark))
 
 
-def predict_gridded(model, forcing_data):
+def predict_gridded(model, forcing_data, flux_vars):
     """predict model results for gridded data
 
     :model: TODO
@@ -140,19 +143,31 @@ def predict_gridded(model, forcing_data):
     # set prediction metadata
     prediction = forcing_data[list(forcing_data.coords)]
 
-    for l in forcing_data['lat'].index:
-        print(l, end=', ')
-
-    result = np.full([forcing_data.dims['lat'],
+    # Arrays like (var, lon, lat, time)
+    result = np.full([len(flux_vars),
                       forcing_data.dims['lon'],
-                      forcing_data.dims['time']], np.nan)
-    for lat in forcing_data['lat']:
-        for lon in forcing_data['lon']:
-            result['lat', 'lon', :] = model.predict(
+                      forcing_data.dims['lat'],
+                      forcing_data.dims['time']],
+                     np.nan)
+    print("predicting for lon:     ")
+    for lon in range(len(forcing_data['lon'])):
+        print("\b\b\b\b\b", str(lon).rjust(4), end='', flush=True)
+        for lat in range(len(forcing_data['lat'])):
+            result[:, lon, lat, :] = model.predict(
                 forcing_data.isel(lat=lat, lon=lon)
-                            .to_dataframe()[['dswrf']]
-            )
-    prediction.merge(xr.DataArray(result, forcing_data.dims))
+                            .to_dataframe()
+                            .drop(['lat', 'lon'], axis=1)
+            ).T
+    print("")
+    for i, fv in enumerate(flux_vars):
+        prediction.update(
+            {fv: xr.DataArray(result[i, :, :, :],
+                              dims=['lon', 'lat', 'time'],
+                              coords=forcing_data.coords)
+            }
+        )
+
+    return prediction
 
 
 def fit_and_predict(benchmark, forcing):
@@ -163,19 +178,26 @@ def fit_and_predict(benchmark, forcing):
 
     sites = get_sites()
 
+    print("Loading fluxnet data for %d sites" % len(sites))
     met_data = pud.get_met_df(sites, met_vars, qc=True)
     flux_data = pud.get_flux_df(sites, flux_vars, qc=True)
     qc_index = (np.isfinite(met_data) & np.all(np.isfinite(flux_data), axis=1, keepdims=True)).values.ravel()
 
     model = get_benchmark_model(benchmark)
 
+    print("Fitting model {b} using {m} to predict {f}".format(b=benchmark, m=met_vars, f=flux_vars))
     model.fit(met_data.ix[qc_index, :], flux_data.ix[qc_index, :])
 
     # prediction datasets
+    print("Predicting for: ", end='')
+    outdir = "{d}/gridded_benchmarks/{f}".format(d=get_data_dir(), f=forcing)
+    os.makedirs(outdir, exist_ok=True)
+    outfile_tpl = outdir + "/gridded_metrics/{f}/{b}_{f}_{y}.nc"
     for year in range(2012, 2013):
+        print(year, end=': ', flush=True)
         data = get_forcing_data(forcing, met_vars, year)
-        result = predict_gridded(model, data)
-        result.to_netcdf("")
+        result = predict_gridded(model, data, flux_vars)
+        result.to_netcdf(outfile_tpl.format(b=benchmark, f=forcing, y=year))
 
 
 def main(args):
