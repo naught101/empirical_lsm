@@ -215,7 +215,7 @@ def fit_and_predict(benchmark, forcing, years='2012-2013'):
         for fv in flux_vars:
             filename = outfile_tpl.format(b=benchmark, f=forcing, v=fv, y=year)
             print("saving to ", filename)
-            result[[fv]].to_netcdf(filename)
+            result[[fv]].to_netcdf(filename, encoding={fv: {'dtype': 'float32'}})
 
     return
 
