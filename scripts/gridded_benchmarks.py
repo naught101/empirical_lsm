@@ -23,6 +23,7 @@ from docopt import docopt
 import os
 import sys
 import glob
+import datetime
 import numpy as np
 import xarray as xr
 
@@ -38,8 +39,7 @@ def get_data_dir():
 
 
 def get_sites():
-
-    return ['Tumba']
+    """load names of available sites"""
 
     data_dir = get_data_dir()
 
@@ -150,7 +150,7 @@ def predict_gridded(model, forcing_data, flux_vars):
                       forcing_data.dims['lat'],
                       forcing_data.dims['time']],
                      np.nan)
-    print("lon:     ", end='')
+    print("lon:    ", end='', flush=True)
     for lon in range(len(forcing_data['lon'])):
         print("\b\b\b\b\b", str(lon).rjust(4), end='', flush=True)
         for lat in range(len(forcing_data['lat'])):
@@ -162,11 +162,26 @@ def predict_gridded(model, forcing_data, flux_vars):
         prediction.update(
             {fv: xr.DataArray(result[i, :, :, :],
                               dims=['lon', 'lat', 'time'],
-                              coords=forcing_data.coords)
-            }
+                              coords=forcing_data.coords
+                              )
+             }
         )
 
     return prediction
+
+
+def xr_add_attributes(ds, benchmark, forcing, sites):
+
+    ds.attrs["Model name"] = benchmark
+    met_vars, flux_vars = get_vars(benchmark)
+    ds.attrs["Forcing_variables"] = met_vars
+    ds.attrs["Forcing_dataset"] = forcing
+    ds.attrs["Training_dataset"] = "Fluxnet_1.4"
+    ds.attrs["Training_sites"] = ', '.join(sites)
+    ds.attrs["Production_time"] = datetime.datetime.now().isoformat()
+    ds.attrs["Production_source"] = "gridded_benchmarks.py"
+    ds.attrs["PALS_dataset_version"] = "1.4"
+    ds.attrs["Contact"] = "ned@nedhaughton.com"
 
 
 def fit_and_predict(benchmark, forcing, years='2012-2013'):
@@ -188,17 +203,18 @@ def fit_and_predict(benchmark, forcing, years='2012-2013'):
     model.fit(met_data.ix[qc_index, :], flux_data.ix[qc_index, :])
 
     # prediction datasets
-    outdir = "{d}/gridded_benchmarks/{f}".format(d=get_data_dir(), f=forcing)
+    outdir = "{d}/gridded_benchmarks/{b}_{f}".format(d=get_data_dir(), b=benchmark, f=forcing)
     os.makedirs(outdir, exist_ok=True)
     outfile_tpl = outdir + "/{b}_{f}_{v}_{y}.nc"
     years = [int(s) for s in years.split('-')]
     for year in range(*years):
-        print("Predicting ", year, end=': ', flush=True)
+        print("Predicting", year, end=': ', flush=True)
         data = get_forcing_data(forcing, met_vars, year)
         result = predict_gridded(model, data, flux_vars)
+        xr_add_attributes(result, benchmark, forcing, sites)
         for fv in flux_vars:
             filename = outfile_tpl.format(b=benchmark, f=forcing, v=fv, y=year)
-            print("saving to ", filename )
+            print("saving to ", filename)
             result[[fv]].to_netcdf(filename)
 
     return
