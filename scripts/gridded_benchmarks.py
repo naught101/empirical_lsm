@@ -13,7 +13,7 @@ Usage:
 
 Options:
     benchmark:       1lin, etc.
-    forcing:         Princeton, etc.
+    forcing:         PRINCETON, etc.
     --years=<years>  2012-2013, python style
     -h, --help       Show this screen and exit.
 """
@@ -59,7 +59,7 @@ def get_vars(benchmark):
         sys.exit("Unknown benchmark %s, exiting" % benchmark)
 
 
-def get_forcing_vars(forcing, met_vars):
+def get_forcing_vars(forcing, met_vars, in_file=False):
     """get the names of forcing variables for each forcing dataset
 
     :forcing: TODO
@@ -67,16 +67,39 @@ def get_forcing_vars(forcing, met_vars):
     :returns: TODO
 
     """
-    if forcing == "Princeton":
+    if forcing == "PRINCETON":
         var_dict = dict(
             LWdown="dlwrf",
             PSurf="pres",
             Wind="wind",
             SWdown="dswrf",
             Qair="shum")
-        return {v: var_dict[v] for v in met_vars}
+    elif forcing == "CRUNCEP":
+        if in_file:
+            var_dict = dict(
+                LWdown="Incoming_Long_Wave_Radiation",
+                PSurf="Pression",
+                Wind="U_wind_component",
+                SWdown="Incoming_Short_Wave_Radiation",
+                Qair="Air_Specific_Humidity")
+        else:
+            var_dict = dict(
+                LWdown="swdown",
+                PSurf="press",
+                Wind="*wind",
+                SWdown="lwdown",
+                Qair="qair")
+    elif forcing == "WATCH_WFDEI":
+        var_dict = dict(
+            LWdown="SWdown",
+            PSurf="PSurf",
+            Wind=None,
+            SWdown="LWdown",
+            Qair="Qair")
     else:
         sys.exit("Unknown forcing dataset %s - more coming later" % forcing)
+
+    return {v: var_dict[v] for v in met_vars}
 
 
 def get_forcing_files(forcing, met_vars, year):
@@ -87,18 +110,24 @@ def get_forcing_files(forcing, met_vars, year):
     """
     data_dir = get_data_dir()
 
-    if forcing == 'Princeton':
-        forcing_vars = get_forcing_vars(forcing, met_vars)
-        fileset = dict()
-        for mv, fv in forcing_vars.items():
-            file_tpl = "{d}/gridded/PRINCETON/0_5_3hourly/{v}_3hourly_{y}-{y}.nc"
-            files = glob.glob(file_tpl.format(d=data_dir, y=year, v=fv))
-            if len(files) == 1:
-                fileset[mv] = files[0]
-        if len(fileset) == len(met_vars):
-            return fileset
+    if forcing == 'PRINCETON':
+        file_tpl = "{d}/gridded/PRINCETON/0_5_3hourly/{v}_3hourly_{y}-{y}.nc"
+    elif forcing == 'CRUNCEP':
+        file_tpl = "{d}/gridded/CRUNCEP/cruncep2015_1_{v}_{y}.nc"
+    elif forcing == 'WATCH-WFDEI':
+        file_tpl = "{d}/gridded/WATCH_WFDEI/{v}_WFDEI/{v}_WFDEI_{y}*.nc"
     else:
         sys.exit("Unknown forcing dataset %s - more coming later" % forcing)
+
+    forcing_vars = get_forcing_vars(forcing, met_vars)
+    fileset = dict()
+    for mv, fv in forcing_vars.items():
+        files = glob.glob(file_tpl.format(d=data_dir, y=year, v=fv))
+        if len(files) > 0:
+            fileset[mv] = files
+    assert len(fileset) == len(met_vars), \
+        "Some required variables missing, fileset contains {fs}".format(fs=fileset.keys())
+    return fileset
 
 
 def get_forcing_data(forcing, met_vars, year):
@@ -109,14 +138,16 @@ def get_forcing_data(forcing, met_vars, year):
     :returns: TODO
 
     """
-    forcing_vars = get_forcing_vars(forcing, met_vars)
+    forcing_vars = get_forcing_vars(forcing, met_vars, in_file=True)
 
     fileset = get_forcing_files(forcing, met_vars, year)
 
-    datasets = {v: xr.open_dataset(f) for v, f in fileset.items()}
-    data = xr.Dataset({v: ds[forcing_vars[v]].copy() for v, ds in datasets.items()})
-    for v, ds in datasets.items():
-        ds.close()
+    data = {}
+    for v, fs in fileset.items():
+        datasets = [xr.open_dataset(f) for f in fs]
+        data[v] = xr.concat([ds[forcing_vars[v]].copy() for ds in datasets], dim='time')
+        [ds.close() for ds in datasets]
+    data = xr.Dataset(data)
     return(data)
 
 
