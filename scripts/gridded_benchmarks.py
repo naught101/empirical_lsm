@@ -49,7 +49,7 @@ def get_sites():
     return sites
 
 
-def get_vars(benchmark):
+def get_model_vars(benchmark):
 
     if benchmark == '1lin':
         met_vars = ['SWdown']
@@ -204,7 +204,7 @@ def predict_gridded(model, forcing_data, flux_vars):
 def xr_add_attributes(ds, benchmark, forcing, sites):
 
     ds.attrs["Model name"] = benchmark
-    met_vars, flux_vars = get_vars(benchmark)
+    met_vars, flux_vars = get_model_vars(benchmark)
     ds.attrs["Forcing_variables"] = met_vars
     ds.attrs["Forcing_dataset"] = forcing
     ds.attrs["Training_dataset"] = "Fluxnet_1.4"
@@ -219,7 +219,7 @@ def fit_and_predict(benchmark, forcing, years='2012-2013'):
     """Fit a benchmark to some PALS files, then generate an output matching a gridded dataset
     """
 
-    met_vars, flux_vars = get_vars(benchmark)
+    met_vars, flux_vars = get_model_vars(benchmark)
 
     sites = get_sites()
 
