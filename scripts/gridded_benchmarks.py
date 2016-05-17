@@ -130,6 +130,17 @@ def get_forcing_files(forcing, met_vars, year):
     return fileset
 
 
+def correct_coords(forcing, data):
+    """Converts coordinates to match PRINCETON dataset"""
+
+    if forcing == "CRUNCEP":
+        return data.rename({"longitude": "lon",
+                            "latitude": "lat",
+                            "time_counter": "time"})
+    else:
+        return data
+
+
 def get_forcing_data(forcing, met_vars, year):
     """Loads a single xarray dataset from multiple files.
 
@@ -145,9 +156,12 @@ def get_forcing_data(forcing, met_vars, year):
     data = {}
     for v, fs in fileset.items():
         datasets = [xr.open_dataset(f) for f in fs]
-        data[v] = xr.concat([ds[forcing_vars[v]].copy() for ds in datasets], dim='time')
+        data[v] = xr.concat(
+            [correct_coords(forcing, ds[forcing_vars[v]].copy()) for ds in datasets],
+            dim='time')
         [ds.close() for ds in datasets]
     data = xr.Dataset(data)
+
     return(data)
 
 
