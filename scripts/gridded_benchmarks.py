@@ -84,10 +84,10 @@ def get_forcing_vars(forcing, met_vars, in_file=False):
                 Qair="Air_Specific_Humidity")
         else:
             var_dict = dict(
-                LWdown="swdown",
+                LWdown="lwdown",
                 PSurf="press",
                 Wind="*wind",
-                SWdown="lwdown",
+                SWdown="swdown",
                 Qair="qair")
     elif forcing == "WATCH_WFDEI":
         var_dict = dict(
