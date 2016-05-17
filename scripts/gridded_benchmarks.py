@@ -12,9 +12,9 @@ Usage:
     gridded_benchmarks.py (-h | --help | --version)
 
 Options:
-    benchmark:       1lin, etc.
-    forcing:         PRINCETON, etc.
-    --years=<years>  2012-2013, python style
+    benchmark:       1lin, 3km27
+    forcing:         PRINCETON, CRUNCEP
+    --years=<years>  2012-2013, python indexing style
     -h, --help       Show this screen and exit.
 """
 
@@ -28,8 +28,11 @@ import numpy as np
 import xarray as xr
 
 from sklearn.linear_model import LinearRegression
+from sklearn.cluster import MiniBatchKMeans
 
 import pals_utils.data as pud
+
+from ubermodel.clusterregression import ModelByCluster
 
 
 def get_data_dir():
@@ -53,6 +56,10 @@ def get_model_vars(benchmark):
 
     if benchmark == '1lin':
         met_vars = ['SWdown']
+        flux_vars = ['Qh', 'Qle']
+        return met_vars, flux_vars
+    if benchmark == '3km27':
+        met_vars = ['SWdown', 'Tair', 'RelHum']
         flux_vars = ['Qh', 'Qle']
         return met_vars, flux_vars
     else:
@@ -174,6 +181,9 @@ def get_benchmark_model(benchmark):
     """
     if benchmark == '1lin':
         return LinearRegression()
+    if benchmark == '3km27':
+        return ModelByCluster(MiniBatchKMeans(27),
+                              LinearRegression())
     else:
         sys.exit("Unknown benchmark {b}".format(b=benchmark))
 
@@ -240,11 +250,13 @@ def fit_and_predict(benchmark, forcing, years='2012-2013'):
     print("Loading fluxnet data for %d sites" % len(sites))
     met_data = pud.get_met_df(sites, met_vars, qc=True)
     flux_data = pud.get_flux_df(sites, flux_vars, qc=True)
-    qc_index = (np.isfinite(met_data) & np.all(np.isfinite(flux_data), axis=1, keepdims=True)).values.ravel()
+    qc_index = (np.all(np.isfinite(met_data), axis=1, keepdims=True) &
+                np.all(np.isfinite(flux_data), axis=1, keepdims=True)).ravel()
 
     model = get_benchmark_model(benchmark)
 
-    print("Fitting model {b} using {m} to predict {f}".format(b=benchmark, m=met_vars, f=flux_vars))
+    print("Fitting model {b} using {n} samples of {m} to predict {f}".format(
+        b=benchmark, n=qc_index.shape[0], m=met_vars, f=flux_vars))
     model.fit(met_data.ix[qc_index, :], flux_data.ix[qc_index, :])
 
     # prediction datasets
