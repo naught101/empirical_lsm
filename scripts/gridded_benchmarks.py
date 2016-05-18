@@ -286,7 +286,11 @@ def fit_and_predict(benchmark, forcing, years='2012-2013'):
     years = [int(s) for s in years.split('-')]
     for year in range(*years):
         print("Predicting", year, end=': ', flush=True)
-        data = get_forcing_data(forcing, met_vars, year)
+        try:
+            data = get_forcing_data(forcing, met_vars, year)
+        except Exception as e:
+            print("error in year {y}, skipping: {e}".format(y=year, e=e))
+            continue
         result = predict_gridded(model, data, flux_vars)
         xr_add_attributes(result, benchmark, forcing, sites)
         for fv in flux_vars:
