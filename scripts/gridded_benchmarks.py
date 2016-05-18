@@ -80,6 +80,7 @@ def get_forcing_vars(forcing, met_vars, in_file=False):
             PSurf="pres",
             Wind="wind",
             SWdown="dswrf",
+            Tair="tas",
             Qair="shum")
     elif forcing == "CRUNCEP":
         if in_file:
@@ -88,6 +89,7 @@ def get_forcing_vars(forcing, met_vars, in_file=False):
                 PSurf="Pression",
                 Wind="U_wind_component",
                 SWdown="Incoming_Short_Wave_Radiation",
+                Tair="Temperature",
                 Qair="Air_Specific_Humidity")
         else:
             var_dict = dict(
@@ -95,6 +97,7 @@ def get_forcing_vars(forcing, met_vars, in_file=False):
                 PSurf="press",
                 Wind="*wind",
                 SWdown="swdown",
+                Tair="tair",
                 Qair="qair")
     elif forcing == "WATCH_WFDEI":
         var_dict = dict(
@@ -148,6 +151,12 @@ def correct_coords(forcing, data):
         return data
 
 
+def get_relhum(data):
+    """Get relative humidity from specific humidity"""
+
+    data['RelHum'] = pud.Spec2RelHum(data['Qair'], data['Tair'], data['PSurf'])
+
+
 def get_forcing_data(forcing, met_vars, year):
     """Loads a single xarray dataset from multiple files.
 
@@ -156,6 +165,13 @@ def get_forcing_data(forcing, met_vars, year):
     :returns: TODO
 
     """
+    relhum = 'RelHum' in met_vars
+    if relhum:
+        orig_met_vars = met_vars
+        met_vars = orig_met_vars.copy()  # not sure if this is necessary to avoid side-effects
+        met_vars.remove('RelHum')
+        met_vars = set(met_vars).union(['Tair', 'Qair', 'PSurf'])
+
     forcing_vars = get_forcing_vars(forcing, met_vars, in_file=True)
 
     fileset = get_forcing_files(forcing, met_vars, year)
@@ -168,6 +184,10 @@ def get_forcing_data(forcing, met_vars, year):
             dim='time')
         [ds.close() for ds in datasets]
     data = xr.Dataset(data)
+
+    if relhum:
+        get_relhum(data)
+        data = data[orig_met_vars]
 
     return(data)
 
