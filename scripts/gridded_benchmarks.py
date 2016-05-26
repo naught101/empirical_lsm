@@ -164,7 +164,7 @@ def correct_coords(forcing, data, year):
         data = data.rename({"longitude": "lon",
                             "latitude": "lat",
                             "time_counter": "time"})
-        data.time = np.vectorize(get_cruncep_datetime)(data.time, year)
+        data['time'] = np.vectorize(get_cruncep_datetime)(data.time, year)
         return data
     else:
         return data
@@ -205,6 +205,10 @@ def get_forcing_data(forcing, met_vars, year):
             dim='time')
         [ds.close() for ds in datasets]
     data = xr.Dataset(data)
+
+    if forcing == 'CRUNCEP':
+        # CRUNCEP uses stupid units: ftp://nacp.ornl.gov/synthesis/2009/frescati/model_driver/cru_ncep/analysis/readme.htm
+        data['SWdown'] = data.SWdown / 21600
 
     if relhum:
         get_relhum(data)
