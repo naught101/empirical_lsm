@@ -198,7 +198,8 @@ def get_forcing_data(forcing, met_vars, year):
     data = {}
     for v, fs in fileset.items():
         datasets = [xr.open_dataset(f) for f in fs]
-        # ignore masks, and use out own.
+        # TODO: CRUNCEP uses a mask variable, so replace with NANs?
+        # TODO: Mask all datasets - ocean is irrelevant for us.
         data[v] = xr.concat(
             [correct_coords(forcing, ds[forcing_vars[v]].copy(), year) for ds in datasets],
             dim='time')
@@ -243,8 +244,6 @@ def predict_gridded(model, forcing_data, flux_vars):
     # set prediction metadata
     prediction = forcing_data[list(forcing_data.coords)]
 
-    mask = xr.open_dataset('data/mask_720_360.nc')['mask'].values > 0
-
     # Arrays like (var, lon, lat, time)
     result = np.full([len(flux_vars),
                       forcing_data.dims['lon'],
@@ -255,11 +254,10 @@ def predict_gridded(model, forcing_data, flux_vars):
     for lon in range(len(forcing_data['lon'])):
         print("\b\b\b\b\b", str(lon).rjust(4), end='', flush=True)
         for lat in range(len(forcing_data['lat'])):
-            # Only predict with masked data
-            if mask[lat, lon]:
-                result[:, lon, lat, :] = model.predict(
-                    forcing_data.isel(lat=lat, lon=lon).to_array().T
-                ).T
+            # TODO: Predict with masked data
+            result[:, lon, lat, :] = model.predict(
+                forcing_data.isel(lat=lat, lon=lon).to_array().T
+            ).T
     print("")
     for i, fv in enumerate(flux_vars):
         prediction.update(
