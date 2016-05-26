@@ -311,14 +311,22 @@ def fit_and_predict(benchmark, forcing, years='2012-2013'):
     outfile_tpl = outdir + "/{b}_{f}_{v}_{y}.nc"
     years = [int(s) for s in years.split('-')]
     for year in range(*years):
-        print("Predicting", year, end=': ', flush=True)
+
+        print("Loading Forcing data for", year)
         try:
             data = get_forcing_data(forcing, met_vars, year)
-            result = predict_gridded(model, data, flux_vars)
-            xr_add_attributes(result, benchmark, forcing, sites)
         except Exception as e:
             print("error in year {y}, skipping: {e}".format(y=year, e=e))
             continue
+
+        print("Predicting", year, end=': ', flush=True)
+        try:
+            result = predict_gridded(model, data, flux_vars)
+        except Exception as e:
+            print("error in year {y}, skipping: {e}".format(y=year, e=e))
+            continue
+
+            xr_add_attributes(result, benchmark, forcing, sites)
         for fv in flux_vars:
             filename = outfile_tpl.format(b=benchmark, f=forcing, v=fv, y=year)
             print("saving to ", filename)
