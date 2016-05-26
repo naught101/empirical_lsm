@@ -140,13 +140,30 @@ def get_forcing_files(forcing, met_vars, year):
     return fileset
 
 
-def correct_coords(forcing, data):
+def get_cruncep_datetime(timestep, year):
+    """Converts CRUNCEP's dodgy time counters to real times"""
+    doy = timestep // 4
+
+    month_lens = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+    month_starts = np.cumsum(month_lens)
+    month = np.argmax(doy < month_starts)
+
+    day = doy - month_starts[month - 1] + 1
+
+    hour = (timestep % 4) * 6
+
+    return np.datetime64("{y}-{m:02d}-{d:02d}T{h:02d}:00".format(y=year, m=month, d=day, h=hour))
+
+
+def correct_coords(forcing, data, year):
     """Converts coordinates to match PRINCETON dataset"""
 
     if forcing == "CRUNCEP":
-        return data.rename({"longitude": "lon",
+        data = data.rename({"longitude": "lon",
                             "latitude": "lat",
                             "time_counter": "time"})
+        data.time = np.vectorize(get_cruncep_datetime)(data.time, year)
+        return data
     else:
         return data
 
@@ -180,7 +197,7 @@ def get_forcing_data(forcing, met_vars, year):
     for v, fs in fileset.items():
         datasets = [xr.open_dataset(f) for f in fs]
         data[v] = xr.concat(
-            [correct_coords(forcing, ds[forcing_vars[v]].copy()) for ds in datasets],
+            [correct_coords(forcing, ds[forcing_vars[v]].copy(), year) for ds in datasets],
             dim='time')
         [ds.close() for ds in datasets]
     data = xr.Dataset(data)
