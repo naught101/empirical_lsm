@@ -44,6 +44,8 @@ def get_data_dir():
 def get_sites():
     """load names of available sites"""
 
+    # return ['Tumba']
+
     data_dir = get_data_dir()
 
     with open(data_dir + '/PALS/datasets/sites.txt') as f:
@@ -196,6 +198,8 @@ def get_forcing_data(forcing, met_vars, year):
     data = {}
     for v, fs in fileset.items():
         datasets = [xr.open_dataset(f) for f in fs]
+        # TODO: CRUNCEP uses a mask variable, so replace with NANs?
+        # TODO: Mask all datasets - ocean is irrelevant for us.
         data[v] = xr.concat(
             [correct_coords(forcing, ds[forcing_vars[v]].copy(), year) for ds in datasets],
             dim='time')
@@ -246,6 +250,7 @@ def predict_gridded(model, forcing_data, flux_vars):
     for lon in range(len(forcing_data['lon'])):
         print("\b\b\b\b\b", str(lon).rjust(4), end='', flush=True)
         for lat in range(len(forcing_data['lat'])):
+            # TODO: Predict with masked data
             result[:, lon, lat, :] = model.predict(
                 forcing_data.isel(lat=lat, lon=lon).to_array().T
             ).T
@@ -305,11 +310,11 @@ def fit_and_predict(benchmark, forcing, years='2012-2013'):
         print("Predicting", year, end=': ', flush=True)
         try:
             data = get_forcing_data(forcing, met_vars, year)
+            result = predict_gridded(model, data, flux_vars)
+            xr_add_attributes(result, benchmark, forcing, sites)
         except Exception as e:
             print("error in year {y}, skipping: {e}".format(y=year, e=e))
             continue
-        result = predict_gridded(model, data, flux_vars)
-        xr_add_attributes(result, benchmark, forcing, sites)
         for fv in flux_vars:
             filename = outfile_tpl.format(b=benchmark, f=forcing, v=fv, y=year)
             print("saving to ", filename)
