@@ -271,7 +271,7 @@ def xr_add_attributes(ds, benchmark, forcing, sites):
 
     ds.attrs["Model name"] = benchmark
     met_vars, flux_vars = get_model_vars(benchmark)
-    ds.attrs["Forcing_variables"] = met_vars
+    ds.attrs["Forcing_variables"] = ', '.join(met_vars)
     ds.attrs["Forcing_dataset"] = forcing
     ds.attrs["Training_dataset"] = "Fluxnet_1.4"
     ds.attrs["Training_sites"] = ', '.join(sites)
