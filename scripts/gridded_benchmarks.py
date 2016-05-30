@@ -101,45 +101,17 @@ def get_forcing_vars(forcing, met_vars, in_file=False):
                 SWdown="swdown",
                 Tair="tair",
                 Qair="qair")
-    elif forcing == "WATCH_WFDEI":
+    elif forcing in ["WATCH_WFDEI", "GSWP3"]:
         var_dict = dict(
-            LWdown="SWdown",
+            LWdown="LWdown",
             PSurf="PSurf",
             Wind=None,
-            SWdown="LWdown",
+            SWdown="SWdown",
             Qair="Qair")
     else:
         sys.exit("Unknown forcing dataset %s - more coming later" % forcing)
 
     return {v: var_dict[v] for v in met_vars}
-
-
-def get_forcing_files(forcing, met_vars, year):
-    """Gets all forcing files
-
-    :forcing: which forcing type
-
-    """
-    data_dir = get_data_dir()
-
-    if forcing == 'PRINCETON':
-        file_tpl = "{d}/gridded/PRINCETON/0_5_3hourly/{v}_3hourly_{y}-{y}.nc"
-    elif forcing == 'CRUNCEP':
-        file_tpl = "{d}/gridded/CRUNCEP/cruncep2015_1_{v}_{y}.nc"
-    elif forcing == 'WATCH-WFDEI':
-        file_tpl = "{d}/gridded/WATCH_WFDEI/{v}_WFDEI/{v}_WFDEI_{y}*.nc"
-    else:
-        sys.exit("Unknown forcing dataset %s - more coming later" % forcing)
-
-    forcing_vars = get_forcing_vars(forcing, met_vars)
-    fileset = dict()
-    for mv, fv in forcing_vars.items():
-        files = glob.glob(file_tpl.format(d=data_dir, y=year, v=fv))
-        if len(files) > 0:
-            fileset[mv] = files
-    assert len(fileset) == len(met_vars), \
-        "Some required variables missing, fileset contains {fs}".format(fs=fileset.keys())
-    return fileset
 
 
 def get_cruncep_datetime(timestep, year):
@@ -157,17 +129,25 @@ def get_cruncep_datetime(timestep, year):
     return np.datetime64("{y}-{m:02d}-{d:02d}T{h:02d}:00".format(y=year, m=month, d=day, h=hour))
 
 
-def correct_coords(forcing, data, year):
+def correct_CRUNCEP_coords(data, v, year):
     """Converts coordinates to match PRINCETON dataset"""
 
-    if forcing == "CRUNCEP":
-        data = data.rename({"longitude": "lon",
-                            "latitude": "lat",
-                            "time_counter": "time"})
-        data['time'] = np.vectorize(get_cruncep_datetime)(data.time, year)
-        return data
-    else:
-        return data
+    data = data.rename({"longitude": "lon",
+                        "latitude": "lat",
+                        "time_counter": "time"})
+    data['time'] = np.vectorize(get_cruncep_datetime)(data.time, year)
+    return data[v].copy()
+
+
+def correct_WATCH_WFDEI_coords(data, v, year):
+    """Converts coordinates to match PRINCETON dataset"""
+
+    fixed_times = xr.decode_cf(xr.DataArray(data[v].values,
+                                            coords=[data.time, data.lat, data.lon],
+                                            dims=['time', 'lat', 'lon'],
+                                            name=v)
+                                 .to_dataset())
+    return fixed_times[v].copy()
 
 
 def get_relhum(data):
@@ -176,13 +156,76 @@ def get_relhum(data):
     data['RelHum'] = pud.Spec2RelHum(data['Qair'], data['Tair'], data['PSurf'])
 
 
+# Individual dataloaders
+
+def get_CRUNCEP_data(met_vars, year):
+
+    file_tpl = "{d}/gridded/CRUNCEP/cruncep2015_1_{v}_{y}.nc"
+
+    forcing_vars = get_forcing_vars('CRUNCEP', met_vars)
+    infile_vars = get_forcing_vars('CRUNCEP', met_vars, in_file=True)
+
+    data = {}
+    for v, fv in forcing_vars.items():
+        # TODO: CRUNCEP uses a mask variable, so replace with NANs?
+        with xr.open_dataset(file_tpl.format(d=get_data_dir(), v=fv, y=year)) as ds:
+            data[v] = correct_CRUNCEP_coords(ds, infile_vars[v], year)
+    data = xr.Dataset(data)
+
+    # CRUNCEP uses stupid units: ftp://nacp.ornl.gov/synthesis/2009/frescati/model_driver/cru_ncep/analysis/readme.htm
+    data['SWdown'] = data.SWdown / 21600
+
+    return data
+
+
+def get_GSWP3_data(met_vars, year):
+
+    file_tpl = "{d}/gridded/GSWP3/{v}/GSWP3.BC.{v}.3hrMap.{y}.nc"
+
+    data = {}
+    for v in met_vars:
+        with xr.open_dataset(file_tpl.format(d=get_data_dir(), v=v, y=year)) as ds:
+            data[v] = ds[v].copy()
+    data = xr.Dataset(data)
+
+    return data
+
+
+def get_PRINCETON_data(met_vars, year):
+
+    file_tpl = "{d}/gridded/PRINCETON/0_5_3hourly/{v}_3hourly_{y}-{y}.nc"
+
+    forcing_vars = get_forcing_vars('PRINCETON', met_vars)
+
+    data = {}
+    for v, fv in forcing_vars.items():
+        with xr.open_dataset(file_tpl.format(d=get_data_dir(), v=fv, y=year)) as ds:
+            data[v] = ds[fv].copy()
+    data = xr.Dataset(data)
+
+    return data
+
+
+def get_WATCH_WFDEI_data(met_vars, year):
+
+    file_tpl = "{d}/gridded/WATCH_WFDEI/{v}_WFDEI/{v}_WFDEI_{y}*.nc"
+
+    data = {}
+    for v in met_vars:
+        files = sorted(glob.glob(file_tpl.format(d=get_data_dir(), v=v, y=year)))
+        datasets = [xr.open_dataset(f, decode_times=False) for f in files]
+        # TODO: WATCH_FDEI uses a fill-value mask, so replace with NANs?
+        data[v] = xr.concat(
+            [correct_WATCH_WFDEI_coords(ds, v, year) for ds in datasets],
+            dim='time')
+        [ds.close() for ds in datasets]
+    data = xr.Dataset(data)
+
+    return data
+
+
 def get_forcing_data(forcing, met_vars, year):
     """Loads a single xarray dataset from multiple files.
-
-    :forcing: TODO
-    :fileset: TODO
-    :returns: TODO
-
     """
     relhum = 'RelHum' in met_vars
     if relhum:
@@ -191,24 +234,14 @@ def get_forcing_data(forcing, met_vars, year):
         met_vars.remove('RelHum')
         met_vars = set(met_vars).union(['Tair', 'Qair', 'PSurf'])
 
-    forcing_vars = get_forcing_vars(forcing, met_vars, in_file=True)
-
-    fileset = get_forcing_files(forcing, met_vars, year)
-
-    data = {}
-    for v, fs in fileset.items():
-        datasets = [xr.open_dataset(f) for f in fs]
-        # TODO: CRUNCEP uses a mask variable, so replace with NANs?
-        # TODO: Mask all datasets - ocean is irrelevant for us.
-        data[v] = xr.concat(
-            [correct_coords(forcing, ds[forcing_vars[v]].copy(), year) for ds in datasets],
-            dim='time')
-        [ds.close() for ds in datasets]
-    data = xr.Dataset(data)
-
     if forcing == 'CRUNCEP':
-        # CRUNCEP uses stupid units: ftp://nacp.ornl.gov/synthesis/2009/frescati/model_driver/cru_ncep/analysis/readme.htm
-        data['SWdown'] = data.SWdown / 21600
+        data = get_CRUNCEP_data(met_vars, year)
+    if forcing == 'GSWP3':
+        data = get_GSWP3_data(met_vars, year)
+    if forcing == 'PRINCETON':
+        data = get_PRINCETON_data(met_vars, year)
+    if forcing == 'WATCH_WFDEI':
+        data = get_WATCH_WFDEI_data(met_vars, year)
 
     if relhum:
         get_relhum(data)
