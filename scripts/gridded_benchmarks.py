@@ -283,15 +283,19 @@ def predict_gridded(model, forcing_data, flux_vars):
                       forcing_data.dims['lat'],
                       forcing_data.dims['time']],
                      np.nan)
+
     print("lon:    ", end='', flush=True)
+
     for lon in range(len(forcing_data['lon'])):
         print("\b\b\b\b\b", str(lon).rjust(4), end='', flush=True)
         for lat in range(len(forcing_data['lat'])):
-            # TODO: Predict with masked data
-            result[:, lon, lat, :] = model.predict(
-                forcing_data.isel(lat=lat, lon=lon).to_array().T
-            ).T
+            # If data has fill values, only predict with masked data
+            if np.all(-1e8 < forcing_data.isel(time=0, lat=lat, lon=lon).to_array() < 1e8):
+                result[:, lon, lat, :] = model.predict(
+                    forcing_data.isel(lat=lat, lon=lon).to_array().T
+                ).T
     print("")
+
     for i, fv in enumerate(flux_vars):
         prediction.update(
             {fv: xr.DataArray(result[i, :, :, :],
