@@ -290,7 +290,8 @@ def predict_gridded(model, forcing_data, flux_vars):
         print("\b\b\b\b\b", str(lon).rjust(4), end='', flush=True)
         for lat in range(len(forcing_data['lat'])):
             # If data has fill values, only predict with masked data
-            if np.all(-1e8 < forcing_data.isel(time=0, lat=lat, lon=lon).to_array() < 1e8):
+            first_step = forcing_data.isel(time=0, lat=lat, lon=lon).to_array()
+            if (np.all(-1e8 < first_step) and np.all(first_step < 1e8)):
                 result[:, lon, lat, :] = model.predict(
                     forcing_data.isel(lat=lat, lon=lon).to_array().T
                 ).T
