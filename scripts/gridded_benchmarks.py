@@ -24,11 +24,15 @@ import os
 import sys
 import glob
 import datetime
+import re
+
 import numpy as np
+import pandas as pd
 import xarray as xr
 
 from sklearn.linear_model import LinearRegression
 from sklearn.cluster import MiniBatchKMeans
+from collections import OrderedDict
 
 import pals_utils.data as pud
 
@@ -73,6 +77,13 @@ def get_model_vars(benchmark):
         met_vars = ['SWdown', 'Tair', 'RelHum']
         flux_vars = ['Qh', 'Qle']
         return met_vars, flux_vars
+    if benchmark == '5km27_lag':
+        met_vars = OrderedDict()
+        [met_vars.update({v: ['2d', '7d']}) for v in ['SWdown', 'Tair', 'RelHum', 'Wind']]
+        met_vars.update({'Rainf': ['2d', '7d', '30d', '90d']})
+        flux_vars = ['Qh', 'Qle']
+        return met_vars, flux_vars
+
     else:
         sys.exit("Unknown benchmark %s, exiting" % benchmark)
 
@@ -259,6 +270,134 @@ def get_forcing_data(forcing, met_vars, year):
     return(data)
 
 
+class LagAverageWrapper(object):
+
+    """Modelwrapper that lags takes Tair, SWdown, RelHum, Wind, and Rainf, and lags them to estimate Qle fluxes."""
+
+    def __init__(self, var_lags, model, datafreq=0.5):
+        """Model wrapper
+
+        :var_lags: OrderedDict like {'Tair': ['2d'], 'Rainf': ['2h', '7d', '30d', ...
+        :model: model to use lagged variables with
+        :datafreq: data frequency in hours
+
+        """
+        self._var_lags = var_lags
+        self._model = model
+        self._datafreq = datafreq
+
+    def _rolling_window(a, rows):
+        """from http://www.rigtorp.se/2011/01/01/rolling-statistics-numpy.html"""
+        shape = a.shape[:-1] + (a.shape[-1] - rows + 1, rows)
+        strides = a.strides + (a.strides[-1],)
+        return np.lib.stride_tricks.as_strided(a, shape=shape, strides=strides)
+
+    def _window_to_rows(self, window, datafreq):
+        """calculate number of rows for window
+
+        :window: window of the format "30min", "3h"
+        :datafreq: data frequency in hours
+        :returns: number of rows
+
+        """
+        n, freq = re.match('(\d*)([a-zA-Z]*)', window).groups()
+        n = int(n)
+        if freq == "min":
+            rows = n / (60 * datafreq)
+        elif freq == "h":
+            rows = n / datafreq
+        elif freq == "d":
+            rows = n * 24 / datafreq
+        else:
+            raise 'Unknown frequency "%s"' % freq
+
+        assert rows == int(rows), "window doesn't match data frequency - not integral result"
+
+        return int(rows)
+
+    def _rolling_mean(self, data, window, datafreq):
+        """calculate rolling mean for an array
+
+        :data: ndarray
+        :window: time span, e.g. "30min", "2h"
+        :datafreq: data frequency in hours
+        :returns: data in the same shape as the original, with leading NaNs
+        """
+        rows = self._window_to_rows(window, datafreq)
+
+        result = np.full_like(data, np.nan)
+
+        np.mean(self._rolling_window(data.T, rows), -1, out=result[(rows - 1):].T)
+        return result
+
+    def _lag_array(self, X, datafreq):
+        """TODO: Docstring for _lag_array.
+
+        :X: array with columns matching self._var_lags
+        :returns: array with original and lagged averaged variables
+
+        """
+        lagged_data = []
+        for v in self._var_lags:
+            lagged_data.append(X[[v]])
+            for l in self._var_lags[v]:
+                lagged_data.append(self._rolling_mean(X[v], l, datafreq=datafreq))
+        return np.concatenate(lagged_data, axis=1)
+
+    def _lag_data(self, X, datafreq):
+        """lag an array. Assumes that each column corresponds to variables listed in lags
+
+        :X: ndarray
+        :datafreq: array data rate in hours
+        :returns: array of lagged averaged variables
+
+        """
+        if isinstance(X, pd.DataFrame):
+            assert all([v in X.columns for v in self._var_lags]), "Variables in X do not match initialised var_lags"
+            if 'site' in X.index.names:
+                results = {}
+                for site in X.index.names:
+                    results[site] = self._lag_array(X.ix[X.index.get_level_values('site') == site, self._var_lags], datafreq)
+                result = pd.concat(results)
+            else:
+                result = self._lag_array(X, datafreq)
+        elif isinstance(X, np.ndarray):
+            # we have to assume that the variables are given in the right order
+            assert (X.shape[1] == len(self._var_lags))
+            result = self._lag_array(X, datafreq)
+
+        return result
+
+    def fit(self, X, datafreq=None):
+        """fit model using X
+
+        :X: Dataframe, or ndarray with len(var_lags) columns
+        :returns: ndarray with
+
+        """
+        if datafreq is None:
+            datafreq = self._datafreq
+
+        lagged_data = self._lag_data(X, datafreq=datafreq)
+
+        self._model.fit(lagged_data)
+
+    def predict(self, X, y, datafreq=None):
+        """predict model using X
+
+        :X: TODO
+        :y: TODO
+        :returns: TODO
+
+        """
+        if datafreq is None:
+            datafreq = self._datafreq
+
+        lagged_data = self._lag_data(X, datafreq=datafreq)
+
+        self._model.predict(lagged_data, y)
+
+
 def get_benchmark_model(benchmark):
     """returns a scikit-learn style model/pipeline
 
@@ -281,13 +420,19 @@ def get_benchmark_model(benchmark):
                 'class': MiniBatchKMeans,
                 'args': {
                     'n_clusters': 27}
-                },
+            },
             'class': LinearRegression,
             'lag': {
                 'periods': 1,
                 'freq': 'D'}
-            }
+        }
         return get_model_from_dict(model_dict)
+    if benchmark == '5km27_lag':
+        var_lags = get_model_vars('5km27_lag')[0]
+        return LagAverageWrapper(var_lags,
+                                 ModelByCluster(MiniBatchKMeans(27),
+                                                LinearRegression())
+                                 )
     else:
         sys.exit("Unknown benchmark {b}".format(b=benchmark))
 
@@ -355,15 +500,15 @@ def fit_and_predict(benchmark, forcing, years='2012-2013'):
 
     met_vars, flux_vars = get_model_vars(benchmark)
 
+    model = get_benchmark_model(benchmark)
+
     sites = get_sites()
 
     print("Loading fluxnet data for %d sites" % len(sites))
-    met_data = pud.get_met_df(sites, met_vars, qc=True)
+    met_data = pud.get_met_df(sites, met_vars, qc=True, names=True)
     flux_data = pud.get_flux_df(sites, flux_vars, qc=True)
     qc_index = (np.all(np.isfinite(met_data), axis=1, keepdims=True) &
                 np.all(np.isfinite(flux_data), axis=1, keepdims=True)).ravel()
-
-    model = get_benchmark_model(benchmark)
 
     print("Fitting model {b} using {n} samples of {m} to predict {f}".format(
         b=benchmark, n=qc_index.shape[0], m=met_vars, f=flux_vars))
