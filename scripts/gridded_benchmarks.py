@@ -397,6 +397,44 @@ class LagAverageWrapper(object):
         return self._model.predict(lagged_data)
 
 
+class MissingDataWrapper(object):
+
+    """Model wrapper that kills NAs"""
+
+    def __init__(self, model):
+        """kills NAs
+
+        :model: TODO
+
+        """
+        self._model = model
+
+    def fit(self, X, y):
+        """Removes NAs, then fits
+
+        :X: TODO
+        :y: TODO
+        :returns: TODO
+
+        """
+        qc_index = (np.all(np.isfinite(X), axis=1, keepdims=True) &
+                    np.all(np.isfinite(y), axis=1, keepdims=True)).ravel()
+
+        print("Using {n} samples of {N}".format(
+            n=qc_index.shape[0], N=X.shape[0]))
+        # TODO: make work with arrays
+        self._model.fit(X.ix[qc_index, :], y.ix[qc_index, :])
+
+    def predict(self, X):
+        """pass on model prediction
+
+        :X: TODO
+        :returns: TODO
+
+        """
+        return self._model.predict(X)
+
+
 def get_benchmark_model(benchmark):
     """returns a scikit-learn style model/pipeline
 
@@ -405,13 +443,13 @@ def get_benchmark_model(benchmark):
 
     """
     if benchmark == '1lin':
-        return LinearRegression()
+        return MissingDataWrapper(LinearRegression())
     if benchmark == '3km27':
-        return ModelByCluster(MiniBatchKMeans(27),
-                              LinearRegression())
+        return MissingDataWrapper(ModelByCluster(MiniBatchKMeans(27),
+                                                 LinearRegression()))
     if benchmark == '3km233':
-        return ModelByCluster(MiniBatchKMeans(27),
-                              LinearRegression())
+        return MissingDataWrapper(ModelByCluster(MiniBatchKMeans(27),
+                                                 LinearRegression()))
     if benchmark == '3km27_lag':
         model_dict = {
             'variable': ['SWdown', 'Tair', 'RelHum'],
@@ -425,12 +463,12 @@ def get_benchmark_model(benchmark):
                 'periods': 1,
                 'freq': 'D'}
         }
-        return get_model_from_dict(model_dict)
+        return MissingDataWrapper(get_model_from_dict(model_dict))
     if benchmark == '5km27_lag':
         var_lags = get_model_vars('5km27_lag')[0]
         return LagAverageWrapper(var_lags,
-                                 ModelByCluster(MiniBatchKMeans(27),
-                                                LinearRegression())
+                                 MissingDataWrapper(ModelByCluster(MiniBatchKMeans(27),
+                                                                   LinearRegression()))
                                  )
     else:
         sys.exit("Unknown benchmark {b}".format(b=benchmark))
@@ -506,12 +544,10 @@ def fit_and_predict(benchmark, forcing, years='2012-2013'):
     print("Loading fluxnet data for %d sites" % len(sites))
     met_data = pud.get_met_df(sites, met_vars, qc=True, names=True)
     flux_data = pud.get_flux_df(sites, flux_vars, qc=True)
-    qc_index = (np.all(np.isfinite(met_data), axis=1, keepdims=True) &
-                np.all(np.isfinite(flux_data), axis=1, keepdims=True)).ravel()
 
-    print("Fitting model {b} using {n} samples of {m} to predict {f}".format(
-        b=benchmark, n=qc_index.shape[0], m=met_vars, f=flux_vars))
-    model.fit(met_data.ix[qc_index, :], flux_data.ix[qc_index, :])
+    print("Fitting model {b} using {m} to predict {f}".format(
+        b=benchmark, m=met_vars, f=flux_vars))
+    model.fit(met_data, flux_data)
 
     # prediction datasets
     outdir = "{d}/gridded_benchmarks/{b}_{f}".format(d=get_data_dir(), b=benchmark, f=forcing)
