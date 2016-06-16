@@ -455,7 +455,7 @@ def get_benchmark_model(benchmark):
         return MissingDataWrapper(ModelByCluster(MiniBatchKMeans(27),
                                                  LinearRegression()))
     if benchmark == '3km233':
-        return MissingDataWrapper(ModelByCluster(MiniBatchKMeans(27),
+        return MissingDataWrapper(ModelByCluster(MiniBatchKMeans(233),
                                                  LinearRegression()))
     if benchmark == '3km27_lag':
         model_dict = {
