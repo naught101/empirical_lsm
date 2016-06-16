@@ -339,9 +339,9 @@ class LagAverageWrapper(object):
         """
         lagged_data = []
         for v in self._var_lags:
-            lagged_data.append(X[[v]])
+            lagged_data.append(X[[v]].values)
             for l in self._var_lags[v]:
-                lagged_data.append(self._rolling_mean(X[v], l, datafreq=datafreq))
+                lagged_data.append(self._rolling_mean(X[[v]].values, l, datafreq=datafreq))
         return np.concatenate(lagged_data, axis=1)
 
     def _lag_data(self, X, datafreq):
@@ -358,7 +358,7 @@ class LagAverageWrapper(object):
                 results = {}
                 for site in X.index.get_level_values('site').unique():
                     results[site] = self._lag_array(X.ix[X.index.get_level_values('site') == site, self._var_lags], datafreq)
-                result = pd.concat(results)
+                result = np.concatenate([d for d in results.values()])
             else:
                 result = self._lag_array(X, datafreq)
         elif isinstance(X, np.ndarray):
@@ -428,9 +428,9 @@ class MissingDataWrapper(object):
                     np.all(np.isfinite(y), axis=1, keepdims=True)).ravel()
 
         print("Using {n} samples of {N}".format(
-            n=qc_index.shape[0], N=X.shape[0]))
-        # TODO: make work with arrays
-        self._model.fit(X.ix[qc_index, :], y.ix[qc_index, :])
+            n=qc_index.sum(), N=X.shape[0]))
+        # make work with arrays and dataframes
+        self._model.fit(np.array(X)[qc_index, :], np.array(y)[qc_index, :])
 
     def predict(self, X):
         """pass on model prediction
@@ -554,7 +554,6 @@ def fit_and_predict(benchmark, forcing, years='2012-2013'):
 
     print("Fitting model {b} using {m} to predict {f}".format(
         b=benchmark, m=met_vars, f=flux_vars))
-
     model.fit(met_data, flux_data)
 
     # prediction datasets
