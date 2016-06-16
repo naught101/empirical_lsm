@@ -368,11 +368,11 @@ class LagAverageWrapper(object):
 
         return result
 
-    def fit(self, X, datafreq=None):
+    def fit(self, X, y, datafreq=None):
         """fit model using X
 
         :X: Dataframe, or ndarray with len(var_lags) columns
-        :returns: ndarray with
+        :y: frame/array with columns to predict
 
         """
         if datafreq is None:
@@ -380,14 +380,13 @@ class LagAverageWrapper(object):
 
         lagged_data = self._lag_data(X, datafreq=datafreq)
 
-        self._model.fit(lagged_data)
+        self._model.fit(lagged_data, X)
 
-    def predict(self, X, y, datafreq=None):
+    def predict(self, X, datafreq=None):
         """predict model using X
 
-        :X: TODO
-        :y: TODO
-        :returns: TODO
+        :X: Dataframe or ndarray of similar shape
+        :returns: array like y
 
         """
         if datafreq is None:
@@ -395,7 +394,7 @@ class LagAverageWrapper(object):
 
         lagged_data = self._lag_data(X, datafreq=datafreq)
 
-        self._model.predict(lagged_data, y)
+        return self._model.predict(lagged_data)
 
 
 def get_benchmark_model(benchmark):
