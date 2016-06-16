@@ -380,6 +380,9 @@ class LagAverageWrapper(object):
 
         lagged_data = self._lag_data(X, datafreq=datafreq)
 
+        # store mean for filling empty values on predict
+        self._means = np.nanmean(lagged_data, axis=0)
+
         self._model.fit(lagged_data, X)
 
     def predict(self, X, datafreq=None):
@@ -393,6 +396,10 @@ class LagAverageWrapper(object):
             datafreq = self._datafreq
 
         lagged_data = self._lag_data(X, datafreq=datafreq)
+
+        # fill initial NaN values with mean values
+        for i in range(lagged_data.shape[1]):
+            lagged_data[np.isnan(lagged_data[:, i]), i] = self._means[i]
 
         return self._model.predict(lagged_data)
 
