@@ -286,7 +286,7 @@ class LagAverageWrapper(object):
         self._model = model
         self._datafreq = datafreq
 
-    def _rolling_window(a, rows):
+    def _rolling_window(self, a, rows):
         """from http://www.rigtorp.se/2011/01/01/rolling-statistics-numpy.html"""
         shape = a.shape[:-1] + (a.shape[-1] - rows + 1, rows)
         strides = a.strides + (a.strides[-1],)
@@ -356,7 +356,7 @@ class LagAverageWrapper(object):
             assert all([v in X.columns for v in self._var_lags]), "Variables in X do not match initialised var_lags"
             if 'site' in X.index.names:
                 results = {}
-                for site in X.index.names:
+                for site in X.index.get_level_values('site').unique():
                     results[site] = self._lag_array(X.ix[X.index.get_level_values('site') == site, self._var_lags], datafreq)
                 result = pd.concat(results)
             else:
@@ -549,11 +549,12 @@ def fit_and_predict(benchmark, forcing, years='2012-2013'):
     sites = get_sites()
 
     print("Loading fluxnet data for %d sites" % len(sites))
-    met_data = pud.get_met_df(sites, met_vars, qc=True, names=True)
+    met_data = pud.get_met_df(sites, met_vars, qc=True, name=True)
     flux_data = pud.get_flux_df(sites, flux_vars, qc=True)
 
     print("Fitting model {b} using {m} to predict {f}".format(
         b=benchmark, m=met_vars, f=flux_vars))
+
     model.fit(met_data, flux_data)
 
     # prediction datasets
