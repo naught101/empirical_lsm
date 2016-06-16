@@ -272,7 +272,7 @@ def get_benchmark_model(benchmark):
         return ModelByCluster(MiniBatchKMeans(27),
                               LinearRegression())
     if benchmark == '3km233':
-        return ModelByCluster(MiniBatchKMeans(27),
+        return ModelByCluster(MiniBatchKMeans(233),
                               LinearRegression())
     if benchmark == '3km27_lag':
         model_dict = {
