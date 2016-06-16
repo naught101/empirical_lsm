@@ -12,8 +12,8 @@ Usage:
     gridded_benchmarks.py (-h | --help | --version)
 
 Options:
-    benchmark:       1lin, 3km27
-    forcing:         PRINCETON, CRUNCEP
+    benchmark:       1lin, 3km27, 3km233
+    forcing:         PRINCETON, CRUNCEP, WATCH_WFDEI, GSWP3
     --years=<years>  2012-2013, python indexing style
     -h, --help       Show this screen and exit.
 """
@@ -33,6 +33,7 @@ from sklearn.cluster import MiniBatchKMeans
 import pals_utils.data as pud
 
 from ubermodel.clusterregression import ModelByCluster
+from ubermodel.models import get_model_from_dict
 
 
 def get_data_dir():
@@ -61,6 +62,14 @@ def get_model_vars(benchmark):
         flux_vars = ['Qh', 'Qle']
         return met_vars, flux_vars
     if benchmark == '3km27':
+        met_vars = ['SWdown', 'Tair', 'RelHum']
+        flux_vars = ['Qh', 'Qle']
+        return met_vars, flux_vars
+    if benchmark == '3km233':
+        met_vars = ['SWdown', 'Tair', 'RelHum']
+        flux_vars = ['Qh', 'Qle']
+        return met_vars, flux_vars
+    if benchmark == '3km27_lag':
         met_vars = ['SWdown', 'Tair', 'RelHum']
         flux_vars = ['Qh', 'Qle']
         return met_vars, flux_vars
@@ -262,6 +271,23 @@ def get_benchmark_model(benchmark):
     if benchmark == '3km27':
         return ModelByCluster(MiniBatchKMeans(27),
                               LinearRegression())
+    if benchmark == '3km233':
+        return ModelByCluster(MiniBatchKMeans(27),
+                              LinearRegression())
+    if benchmark == '3km27_lag':
+        model_dict = {
+            'variable': ['SWdown', 'Tair', 'RelHum'],
+            'clusterregression': {
+                'class': MiniBatchKMeans,
+                'args': {
+                    'n_clusters': 27}
+                },
+            'class': LinearRegression,
+            'lag': {
+                'periods': 1,
+                'freq': 'D'}
+            }
+        return get_model_from_dict(model_dict)
     else:
         sys.exit("Unknown benchmark {b}".format(b=benchmark))
 
