@@ -132,6 +132,18 @@ def get_forcing_vars(forcing, met_vars, in_file=False):
     return {v: var_dict[v] for v in met_vars}
 
 
+def get_forcing_freq(forcing):
+    """returns the data rate in hours for each forcing"""
+    if forcing in ["PRINCETON", "GSWP3"]:
+        return 3
+    elif forcing == "CRUNCEP":
+        return 6
+    elif forcing in ["WATCH_WFDEI"]:
+        return 8
+    else:
+        sys.exit("Unknown forcing dataset %s - more coming later" % forcing)
+
+
 def get_cruncep_datetime(timestep, year):
     """Converts CRUNCEP's dodgy time counters to real times"""
     doy = timestep // 4
@@ -363,10 +375,13 @@ class LagAverageWrapper(object):
                 result = np.concatenate([d for d in results.values()])
             else:
                 result = self._lag_array(X[[self._var_lags]].values, datafreq)
-        elif isinstance(X, np.ndarray):
+        elif isinstance(X, np.ndarray) or isinstance(X, xr.DataArray):
             # we have to assume that the variables are given in the right order
             assert (X.shape[1] == len(self._var_lags))
-            result = self._lag_array(X, datafreq)
+            if isinstance(X, xr.DataArray):
+                result = self._lag_array(np.array(X), datafreq)
+            else:
+                result = self._lag_array(X, datafreq)
 
         return result
 
@@ -483,7 +498,7 @@ def get_benchmark_model(benchmark):
         sys.exit("Unknown benchmark {b}".format(b=benchmark))
 
 
-def predict_gridded(model, forcing_data, flux_vars):
+def predict_gridded(model, forcing_data, flux_vars, datafreq=None):
     """predict model results for gridded data
 
     :model: TODO
@@ -509,9 +524,15 @@ def predict_gridded(model, forcing_data, flux_vars):
             # If data has fill values, only predict with masked data
             first_step = forcing_data.isel(time=0, lat=lat, lon=lon).to_array()
             if (np.all(-1e8 < first_step) and np.all(first_step < 1e8)):
-                result[:, lon, lat, :] = model.predict(
-                    forcing_data.isel(lat=lat, lon=lon).to_array().T
-                ).T
+                if datafreq is not None:
+                    result[:, lon, lat, :] = model.predict(
+                        forcing_data.isel(lat=lat, lon=lon).to_array().T,
+                        datafreq=datafreq
+                    ).T
+                else:
+                    result[:, lon, lat, :] = model.predict(
+                        forcing_data.isel(lat=lat, lon=lon).to_array().T
+                    ).T
     print("")
 
     for i, fv in enumerate(flux_vars):
@@ -550,6 +571,8 @@ def fit_and_predict(benchmark, forcing, years='2012-2013'):
 
     sites = get_sites()
 
+    years = [int(s) for s in years.split('-')]
+
     print("Loading fluxnet data for %d sites" % len(sites))
     met_data = pud.get_met_df(sites, met_vars, qc=True, name=True)
     flux_data = pud.get_flux_df(sites, flux_vars, qc=True)
@@ -562,13 +585,15 @@ def fit_and_predict(benchmark, forcing, years='2012-2013'):
     outdir = "{d}/gridded_benchmarks/{b}_{f}".format(d=get_data_dir(), b=benchmark, f=forcing)
     os.makedirs(outdir, exist_ok=True)
     outfile_tpl = outdir + "/{b}_{f}_{v}_{y}.nc"
-    years = [int(s) for s in years.split('-')]
     for year in range(*years):
 
         print("Loading Forcing data for", year)
         data = get_forcing_data(forcing, met_vars, year)
         print("Predicting", year, end=': ', flush=True)
-        result = predict_gridded(model, data, flux_vars)
+        if "lag" in benchmark:
+            result = predict_gridded(model, data, flux_vars, datafreq=get_forcing_freq(forcing))
+        else:
+            result = predict_gridded(model, data, flux_vars)
 
         xr_add_attributes(result, benchmark, forcing, sites)
         for fv in flux_vars:
