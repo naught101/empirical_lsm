@@ -341,10 +341,10 @@ class LagAverageWrapper(object):
 
         """
         lagged_data = []
-        for v in self._var_lags:
-            lagged_data.append(X[[v]].values)
+        for i, v in enumerate(self._var_lags):
+            lagged_data.append(X[:, [i]])
             for l in self._var_lags[v]:
-                lagged_data.append(self._rolling_mean(X[[v]].values, l, datafreq=datafreq))
+                lagged_data.append(self._rolling_mean(X[:, [i]], l, datafreq=datafreq))
         return np.concatenate(lagged_data, axis=1)
 
     def _lag_data(self, X, datafreq):
@@ -358,12 +358,13 @@ class LagAverageWrapper(object):
         if isinstance(X, pd.DataFrame):
             assert all([v in X.columns for v in self._var_lags]), "Variables in X do not match initialised var_lags"
             if 'site' in X.index.names:
+                # split-apply-combine by site
                 results = {}
                 for site in X.index.get_level_values('site').unique():
-                    results[site] = self._lag_array(X.ix[X.index.get_level_values('site') == site, self._var_lags], datafreq)
+                    results[site] = self._lag_array(X.ix[X.index.get_level_values('site') == site, self._var_lags].values, datafreq)
                 result = np.concatenate([d for d in results.values()])
             else:
-                result = self._lag_array(X, datafreq)
+                result = self._lag_array(X[[self._var_lags]].values, datafreq)
         elif isinstance(X, np.ndarray):
             # we have to assume that the variables are given in the right order
             assert (X.shape[1] == len(self._var_lags))
