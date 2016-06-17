@@ -103,7 +103,8 @@ def get_forcing_vars(forcing, met_vars, in_file=False):
             Wind="wind",
             SWdown="dswrf",
             Tair="tas",
-            Qair="shum")
+            Qair="shum",
+            Rainf="prcp")
     elif forcing == "CRUNCEP":
         if in_file:
             var_dict = dict(
@@ -112,7 +113,8 @@ def get_forcing_vars(forcing, met_vars, in_file=False):
                 Wind="U_wind_component",
                 SWdown="Incoming_Short_Wave_Radiation",
                 Tair="Temperature",
-                Qair="Air_Specific_Humidity")
+                Qair="Air_Specific_Humidity",
+                Rainf="Total_Precipitation")
         else:
             var_dict = dict(
                 LWdown="lwdown",
@@ -120,14 +122,10 @@ def get_forcing_vars(forcing, met_vars, in_file=False):
                 Wind="*wind",
                 SWdown="swdown",
                 Tair="tair",
-                Qair="qair")
+                Qair="qair",
+                Rainf="rain")
     elif forcing in ["WATCH_WFDEI", "GSWP3"]:
-        var_dict = dict(
-            LWdown="LWdown",
-            PSurf="PSurf",
-            Wind=None,
-            SWdown="SWdown",
-            Qair="Qair")
+        return met_vars
     else:
         sys.exit("Unknown forcing dataset %s - more coming later" % forcing)
 
@@ -249,7 +247,7 @@ def get_forcing_data(forcing, met_vars, year):
     """
     relhum = 'RelHum' in met_vars
     if relhum:
-        orig_met_vars = met_vars
+        orig_met_vars = list(met_vars)
         met_vars = orig_met_vars.copy()  # not sure if this is necessary to avoid side-effects
         met_vars.remove('RelHum')
         met_vars = set(met_vars).union(['Tair', 'Qair', 'PSurf'])
