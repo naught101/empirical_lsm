@@ -326,6 +326,9 @@ class LagAverageWrapper(object):
         rows = self._window_to_rows(window, datafreq)
 
         result = np.full_like(data, np.nan)
+        if rows > data.shape[0]:
+            # This lag is too long to get an average. Skip it.
+            return result
 
         np.mean(self._rolling_window(data.T, rows), -1, out=result[(rows - 1):].T)
         return result
@@ -383,7 +386,7 @@ class LagAverageWrapper(object):
         # store mean for filling empty values on predict
         self._means = np.nanmean(lagged_data, axis=0)
 
-        self._model.fit(lagged_data, X)
+        self._model.fit(lagged_data, y)
 
     def predict(self, X, datafreq=None):
         """predict model using X
