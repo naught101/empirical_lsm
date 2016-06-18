@@ -14,6 +14,12 @@ import os
 from pals_utils.data import copy_data
 
 
+def get_data_dir():
+    """get data directory """
+
+    return './data'
+
+
 def sim_dict_to_xr(sim_dict, old_ds):
     """Converts a dictionary of arrays into a xarray dataset with the same geo data as old_ds
 
