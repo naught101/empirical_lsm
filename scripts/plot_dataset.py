@@ -8,21 +8,24 @@ Github: https://github.com/naught101/
 Description: TODO: File description
 
 Usage:
-    plot_dataset.py year <filename> <variable> <year>
+    plot_dataset.py year <name> <variable> <year>
     plot_dataset.py (-h | --help | --version)
 
 Options:
     -h, --help    Show this screen and exit.
-    --option=<n>  Option description [default: 3]
 """
 
 from docopt import docopt
 
+import os
 import xarray as xr
 import numpy as np
 import matplotlib.pyplot as plt
 
 from mpl_toolkits import basemap
+from mpl_toolkits.axes_grid1 import ImageGrid
+
+from ubermodel import get_forcing_data
 
 
 def get_range(x):
@@ -34,68 +37,131 @@ def plot_array(da, ax=None, shift=True):
 
     m = basemap.Basemap()
     m.drawcoastlines()
-    m.pcolormesh(m.pcolormesh(x=da.lon, y=da.lat, data=da.T, latlon=True))
+    m.pcolormesh(da.lon, y=da.lat, data=da.T, latlon=True)
 
     return m
 
 
-def get_filename(benchmark, variable, year):
-    template = "data/gridded_benchmarks/{b}/{b}_{v}_{y}.nc"
-    filename = template.format(b=benchmark, v=variable, y=year)
+def get_filename(name, variable, year):
+    template = "data/gridded_benchmarks/{n}/{n}_{v}_{y}.nc"
+    filename = template.format(n=name, v=variable, y=year)
 
     return filename
 
 
-def plot_all(benchmark, variable, year):
-    """TODO: Docstring for .
-    :returns: TODO
-
+def month_name(n):
+    """get month name from number
     """
-
     months = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
               'August', 'September', 'October', 'November', 'December']
 
-    filename = get_filename(benchmark, variable)
+    return months[n]
+
+
+def get_means(ds):
+    """get monthly and annual means"""
+    monthly_mean = da.groupby('time.month').mean(dim='time').copy()
+    annual_mean = monthly_mean.mean(dim='month')
+
+    return monthly_mean, annual_mean
+
+
+def get_stds(self, arg1):
+    """TODO: Docstring for get_stds.
+    """
+    monthly_std = da.groupby('time.month').std(dim='time').copy()
+    annual_std = da.std(dim='time').copy()
+    return monthly_std, annual_std
+
+
+def plot_year(name, variable, year):
+    """Plots annual and monthly means and std devs.
+    """
+
+    filename = get_filename(name, variable, year)
 
     # load file
     with xr.open_dataset(filename) as ds:
         da = ds[variable]
-        # da.where((-1e8 < da) & (da < 1e8))
+        monthly_mean, annual_mean = get_means(da)
+        monthly_std, annual_std = get_stds(da)
 
-        # monthly averages
-        monthly_mean = da.groupby('time.month').mean(dim='time')
-        monthly_std = da.groupby('time.month').std(dim='time')
-        annual_std = da.std(dim='time')
+    # TODO: STANDARDISE COLOR PROFILES?
+    # crange = [-50, 150]  # estimate with some leeway
 
-    annual_mean = monthly_mean.mean(dim='month')
+    print("Plotting monthly mean grid")
+    fig = plt.figure(0, (14, 8))
+    grid = ImageGrid(fig, 111, nrows_ncols=(3, 4), axes_pad=0.3,
+                     cbar_mode='single', cbar_location="bottom",)
+    for i in range(12):
+        plt.sca(grid[i])
+        plot_array(monthly_mean.sel(month=i + 1))
+        plt.title(month_name(i))
+    plt.suptitle("{n} - {y} monthly means".format(n=name, y=year))
+    # plt.colorbar()
+    plt.tight_layout()
 
-    crange = [-50, 150]  # estimate with some leeway
+    os.makedirs("plots/monthly_means/{y}".format(y=year), exist_ok=True)
+    plt.savefig("plots/monthly_means/{y}/{n}_{y}.png".format(n=name, y=year))
+    plt.close()
 
-    fig, axes = plt.subplots(nrows=3, ncols=4)
+    print("Plotting monthly std dev grid")
+    fig = plt.figure(0, (14, 8))
+    grid = ImageGrid(fig, 111, nrows_ncols=(3, 4), axes_pad=0.3,
+                     cbar_mode='single', cbar_location="bottom",)
     for i, m in enumerate(months):
-        # mean plot per month
-        ax = axes.flat[i]
-        plot_array(monthly_mean.sel(month=i + 1), ax=ax)
+        plt.sca(grid[i])
+        plot_array(monthly_std.sel(month=i + 1))
         plt.title(m)
-    plt.suptitle("{b} - {y} monthly means".format(b=benchmark, y=year))
-    plt.savefig("plots/montly_means/{y}/{b}".format(b=benchmark, y=year))
-    plt.colorbar(axes.flat)
+    plt.suptitle("{n} - {y} monthly std devs".format(n=name, y=year))
+    plt.tight_layout()
 
-    fig, axes = plt.subplots(nrows=3, ncols=4)
-    for i, m in enumerate(months):
-        # stddev plot per month
-        ax = axes.flat[i]
-        plot_array(monthly_std.sel(month=i + 1), ax=ax)
-        plt.title(m)
-    plt.suptitle("{b} - {y} monthly std devs")
-    plt.savefig("plots/montly_stds/{y}/{b}".format(b=benchmark, y=year))
+    os.makedirs("plots/monthly_stds/{y}".format(y=year), exist_ok=True)
+    plt.savefig("plots/monthly_stds/{y}/{n}_{y}.png".format(n=name, y=year))
+    plt.close()
+
+    print("Plotting annual Mean")
+    plot_array(annual_mean)
+    plt.title("{n} - {y} annual mean".format(n=name, y=year))
+    plt.tight_layout()
+    plt.colorbar()
+
+    os.makedirs("plots/annual_mean/{y}".format(y=year), exist_ok=True)
+    plt.savefig("plots/annual_mean/{y}/{n}_{y}.png".format(n=name, y=year))
+    plt.close()
+
+    print("Plotting annual Std dev")
+    plot_array(annual_std)
+    plt.title("{n} - {y} annual std dev".format(n=name, y=year))
+    plt.tight_layout()
+    plt.colorbar()
+
+    os.makedirs("plots/annual_std/{y}".format(y=year), exist_ok=True)
+    plt.savefig("plots/annual_std/{y}/{n}_{y}.png".format(n=name, y=year))
+    plt.close()
 
     # arrange/save plots
 
 
+def plot_all_years(name, variable, years):
+    """TODO: Docstring for plot_all_years.
+
+    :name: TODO
+    :returns: TODO
+
+    """
+    for y in range(*years):
+        # get annual data
+        # get means
+        # close dataset
+
+
 def main(args):
 
-    plot_all(args['<filename'], args['<variable>'], args['<year>'])
+    if args['year']:
+        plot_year(args['<name>'], args['<variable>'], args['<year>'])
+    elif args['all-years']:
+        plot_all_years(args['<name>'], args['<variable>'], years=[2000, 2007])
 
     return
 
