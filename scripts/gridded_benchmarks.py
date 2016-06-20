@@ -38,7 +38,7 @@ import pals_utils.data as pud
 from ubermodel.clusterregression import ModelByCluster
 from ubermodel.models import get_model_from_dict
 from ubermodel.data import get_data_dir
-from ubermodel.gridded_forcing import get_forcing_data, get_forcing_freq
+from ubermodel.gridded_datasets import get_dataset_data, get_dataset_freq
 
 
 def get_sites():
@@ -301,7 +301,7 @@ def get_benchmark_model(benchmark):
         sys.exit("Unknown benchmark {b}".format(b=benchmark))
 
 
-def predict_gridded(model, forcing_data, flux_vars, datafreq=None):
+def predict_gridded(model, dataset_data, flux_vars, datafreq=None):
     """predict model results for gridded data
 
     :model: TODO
@@ -310,31 +310,31 @@ def predict_gridded(model, forcing_data, flux_vars, datafreq=None):
 
     """
     # set prediction metadata
-    prediction = forcing_data[list(forcing_data.coords)]
+    prediction = dataset_data[list(dataset_data.coords)]
 
     # Arrays like (var, lon, lat, time)
     result = np.full([len(flux_vars),
-                      forcing_data.dims['lon'],
-                      forcing_data.dims['lat'],
-                      forcing_data.dims['time']],
+                      dataset_data.dims['lon'],
+                      dataset_data.dims['lat'],
+                      dataset_data.dims['time']],
                      np.nan)
 
     print("lon:    ", end='', flush=True)
 
-    for lon in range(len(forcing_data['lon'])):
+    for lon in range(len(dataset_data['lon'])):
         print("\b\b\b\b\b", str(lon).rjust(4), end='', flush=True)
-        for lat in range(len(forcing_data['lat'])):
+        for lat in range(len(dataset_data['lat'])):
             # If data has fill values, only predict with masked data
-            first_step = forcing_data.isel(time=0, lat=lat, lon=lon).to_array()
+            first_step = dataset_data.isel(time=0, lat=lat, lon=lon).to_array()
             if (np.all(-1e8 < first_step) and np.all(first_step < 1e8)):
                 if datafreq is not None:
                     result[:, lon, lat, :] = model.predict(
-                        forcing_data.isel(lat=lat, lon=lon).to_array().T,
+                        dataset_data.isel(lat=lat, lon=lon).to_array().T,
                         datafreq=datafreq
                     ).T
                 else:
                     result[:, lon, lat, :] = model.predict(
-                        forcing_data.isel(lat=lat, lon=lon).to_array().T
+                        dataset_data.isel(lat=lat, lon=lon).to_array().T
                     ).T
     print("")
 
@@ -342,7 +342,7 @@ def predict_gridded(model, forcing_data, flux_vars, datafreq=None):
         prediction.update(
             {fv: xr.DataArray(result[i, :, :, :],
                               dims=['lon', 'lat', 'time'],
-                              coords=forcing_data.coords
+                              coords=dataset_data.coords
                               )
              }
         )
@@ -350,12 +350,12 @@ def predict_gridded(model, forcing_data, flux_vars, datafreq=None):
     return prediction
 
 
-def xr_add_attributes(ds, benchmark, forcing, sites):
+def xr_add_attributes(ds, benchmark, dataset, sites):
 
     ds.attrs["Model name"] = benchmark
     met_vars, flux_vars = get_model_vars(benchmark)
     ds.attrs["Forcing_variables"] = ', '.join(met_vars)
-    ds.attrs["Forcing_dataset"] = forcing
+    ds.attrs["Forcing_dataset"] = dataset
     ds.attrs["Training_dataset"] = "Fluxnet_1.4"
     ds.attrs["Training_sites"] = ', '.join(sites)
     ds.attrs["Production_time"] = datetime.datetime.now().isoformat()
@@ -364,7 +364,7 @@ def xr_add_attributes(ds, benchmark, forcing, sites):
     ds.attrs["Contact"] = "ned@nedhaughton.com"
 
 
-def fit_and_predict(benchmark, forcing, years='2012-2013'):
+def fit_and_predict(benchmark, dataset, years='2012-2013'):
     """Fit a benchmark to some PALS files, then generate an output matching a gridded dataset
     """
 
@@ -385,22 +385,22 @@ def fit_and_predict(benchmark, forcing, years='2012-2013'):
     model.fit(met_data, flux_data)
 
     # prediction datasets
-    outdir = "{d}/gridded_benchmarks/{b}_{f}".format(d=get_data_dir(), b=benchmark, f=forcing)
+    outdir = "{d}/gridded_benchmarks/{b}_{d}".format(d=get_data_dir(), b=benchmark, d=dataset)
     os.makedirs(outdir, exist_ok=True)
-    outfile_tpl = outdir + "/{b}_{f}_{v}_{y}.nc"
+    outfile_tpl = outdir + "/{b}_{d}_{v}_{y}.nc"
     for year in range(*years):
 
         print("Loading Forcing data for", year)
-        data = get_forcing_data(forcing, met_vars, year)
+        data = get_dataset_data(dataset, met_vars, year)
         print("Predicting", year, end=': ', flush=True)
         if "lag" in benchmark:
-            result = predict_gridded(model, data, flux_vars, datafreq=get_forcing_freq(forcing))
+            result = predict_gridded(model, data, flux_vars, datafreq=get_dataset_freq(dataset))
         else:
             result = predict_gridded(model, data, flux_vars)
 
-        xr_add_attributes(result, benchmark, forcing, sites)
+        xr_add_attributes(result, benchmark, dataset, sites)
         for fv in flux_vars:
-            filename = outfile_tpl.format(b=benchmark, f=forcing, v=fv, y=year)
+            filename = outfile_tpl.format(b=benchmark, d=dataset, v=fv, y=year)
             print("saving to ", filename)
             result[[fv]].to_netcdf(filename, encoding={fv: {'dtype': 'float32'}})
 

@@ -5,4 +5,4 @@ from . import utils
 from . import clusterregression
 from . import transforms
 from . import data
-from . import gridded_forcing
+from . import gridded_datasets

@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-File: gridded_forcing.py
+File: gridded_datasets.py
 Author: naught101
 Email: naught101@email.com
 Github: https://github.com/naught101/
-Description: Helpers for gridded forcing datasets
+Description: Helpers for gridded datasets
 """
 
 import sys
@@ -19,15 +19,15 @@ import pals_utils.data as pud
 from ubermodel.data import get_data_dir
 
 
-def get_forcing_vars(forcing, met_vars, in_file=False):
-    """get the names of forcing variables for each forcing dataset
+def get_dataset_vars(dataset, met_vars, in_file=False):
+    """get the names of dataset variables for each dataset
 
-    :forcing: TODO
+    :dataset: TODO
     :met_vars: TODO
     :returns: TODO
 
     """
-    if forcing == "PRINCETON":
+    if dataset == "PRINCETON":
         var_dict = dict(
             LWdown="dlwrf",
             PSurf="pres",
@@ -36,7 +36,7 @@ def get_forcing_vars(forcing, met_vars, in_file=False):
             Tair="tas",
             Qair="shum",
             Rainf="prcp")
-    elif forcing == "CRUNCEP":
+    elif dataset == "CRUNCEP":
         if in_file:
             var_dict = dict(
                 LWdown="Incoming_Long_Wave_Radiation",
@@ -55,24 +55,24 @@ def get_forcing_vars(forcing, met_vars, in_file=False):
                 Tair="tair",
                 Qair="qair",
                 Rainf="rain")
-    elif forcing in ["WATCH_WFDEI", "GSWP3"]:
+    elif dataset in ["WATCH_WFDEI", "GSWP3"]:
         return met_vars
     else:
-        sys.exit("Unknown forcing dataset %s - more coming later" % forcing)
+        sys.exit("Unknown dataset %s - more coming later" % dataset)
 
     return {v: var_dict[v] for v in met_vars}
 
 
-def get_forcing_freq(forcing):
-    """returns the data rate in hours for each forcing"""
-    if forcing in ["PRINCETON", "GSWP3"]:
+def get_dataset_freq(dataset):
+    """returns the data rate in hours for each dataset"""
+    if dataset in ["PRINCETON", "GSWP3"]:
         return 3
-    elif forcing == "CRUNCEP":
+    elif dataset == "CRUNCEP":
         return 6
-    elif forcing in ["WATCH_WFDEI"]:
+    elif dataset in ["WATCH_WFDEI"]:
         return 8
     else:
-        sys.exit("Unknown forcing dataset %s - more coming later" % forcing)
+        sys.exit("Unknown dataset %s - more coming later" % dataset)
 
 
 def get_cruncep_datetime(timestep, year):
@@ -117,11 +117,11 @@ def get_CRUNCEP_data(met_vars, year):
 
     file_tpl = "{d}/gridded/CRUNCEP/cruncep2015_1_{v}_{y}.nc"
 
-    forcing_vars = get_forcing_vars('CRUNCEP', met_vars)
-    infile_vars = get_forcing_vars('CRUNCEP', met_vars, in_file=True)
+    dataset_vars = get_dataset_vars('CRUNCEP', met_vars)
+    infile_vars = get_dataset_vars('CRUNCEP', met_vars, in_file=True)
 
     data = {}
-    for v, fv in forcing_vars.items():
+    for v, fv in dataset_vars.items():
         # TODO: CRUNCEP uses a mask variable, so replace with NANs?
         with xr.open_dataset(file_tpl.format(d=get_data_dir(), v=fv, y=year)) as ds:
             data[v] = correct_CRUNCEP_coords(ds, infile_vars[v], year)
@@ -150,10 +150,10 @@ def get_PRINCETON_data(met_vars, year):
 
     file_tpl = "{d}/gridded/PRINCETON/0_5_3hourly/{v}_3hourly_{y}-{y}.nc"
 
-    forcing_vars = get_forcing_vars('PRINCETON', met_vars)
+    dataset_vars = get_dataset_vars('PRINCETON', met_vars)
 
     data = {}
-    for v, fv in forcing_vars.items():
+    for v, fv in dataset_vars.items():
         with xr.open_dataset(file_tpl.format(d=get_data_dir(), v=fv, y=year)) as ds:
             data[v] = ds[fv].copy()
     data = xr.Dataset(data)
@@ -185,7 +185,7 @@ def get_relhum(data):
     data['RelHum'] = pud.Spec2RelHum(data['Qair'], data['Tair'], data['PSurf'])
 
 
-def get_forcing_data(forcing, met_vars, year):
+def get_dataset_data(dataset, met_vars, year):
     """Loads a single xarray dataset from multiple files.
     """
     relhum = 'RelHum' in met_vars
@@ -195,13 +195,13 @@ def get_forcing_data(forcing, met_vars, year):
         met_vars.remove('RelHum')
         met_vars = set(met_vars).union(['Tair', 'Qair', 'PSurf'])
 
-    if forcing == 'CRUNCEP':
+    if dataset == 'CRUNCEP':
         data = get_CRUNCEP_data(met_vars, year)
-    if forcing == 'GSWP3':
+    if dataset == 'GSWP3':
         data = get_GSWP3_data(met_vars, year)
-    if forcing == 'PRINCETON':
+    if dataset == 'PRINCETON':
         data = get_PRINCETON_data(met_vars, year)
-    if forcing == 'WATCH_WFDEI':
+    if dataset == 'WATCH_WFDEI':
         data = get_WATCH_WFDEI_data(met_vars, year)
 
     if relhum:
