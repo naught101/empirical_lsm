@@ -8,7 +8,7 @@ Github: https://github.com/naught101/
 Description: TODO: File description
 
 Usage:
-    plot_dataset.py year <filename> <variable> <year>
+    plot_dataset.py year <benchmark> <variable> <year>
     plot_dataset.py (-h | --help | --version)
 
 Options:
@@ -35,7 +35,7 @@ def plot_array(da, ax=None, shift=True):
 
     m = basemap.Basemap()
     m.drawcoastlines()
-    m.pcolormesh(m.pcolormesh(x=da.lon, y=da.lat, data=da.T, latlon=True))
+    m.pcolormesh(da.lon, y=da.lat, data=da.T, latlon=True)
 
     return m
 
@@ -47,10 +47,8 @@ def get_filename(benchmark, variable, year):
     return filename
 
 
-def plot_all(benchmark, variable, year):
-    """TODO: Docstring for .
-    :returns: TODO
-
+def plot_year(benchmark, variable, year):
+    """Plots annual and monthly means and std devs.
     """
 
     months = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
@@ -73,7 +71,7 @@ def plot_all(benchmark, variable, year):
     # crange = [-50, 150]  # estimate with some leeway
 
     print("Plotting monthly mean grid")
-    fig = plt.figure(0, (12, 8))
+    fig = plt.figure(0, (14, 8))
     grid = ImageGrid(fig, 111, nrows_ncols=(3, 4), axes_pad=0.3,
                      cbar_mode='single', cbar_location="bottom",)
     for i, m in enumerate(months):
@@ -82,12 +80,14 @@ def plot_all(benchmark, variable, year):
         plt.title(m)
     plt.suptitle("{b} - {y} monthly means".format(b=benchmark, y=year))
     # plt.colorbar()
+    plt.tight_layout()
+
     os.makedirs("plots/monthly_means/{y}".format(y=year), exist_ok=True)
     plt.savefig("plots/monthly_means/{y}/{b}_{y}.png".format(b=benchmark, y=year))
     plt.close()
 
     print("Plotting monthly std dev grid")
-    fig = plt.figure(0, (12, 8))
+    fig = plt.figure(0, (14, 8))
     grid = ImageGrid(fig, 111, nrows_ncols=(3, 4), axes_pad=0.3,
                      cbar_mode='single', cbar_location="bottom",)
     for i, m in enumerate(months):
@@ -95,6 +95,8 @@ def plot_all(benchmark, variable, year):
         plot_array(monthly_std.sel(month=i + 1))
         plt.title(m)
     plt.suptitle("{b} - {y} monthly std devs".format(b=benchmark, y=year))
+    plt.tight_layout()
+
     os.makedirs("plots/monthly_stds/{y}".format(y=year), exist_ok=True)
     plt.savefig("plots/monthly_stds/{y}/{b}_{y}.png".format(b=benchmark, y=year))
     plt.close()
@@ -102,6 +104,8 @@ def plot_all(benchmark, variable, year):
     print("Plotting annual Mean")
     plot_array(annual_mean)
     plt.title("{b} - {y} annual mean".format(b=benchmark, y=year))
+    plt.tight_layout()
+    plt.colorbar()
 
     os.makedirs("plots/annual_mean/{y}".format(y=year), exist_ok=True)
     plt.savefig("plots/annual_mean/{y}/{b}_{y}.png".format(b=benchmark, y=year))
@@ -110,6 +114,9 @@ def plot_all(benchmark, variable, year):
     print("Plotting annual Std dev")
     plot_array(annual_std)
     plt.title("{b} - {y} annual std dev".format(b=benchmark, y=year))
+    plt.tight_layout()
+    plt.colorbar()
+
     os.makedirs("plots/annual_std/{y}".format(y=year), exist_ok=True)
     plt.savefig("plots/annual_std/{y}/{b}_{y}.png".format(b=benchmark, y=year))
     plt.close()
@@ -119,7 +126,8 @@ def plot_all(benchmark, variable, year):
 
 def main(args):
 
-    plot_all(args['<filename>'], args['<variable>'], args['<year>'])
+    if args['year']:
+        plot_year(args['<benchmark>'], args['<variable>'], args['<year>'])
 
     return
 
