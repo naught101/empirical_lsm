@@ -25,8 +25,6 @@ import matplotlib.pyplot as plt
 from mpl_toolkits import basemap
 from mpl_toolkits.axes_grid1 import ImageGrid
 
-from ubermodel import get_forcing_data
-
 
 def get_range(x):
     return np.quantile(x, [0, 100])
@@ -58,7 +56,7 @@ def month_name(n):
     return months[n]
 
 
-def get_means(ds):
+def get_means(da):
     """get monthly and annual means"""
     monthly_mean = da.groupby('time.month').mean(dim='time').copy()
     annual_mean = monthly_mean.mean(dim='month')
@@ -66,7 +64,7 @@ def get_means(ds):
     return monthly_mean, annual_mean
 
 
-def get_stds(self, arg1):
+def get_stds(da):
     """TODO: Docstring for get_stds.
     """
     monthly_std = da.groupby('time.month').std(dim='time').copy()
@@ -109,10 +107,10 @@ def plot_year(name, variable, year):
     fig = plt.figure(0, (14, 8))
     grid = ImageGrid(fig, 111, nrows_ncols=(3, 4), axes_pad=0.3,
                      cbar_mode='single', cbar_location="bottom",)
-    for i, m in enumerate(months):
+    for i in range(12):
         plt.sca(grid[i])
         plot_array(monthly_std.sel(month=i + 1))
-        plt.title(m)
+        plt.title(month_name(i))
     plt.suptitle("{n} - {y} monthly std devs".format(n=name, y=year))
     plt.tight_layout()
 
@@ -154,6 +152,7 @@ def plot_all_years(name, variable, years):
         # get annual data
         # get means
         # close dataset
+        pass
 
 
 def main(args):
