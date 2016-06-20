@@ -13,16 +13,17 @@ Usage:
 
 Options:
     -h, --help    Show this screen and exit.
-    --option=<n>  Option description [default: 3]
 """
 
 from docopt import docopt
 
+import os
 import xarray as xr
 import numpy as np
 import matplotlib.pyplot as plt
 
 from mpl_toolkits import basemap
+from mpl_toolkits.axes_grid1 import ImageGrid
 
 
 def get_range(x):
@@ -55,7 +56,7 @@ def plot_all(benchmark, variable, year):
     months = ['January', 'February', 'March', 'April', 'May', 'June', 'July',
               'August', 'September', 'October', 'November', 'December']
 
-    filename = get_filename(benchmark, variable)
+    filename = get_filename(benchmark, variable, year)
 
     # load file
     with xr.open_dataset(filename) as ds:
@@ -63,39 +64,62 @@ def plot_all(benchmark, variable, year):
         # da.where((-1e8 < da) & (da < 1e8))
 
         # monthly averages
-        monthly_mean = da.groupby('time.month').mean(dim='time')
-        monthly_std = da.groupby('time.month').std(dim='time')
-        annual_std = da.std(dim='time')
+        monthly_mean = da.groupby('time.month').mean(dim='time').copy()
+        monthly_std = da.groupby('time.month').std(dim='time').copy()
+        annual_std = da.std(dim='time').copy()
 
     annual_mean = monthly_mean.mean(dim='month')
 
-    crange = [-50, 150]  # estimate with some leeway
+    # crange = [-50, 150]  # estimate with some leeway
 
-    fig, axes = plt.subplots(nrows=3, ncols=4)
+    print("Plotting monthly mean grid")
+    fig = plt.figure(0, (12, 8))
+    grid = ImageGrid(fig, 111, nrows_ncols=(3, 4), axes_pad=0.3,
+                     cbar_mode='single', cbar_location="bottom",)
     for i, m in enumerate(months):
-        # mean plot per month
-        ax = axes.flat[i]
-        plot_array(monthly_mean.sel(month=i + 1), ax=ax)
+        plt.sca(grid[i])
+        plot_array(monthly_mean.sel(month=i + 1))
         plt.title(m)
     plt.suptitle("{b} - {y} monthly means".format(b=benchmark, y=year))
-    plt.savefig("plots/montly_means/{y}/{b}".format(b=benchmark, y=year))
-    plt.colorbar(axes.flat)
+    # plt.colorbar()
+    os.makedirs("plots/monthly_means/{y}".format(y=year), exist_ok=True)
+    plt.savefig("plots/monthly_means/{y}/{b}_{y}.png".format(b=benchmark, y=year))
+    plt.close()
 
-    fig, axes = plt.subplots(nrows=3, ncols=4)
+    print("Plotting monthly std dev grid")
+    fig = plt.figure(0, (12, 8))
+    grid = ImageGrid(fig, 111, nrows_ncols=(3, 4), axes_pad=0.3,
+                     cbar_mode='single', cbar_location="bottom",)
     for i, m in enumerate(months):
-        # stddev plot per month
-        ax = axes.flat[i]
-        plot_array(monthly_std.sel(month=i + 1), ax=ax)
+        plt.sca(grid[i])
+        plot_array(monthly_std.sel(month=i + 1))
         plt.title(m)
-    plt.suptitle("{b} - {y} monthly std devs")
-    plt.savefig("plots/montly_stds/{y}/{b}".format(b=benchmark, y=year))
+    plt.suptitle("{b} - {y} monthly std devs".format(b=benchmark, y=year))
+    os.makedirs("plots/monthly_stds/{y}".format(y=year), exist_ok=True)
+    plt.savefig("plots/monthly_stds/{y}/{b}_{y}.png".format(b=benchmark, y=year))
+    plt.close()
+
+    print("Plotting annual Mean")
+    plot_array(annual_mean)
+    plt.title("{b} - {y} annual mean".format(b=benchmark, y=year))
+
+    os.makedirs("plots/annual_mean/{y}".format(y=year), exist_ok=True)
+    plt.savefig("plots/annual_mean/{y}/{b}_{y}.png".format(b=benchmark, y=year))
+    plt.close()
+
+    print("Plotting annual Std dev")
+    plot_array(annual_std)
+    plt.title("{b} - {y} annual std dev".format(b=benchmark, y=year))
+    os.makedirs("plots/annual_std/{y}".format(y=year), exist_ok=True)
+    plt.savefig("plots/annual_std/{y}/{b}_{y}.png".format(b=benchmark, y=year))
+    plt.close()
 
     # arrange/save plots
 
 
 def main(args):
 
-    plot_all(args['<filename'], args['<variable>'], args['<year>'])
+    plot_all(args['<filename>'], args['<variable>'], args['<year>'])
 
     return
 
