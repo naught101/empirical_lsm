@@ -179,6 +179,48 @@ def get_WATCH_WFDEI_data(met_vars, year):
     return data
 
 
+def get_MODIS_data(met_vars, year):
+    assert met_vars == ['Qle'], 'MODIS loading is incomplete'
+
+    file_tpl = '{d}/gridded/MODIS/MOD16_{v}_GSWP3_{y}.nc'
+
+    data = {}
+    for v in met_vars:
+        with xr.open_dataset(file_tpl.format(d=get_data_dir(), v='ET', y=year)) as ds:
+            data['Qle'] = ds['et'].copy()
+    data = xr.Dataset(data)
+
+    return data
+
+
+def get_MPI_data(met_vars, year):
+    assert met_vars == ['Qle'], 'MPI loading is incomplete'
+
+    file_tpl = '{d}/gridded/MPI/Ensemble{v}cor_May12.{y}.nc'
+
+    data = {}
+    for v in met_vars:
+        with xr.open_dataset(file_tpl.format(d=get_data_dir(), v='LE', y=year), decode_times=False) as ds:
+            data['Qle'] = ds['EnsembleLEcor_May12'].copy()
+    data = xr.Dataset(data)
+
+    return data
+
+
+def get_GLEAM3a_data(met_vars, year):
+    assert met_vars == ['Qle'], 'GLEAM loading is incomplete'
+
+    file_tpl = '{d}/gridded/GLEAM_v3a_BETA/{v}_{y}_GLEAM_v3a_BETA.nc'
+
+    data = {}
+    for v in met_vars:
+        with xr.open_dataset(file_tpl.format(d=get_data_dir(), v='Et', y=year), decode_times=False) as ds:
+            data['Qle'] = ds['Et'].copy()
+    data = xr.Dataset(data)
+
+    return data
+
+
 def get_relhum(data):
     """Get relative humidity from specific humidity"""
 
