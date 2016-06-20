@@ -35,7 +35,11 @@ def plot_array(da, ax=None, shift=True):
 
     m = basemap.Basemap()
     m.drawcoastlines()
-    m.pcolormesh(da.lon, y=da.lat, data=da.T, latlon=True)
+    lons = da.lon.values
+    lons[lons > 180] -= 360
+    lons, lats = np.meshgrid(lons, da.lat)
+    masked_data = basemap.maskoceans(lonsin=lons, latsin=lats, datain=da.T)
+    m.pcolormesh(da.lon, y=da.lat, data=masked_data, latlon=True)
 
     return m
 
