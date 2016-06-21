@@ -24,22 +24,45 @@ import matplotlib.pyplot as plt
 
 from mpl_toolkits import basemap
 from mpl_toolkits.axes_grid1 import ImageGrid
+from matplotlib.colors import LinearSegmentedColormap
 
 
 def get_range(x):
     return np.quantile(x, [0, 100])
 
 
-def plot_array(da, ax=None, shift=True):
+def colormap(z):
+    """custom colourmap for map plots"""
+
+    z2 = (1 + z) / 2
+
+    cdict1 = {'red': ((0.0, 0.0, 0.0),
+                      (z,   0.9, 0.9),
+                      (z2,  1.0, 1.0),
+                      (1.0, 0.2, 0.2)),
+              'green': ((0.0, 0.0, 0.0),
+                        (z,   0.9, 0.9),
+                        (z2,  0.0, 0.0),
+                        (1.0, 0.0, 0.0)),
+              'blue': ((0.0, 1.0, 1.0),
+                       (z,   0.9, 0.9),
+                       (z2,  0.0, 0.0),
+                       (1.0, 0.0, 0.0))
+              }
+
+    return LinearSegmentedColormap('BlueRed1', cdict1)
+
+
+def plot_array(da, ax=None, shift=True, cmap=None, vmin=None, vmax=None):
     """plots an array of lat by lon on a coastline map"""
 
     m = basemap.Basemap()
-    m.drawcoastlines()
+    # m.drawcoastlines()
     lons = da.lon.values
     lons[lons > 180] -= 360
     lons, lats = np.meshgrid(lons, da.lat)
     masked_data = basemap.maskoceans(lonsin=lons, latsin=lats, datain=da.T)
-    m.pcolormesh(da.lon, y=da.lat, data=masked_data, latlon=True)
+    m.pcolormesh(da.lon, y=da.lat, data=masked_data, latlon=True, vmin=vmin, vmax=vmax, cmap=cmap)
 
     return m
 
@@ -88,33 +111,35 @@ def plot_year(name, variable, year):
         monthly_mean, annual_mean = get_means(da)
         monthly_std, annual_std = get_stds(da)
 
-    # TODO: STANDARDISE COLOR PROFILES?
-    # crange = [-50, 150]  # estimate with some leeway
-
+    # MONTHLY MEAN
     print("Plotting monthly mean grid")
+    cmap = colormap(0.25)
+    vmin, vmax = [-50, 150]  # estimate with some leeway
     fig = plt.figure(0, (14, 8))
     grid = ImageGrid(fig, 111, nrows_ncols=(3, 4), axes_pad=0.3,
                      cbar_mode='single', cbar_location="bottom",)
     for i in range(12):
         plt.sca(grid[i])
-        plot_array(monthly_mean.sel(month=i + 1))
+        plot_array(monthly_mean.sel(month=i + 1), vmin=vmin, vmax=vmax, cmap=cmap)
         plt.title(month_name(i))
     plt.suptitle("{n} - {y} monthly means".format(n=name, y=year))
     plt.colorbar(cax=grid[0].cax, orientation='horizontal')
-    # plt.colorbar()
     plt.tight_layout()
 
     os.makedirs("plots/monthly_means/{y}".format(y=year), exist_ok=True)
     plt.savefig("plots/monthly_means/{y}/{n}_{y}.png".format(n=name, y=year))
     plt.close()
 
+    # MONTHLY STD
     print("Plotting monthly std dev grid")
+    cmap = colormap(0)
+    vmin, vmax = [0, 150]  # estimate with some leeway
     fig = plt.figure(0, (14, 8))
     grid = ImageGrid(fig, 111, nrows_ncols=(3, 4), axes_pad=0.3,
                      cbar_mode='single', cbar_location="bottom",)
     for i in range(12):
         plt.sca(grid[i])
-        plot_array(monthly_std.sel(month=i + 1))
+        plot_array(monthly_std.sel(month=i + 1), vmin=vmin, vmax=vmax, cmap=cmap)
         plt.title(month_name(i))
     plt.suptitle("{n} - {y} monthly std devs".format(n=name, y=year))
     plt.colorbar(cax=grid[0].cax, orientation='horizontal')
@@ -124,9 +149,13 @@ def plot_year(name, variable, year):
     plt.savefig("plots/monthly_stds/{y}/{n}_{y}.png".format(n=name, y=year))
     plt.close()
 
+    # ANNUAL MEAN
     print("Plotting annual Mean")
+    # Standardised color profiles for monthly means
+    cmap = colormap(0.2)
+    vmin, vmax = [-25, 100]  # estimate with some leeway
     plt.figure(0, (10, 5))
-    plot_array(annual_mean)
+    plot_array(annual_mean, vmin=vmin, vmax=vmax, cmap=cmap)
     plt.title("{n} - {y} annual mean".format(n=name, y=year))
     plt.tight_layout()
     plt.colorbar(fraction=0.1, shrink=0.8)
@@ -136,15 +165,17 @@ def plot_year(name, variable, year):
     plt.close()
 
     print("Plotting annual Std dev")
+    cmap = colormap(0)
+    vmin, vmax = [0, 150]  # estimate with some leeway
     plt.figure(0, (10, 5))
-    plot_array(annual_std)
+    plot_array(annual_std, vmin=vmin, vmax=vmax, cmap=cmap)
     plt.title("{n} - {y} annual std dev".format(n=name, y=year))
     plt.tight_layout()
-    plt.colorbar()
+    plt.colorbar(fraction=0.1, shrink=0.8)
 
     os.makedirs("plots/annual_std/{y}".format(y=year), exist_ok=True)
     plt.savefig("plots/annual_std/{y}/{n}_{y}.png".format(n=name, y=year))
-    plt.close(fraction=0.1, shrink=0.8)
+    plt.close()
 
     # arrange/save plots
 
