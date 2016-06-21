@@ -34,21 +34,34 @@ def get_range(x):
 def colormap(z):
     """custom colourmap for map plots"""
 
-    z2 = (1 + z) / 2
+    if z > 0:
+        z2 = (1 + z) / 2
 
-    cdict1 = {'red': ((0.0, 0.0, 0.0),
-                      (z, 0.9, 0.9),
-                      (z2, 1.0, 1.0),
-                      (1.0, 0.2, 0.2)),
-              'green': ((0.0, 0.0, 0.0),
-                        (z, 0.9, 0.9),
-                        (z2, 0.0, 0.0),
-                        (1.0, 0.0, 0.0)),
-              'blue': ((0.0, 1.0, 1.0),
-                       (z, 0.9, 0.9),
-                       (z2, 0.0, 0.0),
-                       (1.0, 0.0, 0.0))
-              }
+        cdict1 = {'red': ((0.0, 0.0, 0.0),
+                          (z, 0.9, 0.9),
+                          (z2, 1.0, 1.0),
+                          (1.0, 0.2, 0.2)),
+                  'green': ((0.0, 0.0, 0.0),
+                            (z, 0.9, 0.9),
+                            (z2, 0.0, 0.0),
+                            (1.0, 0.0, 0.0)),
+                  'blue': ((0.0, 1.0, 1.0),
+                           (z, 0.9, 0.9),
+                           (z2, 0.0, 0.0),
+                           (1.0, 0.0, 0.0))
+                  }
+    else:
+        cdict1 = {'red': ((0.0, 0.9, 0.9),
+                          (0.5, 1.0, 1.0),
+                          (1.0, 0.2, 0.2)),
+                  'green': ((0.0, 0.9, 0.9),
+                            (0.5, 0.0, 0.0),
+                            (1.0, 0.0, 0.0)),
+                  'blue': ((0.0, 0.9, 0.9),
+                           (0.5, 0.0, 0.0),
+                           (1.0, 0.0, 0.0))
+                  }
+
 
     return LinearSegmentedColormap('BlueRed1', cdict1, N=15)
 
@@ -127,7 +140,7 @@ def plot_year(name, variable, year):
     plt.tight_layout()
 
     os.makedirs("plots/monthly_means/{y}".format(y=year), exist_ok=True)
-    plt.savefig("plots/monthly_means/{y}/{n}_{y}.png".format(n=name, y=year))
+    plt.savefig("plots/monthly_means/{y}/{n}_{y}_monthly_means.png".format(n=name, y=year))
     plt.close()
 
     # MONTHLY STD
@@ -146,7 +159,7 @@ def plot_year(name, variable, year):
     plt.tight_layout()
 
     os.makedirs("plots/monthly_stds/{y}".format(y=year), exist_ok=True)
-    plt.savefig("plots/monthly_stds/{y}/{n}_{y}.png".format(n=name, y=year))
+    plt.savefig("plots/monthly_stds/{y}/{n}_{y}_monthly_stdev.png".format(n=name, y=year))
     plt.close()
 
     # ANNUAL MEAN
@@ -161,7 +174,7 @@ def plot_year(name, variable, year):
     plt.colorbar(fraction=0.1, shrink=0.8)
 
     os.makedirs("plots/annual_mean/{y}".format(y=year), exist_ok=True)
-    plt.savefig("plots/annual_mean/{y}/{n}_{y}.png".format(n=name, y=year))
+    plt.savefig("plots/annual_mean/{y}/{n}_{y}_annual_mean.png".format(n=name, y=year))
     plt.close()
 
     print("Plotting annual Std dev")
@@ -174,10 +187,8 @@ def plot_year(name, variable, year):
     plt.colorbar(fraction=0.1, shrink=0.8)
 
     os.makedirs("plots/annual_std/{y}".format(y=year), exist_ok=True)
-    plt.savefig("plots/annual_std/{y}/{n}_{y}.png".format(n=name, y=year))
+    plt.savefig("plots/annual_std/{y}/{n}_{y}_annual_stdev.png".format(n=name, y=year))
     plt.close()
-
-    # arrange/save plots
 
 
 def plot_all_years(name, variable, years):
