@@ -50,6 +50,7 @@ def colormap(z):
                            (z2, 0.0, 0.0),
                            (1.0, 0.0, 0.0))
                   }
+        N = 15
     else:
         cdict1 = {'red': ((0.0, 0.9, 0.9),
                           (0.5, 1.0, 1.0),
@@ -61,9 +62,9 @@ def colormap(z):
                            (0.5, 0.0, 0.0),
                            (1.0, 0.0, 0.0))
                   }
+        N = 10
 
-
-    return LinearSegmentedColormap('BlueRed1', cdict1, N=15)
+    return LinearSegmentedColormap('BlueRed1', cdict1, N=N)
 
 
 def plot_array(da, ax=None, shift=True, cmap=None, vmin=None, vmax=None):
@@ -71,10 +72,15 @@ def plot_array(da, ax=None, shift=True, cmap=None, vmin=None, vmax=None):
 
     m = basemap.Basemap()
     # m.drawcoastlines()
-    lons = da.lon.values
-    lons[lons > 180] -= 360
-    lons, lats = np.meshgrid(lons, da.lat)
-    masked_data = basemap.maskoceans(lonsin=lons, latsin=lats, datain=da.T)
+
+    if np.any(np.isnan(da)):
+        masked_data = np.ma.masked_where(np.isnan(da), da).T
+    else:
+        lons = da.lon.values
+        lons[lons > 180] -= 360
+        lons, lats = np.meshgrid(lons, da.lat)
+        masked_data = basemap.maskoceans(lonsin=lons, latsin=lats, datain=da.T)
+
     m.pcolormesh(da.lon, y=da.lat, data=masked_data, latlon=True, vmin=vmin, vmax=vmax, cmap=cmap)
 
     return m
