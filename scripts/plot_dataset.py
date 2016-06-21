@@ -100,6 +100,7 @@ def plot_year(name, variable, year):
         plot_array(monthly_mean.sel(month=i + 1))
         plt.title(month_name(i))
     plt.suptitle("{n} - {y} monthly means".format(n=name, y=year))
+    plt.colorbar(cax=grid[0].cax, orientation='horizontal')
     # plt.colorbar()
     plt.tight_layout()
 
@@ -116,6 +117,7 @@ def plot_year(name, variable, year):
         plot_array(monthly_std.sel(month=i + 1))
         plt.title(month_name(i))
     plt.suptitle("{n} - {y} monthly std devs".format(n=name, y=year))
+    plt.colorbar(cax=grid[0].cax, orientation='horizontal')
     plt.tight_layout()
 
     os.makedirs("plots/monthly_stds/{y}".format(y=year), exist_ok=True)
@@ -123,16 +125,18 @@ def plot_year(name, variable, year):
     plt.close()
 
     print("Plotting annual Mean")
+    plt.figure(0, (10, 5))
     plot_array(annual_mean)
     plt.title("{n} - {y} annual mean".format(n=name, y=year))
     plt.tight_layout()
-    plt.colorbar()
+    plt.colorbar(fraction=0.1, shrink=0.8)
 
     os.makedirs("plots/annual_mean/{y}".format(y=year), exist_ok=True)
     plt.savefig("plots/annual_mean/{y}/{n}_{y}.png".format(n=name, y=year))
     plt.close()
 
     print("Plotting annual Std dev")
+    plt.figure(0, (10, 5))
     plot_array(annual_std)
     plt.title("{n} - {y} annual std dev".format(n=name, y=year))
     plt.tight_layout()
@@ -140,7 +144,7 @@ def plot_year(name, variable, year):
 
     os.makedirs("plots/annual_std/{y}".format(y=year), exist_ok=True)
     plt.savefig("plots/annual_std/{y}/{n}_{y}.png".format(n=name, y=year))
-    plt.close()
+    plt.close(fraction=0.1, shrink=0.8)
 
     # arrange/save plots
 
