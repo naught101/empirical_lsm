@@ -50,7 +50,7 @@ def colormap(z):
                        (1.0, 0.0, 0.0))
               }
 
-    return LinearSegmentedColormap('BlueRed1', cdict1)
+    return LinearSegmentedColormap('BlueRed1', cdict1, N=15)
 
 
 def plot_array(da, ax=None, shift=True, cmap=None, vmin=None, vmax=None):
