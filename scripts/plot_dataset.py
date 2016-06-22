@@ -26,6 +26,8 @@ from mpl_toolkits import basemap
 from mpl_toolkits.axes_grid1 import ImageGrid
 from matplotlib.colors import LinearSegmentedColormap
 
+from ubermodel.gridded_datasets import get_MODIS_data  # , get_GLEAM3a_data, get_MPI_data
+
 
 def get_range(x):
     return np.quantile(x, [0, 100])
@@ -86,7 +88,7 @@ def plot_array(da, ax=None, shift=True, cmap=None, vmin=None, vmax=None):
     return m
 
 
-def get_filename(name, variable, year):
+def get_benchmark_filename(name, variable, year):
     template = "data/gridded_benchmarks/{n}/{n}_{v}_{y}.nc"
     filename = template.format(n=name, v=variable, y=year)
 
@@ -118,19 +120,7 @@ def get_stds(da):
     return monthly_std, annual_std
 
 
-def plot_year(name, variable, year):
-    """Plots annual and monthly means and std devs.
-    """
-
-    filename = get_filename(name, variable, year)
-
-    # load file
-    with xr.open_dataset(filename) as ds:
-        da = ds[variable]
-        monthly_mean, annual_mean = get_means(da)
-        monthly_std, annual_std = get_stds(da)
-
-    # MONTHLY MEAN
+def p_monthly_mean(data, name, variable, year):
     print("Plotting monthly mean grid")
     cmap = colormap(0.25)
     vmin, vmax = [-50, 150]  # estimate with some leeway
@@ -139,17 +129,18 @@ def plot_year(name, variable, year):
                      cbar_mode='single', cbar_location="bottom",)
     for i in range(12):
         plt.sca(grid[i])
-        plot_array(monthly_mean.sel(month=i + 1), vmin=vmin, vmax=vmax, cmap=cmap)
+        plot_array(data.sel(month=i + 1), vmin=vmin, vmax=vmax, cmap=cmap)
         plt.title(month_name(i))
-    plt.suptitle("{n} - {y} monthly means".format(n=name, y=year))
+    plt.suptitle("{n} - {y} {v} monthly means".format(n=name, y=year, v=variable))
     plt.colorbar(cax=grid[0].cax, orientation='horizontal')
     plt.tight_layout()
 
     os.makedirs("plots/monthly_means/{y}".format(y=year), exist_ok=True)
-    plt.savefig("plots/monthly_means/{y}/{n}_{y}_monthly_means.png".format(n=name, y=year))
+    plt.savefig("plots/monthly_means/{y}/{n}_{y}_{v}_monthly_means.png".format(n=name, y=year, v=variable))
     plt.close()
 
-    # MONTHLY STD
+
+def p_monthly_stdev(data, name, variable, year):
     print("Plotting monthly std dev grid")
     cmap = colormap(0)
     vmin, vmax = [0, 150]  # estimate with some leeway
@@ -158,43 +149,85 @@ def plot_year(name, variable, year):
                      cbar_mode='single', cbar_location="bottom",)
     for i in range(12):
         plt.sca(grid[i])
-        plot_array(monthly_std.sel(month=i + 1), vmin=vmin, vmax=vmax, cmap=cmap)
+        plot_array(data.sel(month=i + 1), vmin=vmin, vmax=vmax, cmap=cmap)
         plt.title(month_name(i))
-    plt.suptitle("{n} - {y} monthly std devs".format(n=name, y=year))
+    plt.suptitle("{n} - {y} {v}_monthly std devs".format(n=name, y=year, v=variable))
     plt.colorbar(cax=grid[0].cax, orientation='horizontal')
     plt.tight_layout()
 
     os.makedirs("plots/monthly_stds/{y}".format(y=year), exist_ok=True)
-    plt.savefig("plots/monthly_stds/{y}/{n}_{y}_monthly_stdev.png".format(n=name, y=year))
+    plt.savefig("plots/monthly_stds/{y}/{n}_{y}_{v}_monthly_stdev.png".format(n=name, y=year, v=variable))
     plt.close()
 
-    # ANNUAL MEAN
+
+def p_annual_mean(data, name, variable, year):
     print("Plotting annual Mean")
     # Standardised color profiles for monthly means
     cmap = colormap(0.2)
     vmin, vmax = [-25, 100]  # estimate with some leeway
     plt.figure(0, (10, 5))
-    plot_array(annual_mean, vmin=vmin, vmax=vmax, cmap=cmap)
-    plt.title("{n} - {y} annual mean".format(n=name, y=year))
+    plot_array(data, vmin=vmin, vmax=vmax, cmap=cmap)
+    plt.title("{n} - {y} {v}_annual mean".format(n=name, y=year, v=variable))
     plt.tight_layout()
     plt.colorbar(fraction=0.1, shrink=0.8)
 
     os.makedirs("plots/annual_mean/{y}".format(y=year), exist_ok=True)
-    plt.savefig("plots/annual_mean/{y}/{n}_{y}_annual_mean.png".format(n=name, y=year))
+    plt.savefig("plots/annual_mean/{y}/{n}_{y}_{v}_annual_mean.png".format(n=name, y=year, v=variable))
     plt.close()
 
+
+def p_annual_stdev(data, name, variable, year):
     print("Plotting annual Std dev")
     cmap = colormap(0)
     vmin, vmax = [0, 150]  # estimate with some leeway
     plt.figure(0, (10, 5))
-    plot_array(annual_std, vmin=vmin, vmax=vmax, cmap=cmap)
-    plt.title("{n} - {y} annual std dev".format(n=name, y=year))
+    plot_array(data, vmin=vmin, vmax=vmax, cmap=cmap)
+    plt.title("{n} - {y} {v}_annual std dev".format(n=name, y=year, v=variable))
     plt.tight_layout()
     plt.colorbar(fraction=0.1, shrink=0.8)
 
     os.makedirs("plots/annual_std/{y}".format(y=year), exist_ok=True)
-    plt.savefig("plots/annual_std/{y}/{n}_{y}_annual_stdev.png".format(n=name, y=year))
+    plt.savefig("plots/annual_std/{y}/{n}_{y}_{v}_annual_stdev.png".format(n=name, y=year, v=variable))
     plt.close()
+
+
+def plot_benchmark_year(name, variable, year):
+    filename = get_benchmark_filename(name, variable, year)
+
+    # load file
+    with xr.open_dataset(filename) as ds:
+        da = ds[variable].copy()
+        monthly_mean, annual_mean = get_means(da)
+        monthly_std, annual_std = get_stds(da)
+
+    p_monthly_mean(monthly_mean, name, variable, year)
+    p_monthly_stdev(monthly_std, name, variable, year)
+    p_annual_mean(annual_mean, name, variable, year)
+    p_annual_stdev(annual_std, name, variable, year)
+
+
+def plot_year(name, variable, year):
+    """Plots annual and monthly means and std devs.
+    """
+
+    if any([name.startswith(s) for s in ["1lin", "3km", "5km"]]):
+        # We're a bencmark
+        plot_benchmark_year(name, variable, year)
+
+    elif any([name.startswith(s) for s in ["GLEAM", "MODIS", "MPI"]]):
+        if name.startswith("MODIS"):
+            monthly_mean = get_MODIS_data([variable], year).rename({'months': 'month'})['Qle']
+            p_monthly_mean(monthly_mean, name, variable, year)
+            annual_mean = monthly_mean.mean(dim='month')
+            p_annual_mean(annual_mean, name, variable, year)
+        # elif name.startswith("GLEAM"):
+        #     # TODO: convert days to months
+        #     data = get_GLEAM3a_data([variable], year)
+        # elif name.startswith("MPI"):
+        #     # TODO: convert time to months
+        #     data = get_MPI_data([variable], year)
+    else:
+        raise Exception("What the hell is %s?" % name)
 
 
 def plot_all_years(name, variable, years):
