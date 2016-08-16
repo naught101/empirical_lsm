@@ -9,6 +9,7 @@ Description: plots moving window and exponential averages
 """
 
 import numpy as np
+import pandas as pd
 
 from matplotlib import pyplot as plt
 from pals_utils.df import get_met_df
@@ -44,5 +45,12 @@ for i in range(1, df.shape[0]):
     initialised[i] = alpha * df['Rainf'][i] + (1 - alpha) * initialised[i - 1]
 
 pd.DataFrame(initialised, columns=['initialised'], index=df.index).plot(ax=axes[3])
+
+s = np.full([70129, 1], np.nan)
+s[0] = df.mean()
+s[1:] = df
+s = pd.DataFrame(s, columns=['Prefixed'])
+s.ewm(300 * 48, adjust=False).mean()[1:].set_index(df.index).plot(ax=axes[3])
+
 
 plt.savefig('plots/running_mean_comparison.png')
