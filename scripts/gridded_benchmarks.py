@@ -385,7 +385,7 @@ def fit_and_predict(benchmark, dataset, years='2012-2013'):
     model.fit(met_data, flux_data)
 
     # prediction datasets
-    outdir = "{d}/gridded_benchmarks/{b}_{d}".format(d=get_data_dir(), b=benchmark, d=dataset)
+    outdir = "{d}/gridded_benchmarks/{b}_{ds}".format(d=get_data_dir(), b=benchmark, ds=dataset)
     os.makedirs(outdir, exist_ok=True)
     outfile_tpl = outdir + "/{b}_{d}_{v}_{y}.nc"
     for year in range(*years):
