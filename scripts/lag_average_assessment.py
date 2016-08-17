@@ -8,10 +8,11 @@ Github: https://github.com/naught101/
 Description: assess lagg structure of flux/met data
 
 Usage:
-    lag_average_assessment.py
+    lag_average_assessment.py self_lag <var> <metric>
     lag_average_assessment.py (-h | --help | --version)
 
 Options:
+    metric        [corr|MI]
     -h, --help    Show this screen and exit.
 """
 
@@ -72,47 +73,59 @@ def rolling_mean(data, window, datafreq=0.5):
     return result
 
 
-def main(args):
-
-    sites = ['Tumba']
-
-    met_vars = ['Rainf']
-    # flux_vars = ['Qle', 'Qh']
-
-    met_data = pud.get_met_df(sites, met_vars, qc=True)
-    # flux_data = pud.get_flux_df(sites, flux_vars, qc=True)
-
+def get_lags():
+    """Gets standard lag times """
     lags = [('30min'),
-            ('1h'),
-            ('2h'),
-            ('3h'),
-            ('4h'),
-            ('5h'),
-            ('6h'),
-            ('12h'),
-            ('1d'),
-            ('2d'),
-            ('3d'),
-            ('5d'),
-            ('7d'),
-            ('14d'),
-            ('30d'),
-            ('60d'),
-            ('90d'),
-            ('180d'),
-            ('365d')][:-2]
+            ('1h'), ('2h'), ('3h'), ('4h'), ('5h'), ('6h'), ('12h'),
+            ('1d'), ('2d'), ('3d'), ('5d'), ('7d'), ('14d'),
+            ('30d'), ('60d'), ('90d'), ('180d'), ('365d')]
+    return lags
 
-    lagged_data = pd.DataFrame(np.concatenate([rolling_mean(met_data[['Rainf']].values, l) for l in lags], axis=1), columns=lags)
+def get_data(sites, var):
+    """load arbitrary data """
+    if var in ['SWdown', 'LWdown', 'Tair', 'RelHum', 'Qair', 'Wind', 'Rainf']:
+        data = pud.get_met_df(sites, [var], qc=True)
+    else:
+        data = pud.get_flux_df(sites, [var], qc=True)
 
-    fig = plt.imshow(lagged_data.corr(), interpolation='none')
+    return data
+
+
+def  plot_self_lag(var, metric, sites):
+    """Plots
+
+    :metric: TODO
+    :returns: TODO
+    """
+    data = get_data(sites, var)
+
+    lags = get_lags()
+
+    lagged_data = pd.DataFrame(np.concatenate([rolling_mean(data[[var]].values, l) for l in lags], axis=1), columns=lags)
+
+    if metric == 'corr':
+        image_data = lagged_data.corr()
+    # elif metric =='MI':
+    else:
+        assert False, "not implemented"
+    fig = plt.imshow(image_data, interpolation='none')
     fig.axes.set_xticks(range(len(lagged_data.columns)))
     fig.axes.set_yticks(range(len(lagged_data.columns)))
     fig.axes.set_xticklabels(lagged_data.columns)
     fig.axes.set_yticklabels(lagged_data.columns)
     plt.colorbar()
-    plt.title("Rainfall lagged averages' correlation")
+    plt.title("{v} lagged averages' {m}".format(v=var, m=metric))
 
-    plt.savefig('plots/Rainf_lagged_avg_correlations.png')
+    plt.savefig('plots/{v}_lagged_avg_{m}.png'.format(v=var, m=metric))
+
+
+def main(args):
+
+    sites=['Tumba']
+
+    if args['self_lag']:
+        plot_self_lag(args['<var>'], args['<metric>'], sites)
+
 
 if __name__ == '__main__':
     args = docopt(__doc__)
