@@ -22,6 +22,7 @@ from matplotlib import pyplot as plt
 import pandas as pd
 import numpy as np
 import re
+import os
 
 import pals_utils.data as pud
 
@@ -94,10 +95,12 @@ def get_data(sites, var, qc=True):
     return data
 
 
-def get_MI(vec1, vec2):
+def metric_complete(func, vec1, vec2):
     """Get the mutual information of two vectors, dropping NAs."""
     index = np.isfinite(vec1) & np.isfinite(vec2)
-    return mutual_information_2d(vec1[index], vec2[index])
+    if index.sum() == 0:
+        return np.nan
+    return func(vec1[index], vec2[index])
 
 
 def plot_self_lag(var, metric, sites):
@@ -114,7 +117,7 @@ def plot_self_lag(var, metric, sites):
         image_data = pd.DataFrame(np.nan, index=lags, columns=lags)
         for i in lags:
             for j in lags:
-                image_data.ix[i, j] = get_MI(lagged_data[i], lagged_data[j])
+                image_data.ix[i, j] = metric_complete(mutual_information_2d, lagged_data[i], lagged_data[j])
     else:
         assert False, "metric {m} not implemented".format(m=metric)
 
@@ -126,7 +129,8 @@ def plot_self_lag(var, metric, sites):
     plt.colorbar()
     plt.title("{v} lagged averages' {m}".format(v=var, m=metric))
 
-    plt.savefig('plots/{v}_lagged_avg_{m}.png'.format(v=var, m=metric))
+    os.makedirs("plots/self_lags", exist_ok=True)
+    plt.savefig('plots/self_lags/{v}_lagged_avg_{m}.png'.format(v=var, m=metric))
 
 
 def main(args):
