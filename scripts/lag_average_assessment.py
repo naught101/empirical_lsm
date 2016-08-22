@@ -131,7 +131,9 @@ def plot_self_lag(var, metric, sites):
     plt.title("{v} lagged averages' {m}".format(v=var, m=metric))
 
     os.makedirs("plots/self_lags", exist_ok=True)
-    plt.savefig('plots/self_lags/{v}_lagged_avg_{m}.png'.format(v=var, m=metric))
+    filename = 'plots/self_lags/{v}_lagged_avg_{m}.png'.format(v=var, m=metric)
+    print("Saving to {fn}".format(filename))
+    plt.savefig(filename)
 
 
 def plot_xy_lag(var_x, var_y, metric, sites):
@@ -166,7 +168,9 @@ def plot_xy_lag(var_x, var_y, metric, sites):
     plt.title("{vy} {m} with lagged averages of {vx}".format(vx=var_x, vy=var_y, m=metric))
 
     os.makedirs("plots/xy_lags", exist_ok=True)
-    plt.savefig('plots/xy_lags/{vy}_lagged_avg_{vx}_{m}.png'.format(vx=var_x, vy=var_y, m=metric))
+    filename = 'plots/xy_lags/{vy}_lagged_avg_{vx}_{m}.png'.format(vx=var_x, vy=var_y, m=metric)
+    print("Saving to {fn}".format(filename))
+    plt.savefig(filename)
 
 
 def main(args):
