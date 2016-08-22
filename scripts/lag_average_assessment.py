@@ -25,6 +25,8 @@ import re
 
 import pals_utils.data as pud
 
+from mutual_info.mutual_info import mutual_information_2d
+
 
 def rolling_window(a, rows):
     """from http://www.rigtorp.se/2011/01/01/rolling-statistics-numpy.html"""
@@ -91,12 +93,14 @@ def get_data(sites, var):
     return data
 
 
-def  plot_self_lag(var, metric, sites):
-    """Plots
+def get_MI(vec1, vec2):
+    """Get the mutual information of two vectors, dropping NAs."""
+    index = np.isfinite(vec1) & np.isfinite(vec2)
+    return mutual_information_2d(vec1[index], vec2[index])
 
-    :metric: TODO
-    :returns: TODO
-    """
+
+def plot_self_lag(var, metric, sites):
+    """Plots a variable's metric against moving window averages of varying lengths of itself."""
     data = get_data(sites, var)
 
     lags = get_lags()
@@ -105,9 +109,14 @@ def  plot_self_lag(var, metric, sites):
 
     if metric == 'corr':
         image_data = lagged_data.corr()
-    # elif metric =='MI':
+    elif metric == 'MI':
+        image_data = pd.DataFrame(np.nan, index=lags, columns=lags)
+        for i in lags:
+            for j in lags:
+                image_data.ix[i, j] = get_MI(lagged_data[i], lagged_data[j])
     else:
-        assert False, "not implemented"
+        assert False, "metric {m} not implemented".format(m=metric)
+
     fig = plt.imshow(image_data, interpolation='none')
     fig.axes.set_xticks(range(len(lagged_data.columns)))
     fig.axes.set_yticks(range(len(lagged_data.columns)))
@@ -121,7 +130,7 @@ def  plot_self_lag(var, metric, sites):
 
 def main(args):
 
-    sites=['Tumba']
+    sites = ['Tumba']
 
     if args['self_lag']:
         plot_self_lag(args['<var>'], args['<metric>'], sites)
