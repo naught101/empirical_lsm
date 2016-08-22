@@ -136,17 +136,25 @@ def plot_self_lag(var, metric, sites):
     plt.savefig(filename)
 
 
-def plot_xy_lag(var_x, var_y, metric, sites):
+def plot_xy_lag(var_y, var_x, metric, sites):
     """Plots correlations between a variable and lagged versions of another variable"""
 
     lags = get_lags()
 
     image_data = pd.DataFrame(np.nan, index=lags, columns=sites)
 
+    if metric == 'corr':
+        def func(x, y):
+            return np.corrcoef(x, y)[0, 1]
+    elif metric == 'MI':
+        func = mutual_information_2d
+    else:
+        assert False, "metric {m} not implemented".format(m=metric)
+
     for site in sites:
         try:
+            data_y = get_data([site], var_y)[var_y].reset_index(drop=True)
             data_x = get_data([site], var_x)
-            data_y = get_data([site], var_y)
         except RuntimeError:
             print("Loading data for {s} failed, skipping".format(s=site))
             continue
@@ -154,15 +162,8 @@ def plot_xy_lag(var_x, var_y, metric, sites):
         lagged_x = pd.DataFrame(np.concatenate([rolling_mean(data_x[[var_x]].values, l) for l in lags], axis=1), columns=lags)
 
         for l in lags:
-            if metric == 'corr':
-                def func(x, y):
-                    return np.corrcoef(x, y)[0, 1]
-            elif metric == 'MI':
-                func = mutual_information_2d
-            else:
-                assert False, "metric {m} not implemented".format(m=metric)
 
-            image_data.ix[l, site] = metric_complete(func, lagged_x[l], data_y[var_y])
+            image_data.ix[l, site] = metric_complete(func, lagged_x[l], data_y)
 
     image_data.plot()
     plt.title("{vy} {m} with lagged averages of {vx}".format(vx=var_x, vy=var_y, m=metric))
