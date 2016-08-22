@@ -83,12 +83,13 @@ def get_lags():
             ('30d'), ('60d'), ('90d'), ('180d'), ('365d')]
     return lags
 
-def get_data(sites, var):
+
+def get_data(sites, var, qc=True):
     """load arbitrary data """
     if var in ['SWdown', 'LWdown', 'Tair', 'RelHum', 'Qair', 'Wind', 'Rainf']:
-        data = pud.get_met_df(sites, [var], qc=True)
+        data = pud.get_met_df(sites, [var], qc=qc)
     else:
-        data = pud.get_flux_df(sites, [var], qc=True)
+        data = pud.get_flux_df(sites, [var], qc=qc)
 
     return data
 
