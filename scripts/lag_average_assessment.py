@@ -176,11 +176,14 @@ def plot_xy_lag(var_y, var_x, metric, sites):
 
 def main(args):
 
-    sites = ['Tumba']
-
     if args['self_lag']:
+        sites = ['Tumba']
         plot_self_lag(args['<var>'], args['<metric>'], sites)
     elif args['xy_lag']:
+        sites = ["Amplero", "Blodgett", "Bugac", "Castel", "ElSaler", "ElSaler2",
+                 "Espirra", "FortPeck", "Harvard", "Hesse", "Howard", "Howlandm",
+                 "Hyytiala", "Kruger", "Loobos", "Merbleue", "Mopane", "Palang",
+                 "Rocca1", "Sylvania", "Tharandt", "Tumba", "UniMich"]
         plot_xy_lag(args['<var_y>'], args['<var_x>'], args['<metric>'], sites)
 
 
