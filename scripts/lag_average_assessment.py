@@ -132,7 +132,7 @@ def plot_self_lag(var, metric, sites):
 
     os.makedirs("plots/self_lags", exist_ok=True)
     filename = 'plots/self_lags/{v}_lagged_avg_{m}.png'.format(v=var, m=metric)
-    print("Saving to {fn}".format(filename))
+    print("Saving to {fn}".format(fn=filename))
     plt.savefig(filename)
 
 
@@ -141,7 +141,7 @@ def plot_xy_lag(var_y, var_x, metric, sites):
 
     lags = get_lags()
 
-    image_data = pd.DataFrame(np.nan, index=lags, columns=sites)
+    plot_data = pd.DataFrame(np.nan, index=lags, columns=sites)
 
     if metric == 'corr':
         def func(x, y):
@@ -163,14 +163,18 @@ def plot_xy_lag(var_y, var_x, metric, sites):
 
         for l in lags:
 
-            image_data.ix[l, site] = metric_complete(func, lagged_x[l], data_y)
+            plot_data.ix[l, site] = metric_complete(func, lagged_x[l], data_y)
 
-    image_data.plot()
+    ax = plot_data.plot()
+    ax.set_prop_cycle("color", [plt.cm.nipy_spectral(i) for i in np.linspace(0, 1, len(sites))])
+
     plt.title("{vy} {m} with lagged averages of {vx}".format(vx=var_x, vy=var_y, m=metric))
+    plt.legend(ncol=4, fontsize='xx-small')
 
-    os.makedirs("plots/xy_lags", exist_ok=True)
-    filename = 'plots/xy_lags/{vy}_lagged_avg_{vx}_{m}.png'.format(vx=var_x, vy=var_y, m=metric)
-    print("Saving to {fn}".format(filename))
+    path = "plots/xy_lags/{m}".format(m=metric)
+    os.makedirs(path, exist_ok=True)
+    filename = '{p}/{vy}_lagged_avg_{vx}_{m}.png'.format(p=path, vx=var_x, vy=var_y, m=metric)
+    print("Saving to {fn}".format(fn=filename))
     plt.savefig(filename)
 
 
