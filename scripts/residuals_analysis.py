@@ -8,15 +8,19 @@ Github: https://github.com/naught101/
 Description: TODO: File description
 
 Usage:
-    residuals_analysis.py
+    residuals_analysis.py <plot_type> <site> [<var>]
     residuals_analysis.py (-h | --help | --version)
 
 Options:
+    plot_type     "scatter" or "hexbin"
+    site          name of a PALS site, or "all"
+    var           name of a driving variable, or "all"
     -h, --help    Show this screen and exit.
 """
 
 from docopt import docopt
 
+import os
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -34,7 +38,7 @@ def get_lagged_df(df, lags=['30min', '2h', '6h', '2d', '7d', '30d', '90d']):
     for v in df.columns:
         data[v] = pd.DataFrame(
             np.concatenate([rolling_mean(df[[v]].values, l) for l in lags], axis=1),
-            columns=lags)
+            columns=lags, index=df.index)
     return pd.concat(data, axis=1)
 
 
@@ -47,65 +51,87 @@ def time_fmt(t):
         return "{d:03}.00:00".format(d=int(t.rstrip('d')))
 
 
-def threekm27_residuals():
+def threekm27_residuals(sites, var):
     """Save 3km27 residuals and met to a csv."""
 
     met_vars = ['SWdown', 'Tair', 'RelHum', 'Wind', 'Rainf']
     flux_vars = ['Qle', 'Qh']
 
-    Tumba_met = pud.get_met_df(['Tumba'], met_vars, qc=True)
-    Tumba_flux = pud.get_flux_df(['Tumba'], flux_vars, qc=True)
-    threekm27 = (pud.get_pals_benchmark('3km27', 'Tumba')
-                    .sel(x=1, y=1)
-                    .to_dataframe()[['Qle', 'Qh']])
+    flux_df = pud.get_flux_df(sites, flux_vars, name=True, qc=True)
+    threekm27 = pud.get_pals_benchmark_df('3km27', sites, ['Qle', 'Qh'])
 
-    lagged_met = get_lagged_df(Tumba_met)
-    lagged_met.columns = ["{v}_{t}".format(v=c[0], t=time_fmt(c[1])) for c in lagged_met.columns.values]
+    residuals = (threekm27.reorder_levels(['time', 'site']) - flux_df)  #.reset_index(drop=True)
 
-    lagged_flux = get_lagged_df(Tumba_flux)
-    lagged_flux.columns = ["{v}_{t}".format(v=c[0], t=time_fmt(c[1])) for c in lagged_flux.columns.values]
+    if var in met_vars:
+        forcing = pud.get_met_df(sites, [var], name=True, qc=True)
+    else:
+        forcing = pud.get_flux_df(sites, [var], name=True, qc=True)
 
-    residuals = (threekm27-Tumba_flux).reset_index(drop=True)
-    out_df = pd.concat([residuals, lagged_flux, lagged_met], axis=1)
+    lagged_forcing = forcing.groupby(level='site').apply(get_lagged_df)
+
+    lagged_forcing.columns = ["{v}_{t}".format(v=c[0], t=time_fmt(c[1])) for c in lagged_forcing.columns.values]
+
+    out_df = pd.concat([residuals, lagged_forcing], axis=1)
 
     return out_df
 
 
-def plot_stuff():
-    """Plots some stuff, you know?  """
-    out_df = threekm27_residuals()
+def scatter(df, x, y):
+    return df[[x, y]].dropna().plot.scatter(x, y, s=3, alpha=0.5, edgecolors='face')
 
-    # out_df.dropna().to_csv('Tumba3km27residuals_lagged.csv')
 
-    y_vars = ['Qh', 'Qle']
-    x_vars = list(out_df.columns)
-    x_vars.remove('Qh')
-    x_vars.remove('Qle')
+def hexbin(df, x, y):
+    return df[[x, y]].dropna().plot.hexbin(x, y, bins='log')
 
-    for y in y_vars:
-        for x in x_vars:
-            try:
-                out_df[[x, y]].dropna().plot.scatter(x, y, s=3, alpha=0.5, edgecolors='face')
-                plt.savefig('plots/lag_scatter_plots/{y}_by_{x}_scatter.png'.format(x=x, y=y))
-                print('scatter', y, x)
-                plt.close()
-            except Exception as e:
-                print('Warning: hexbin for', y, x, 'failed:', e)
 
-    for y in y_vars:
-        for x in x_vars:
-            try:
-                out_df[[x, y]].dropna().plot.hexbin(x, y, bins='log')
-                plt.savefig('plots/lag_hexbins/{y}_by_{x}_hexbin.png'.format(x=x, y=y))
-                print('hexbin', y, x)
-                plt.close()
-            except Exception as e:
-                print('Warning: hexbin for', y, x, 'failed:', e)
+def plot_stuff(plot_type, site, var):
+    """Plots some stuff, you know?"""
+
+    if site == 'all':
+        sites = ["Amplero", "Blodgett", "Bugac", "Castel", "ElSaler", "ElSaler2",
+                 "Espirra", "FortPeck", "Harvard", "Hesse", "Howard", "Howlandm",
+                 "Hyytiala", "Kruger", "Loobos", "Merbleue", "Mopane", "Palang",
+                 "Rocca1", "Sylvania", "Tharandt", "Tumba", "UniMich"]
+    else:
+        sites = [site]
+
+    if var == 'all':
+        variables = ['Qle', 'Qh', 'SWdown', 'Tair', 'RelHum', 'Wind', 'Rainf']
+    else:
+        variables = [var]
+
+    for var in variables:
+        out_df = threekm27_residuals(sites, var)
+
+        # out_df.dropna().to_csv('Tumba3km27residuals_lagged.csv')
+
+        y_vars = ['Qh', 'Qle']
+        x_vars = list(out_df.columns)
+        x_vars.remove('Qh')
+        x_vars.remove('Qle')
+
+        if plot_type == 'scatter':
+            plot_fn = scatter
+        if plot_type == 'hexbin':
+            plot_fn = hexbin
+
+        for y in y_vars:
+            for x in x_vars:
+                try:
+                    plot_fn(out_df, x, y)
+                    plt.title("{y} by {x} at site: {s}".format(x=x, y=y, s=site))
+                    path = 'plots/lag_plots_{pt}'.format(pt=plot_type)
+                    os.makedirs(path, exist_ok=True)
+                    plt.savefig('{p}/{s}_{y}_by_{x}_{pt}.png'.format(s=site, x=x, y=y, pt=plot_type, p=path))
+                    print(plot_type, y, x)
+                    plt.close()
+                except Exception as e:
+                    print('Warning:', plot_type, 'for', y, x, 'failed:', e)
 
 
 def main(args):
 
-    plot_stuff()
+    plot_stuff(args['<plot_type>'], args['<site>'], args['<var>'])
 
     return
 
