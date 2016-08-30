@@ -76,7 +76,7 @@ def threekm27_residuals(sites, var):
 
     lagged_forcing = forcing.groupby(level='site').apply(get_lagged_df)
 
-    lagged_forcing.columns = ["{v}_{t}_mean".format(v=c[0], t=time_fmt(c[1])) for c in lagged_forcing.columns.values]
+    lagged_forcing.columns = ["{v} {t} mean".format(v=c[0], t=time_fmt(c[1])) for c in lagged_forcing.columns.values]
 
     out_df = pd.concat([residuals, lagged_forcing], axis=1)
 
@@ -125,13 +125,13 @@ def plot_stuff(plot_type, site, var):
                 try:
                     plot_fn(out_df, x, y)
                     plt.title("{y} by {x} at site: {s}".format(x=x, y=y, s=site))
-                    path = 'plots/lag_plots_{pt}'.format(pt=plot_type)
+                    path = 'plots/lag plots {pt}'.format(pt=plot_type)
                     os.makedirs(path, exist_ok=True)
-                    plt.savefig('{p}/{s}_{y}_by_{x}_{pt}.png'.format(s=site, x=x, y=y, pt=plot_type, p=path))
-                    print(plot_type, y, x)
+                    plt.savefig('{p}/{s} {y} by {x} {pt}.png'.format(s=site, x=x, y=y, pt=plot_type, p=path))
+                    print("%s: %s by %s" % (plot_type, y, x))
                     plt.close()
                 except Exception as e:
-                    print('Warning:', plot_type, 'for', y, x, 'failed:', e)
+                    print('Warning: %s for %s by %s failed %s' % (plot_type, y, x, e))
 
 
 def main(args):
