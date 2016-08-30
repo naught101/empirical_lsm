@@ -112,7 +112,7 @@ def plot_stuff(plot_type, site, var):
 
         # out_df.dropna().to_csv('Tumba3km27residuals_lagged.csv')
 
-        y_vars = ['3km27 %s residual' % v for v in ['Qle', 'Qle']]
+        y_vars = ['3km27 %s residual' % v for v in ['Qle', 'Qh']]
         x_vars = list(set(out_df.columns).difference(y_vars))
 
         if plot_type == 'scatter':
