@@ -57,19 +57,26 @@ def threekm27_residuals(sites, var):
     met_vars = ['SWdown', 'Tair', 'RelHum', 'Wind', 'Rainf']
     flux_vars = ['Qle', 'Qh']
 
-    flux_df = pud.get_flux_df(sites, flux_vars, name=True, qc=True)
-    threekm27 = pud.get_pals_benchmark_df('3km27', sites, ['Qle', 'Qh'])
-
-    residuals = (threekm27.reorder_levels(['time', 'site']) - flux_df)  #.reset_index(drop=True)
+    flux_df = (pud.get_flux_df(sites, flux_vars, name=True, qc=True)
+                  .reorder_levels(['site', 'time'])
+                  .sort_index())
+    threekm27 = (pud.get_pals_benchmark_df('3km27', sites, ['Qle', 'Qh'])
+                    .sort_index())
+    residuals = (threekm27 - flux_df)
+    residuals.columns = ['3km27 %s residual' % v for v in residuals.columns]
 
     if var in met_vars:
-        forcing = pud.get_met_df(sites, [var], name=True, qc=True)
+        forcing = (pud.get_met_df(sites, [var], name=True, qc=True)
+                      .reorder_levels(['site', 'time'])
+                      .sort_index())
     else:
-        forcing = pud.get_flux_df(sites, [var], name=True, qc=True)
+        forcing = (pud.get_flux_df(sites, [var], name=True, qc=True)
+                      .reorder_levels(['site', 'time'])
+                      .sort_index())
 
     lagged_forcing = forcing.groupby(level='site').apply(get_lagged_df)
 
-    lagged_forcing.columns = ["{v}_{t}".format(v=c[0], t=time_fmt(c[1])) for c in lagged_forcing.columns.values]
+    lagged_forcing.columns = ["{v}_{t}_mean".format(v=c[0], t=time_fmt(c[1])) for c in lagged_forcing.columns.values]
 
     out_df = pd.concat([residuals, lagged_forcing], axis=1)
 
@@ -105,10 +112,8 @@ def plot_stuff(plot_type, site, var):
 
         # out_df.dropna().to_csv('Tumba3km27residuals_lagged.csv')
 
-        y_vars = ['Qh', 'Qle']
-        x_vars = list(out_df.columns)
-        x_vars.remove('Qh')
-        x_vars.remove('Qle')
+        y_vars = ['3km27 %s residual' % v for v in ['Qle', 'Qle']]
+        x_vars = list(set(out_df.columns).difference(y_vars))
 
         if plot_type == 'scatter':
             plot_fn = scatter
