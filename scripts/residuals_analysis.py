@@ -90,6 +90,13 @@ def scatter(df, x, y):
 def hexbin(df, x, y):
     return df[[x, y]].dropna().plot.hexbin(x, y, bins='log')
 
+def regplot(df, x, y):
+    subset = df[[x, y]].dropna()[0::233]
+    return sns.regplot(x, y, data=subset,
+                       n_boot=200, truncate=True,
+                       scatter_kws=dict(alpha=0.3),
+                       line_kws=dict(color='red'))
+
 
 def plot_stuff(plot_type, site, var):
     """Plots some stuff, you know?"""
@@ -119,6 +126,8 @@ def plot_stuff(plot_type, site, var):
             plot_fn = scatter
         if plot_type == 'hexbin':
             plot_fn = hexbin
+        if plot_type == 'regplot':
+            plot_fn = regplot
 
         for y in y_vars:
             for x in x_vars:
