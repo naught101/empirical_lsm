@@ -109,7 +109,7 @@ def plot_stuff(plot_type, site, var):
     else:
         sites = [site]
 
-    if var == 'all':
+    if var == 'all' or var is None:
         variables = ['Qle', 'Qh', 'SWdown', 'Tair', 'RelHum', 'Wind', 'Rainf']
     else:
         variables = [var]
