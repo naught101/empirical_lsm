@@ -9,6 +9,14 @@ Description:
 """
 
 import yaml
+import sys
+
+from sklearn.linear_model import LinearRegression
+from sklearn.cluster import MiniBatchKMeans
+from collections import OrderedDict
+
+from ubermodel.clusterregression import ModelByCluster
+from ubermodel.transforms import MissingDataWrapper, LagAverageWrapper
 
 from sklearn.pipeline import make_pipeline
 
@@ -16,6 +24,73 @@ from sklearn.pipeline import make_pipeline
 #################
 # Model loaders
 #################
+def get_model_vars(benchmark):
+
+    if benchmark == '1lin':
+        met_vars = ['SWdown']
+        flux_vars = ['Qh', 'Qle']
+        return met_vars, flux_vars
+    if benchmark == '3km27':
+        met_vars = ['SWdown', 'Tair', 'RelHum']
+        flux_vars = ['Qh', 'Qle']
+        return met_vars, flux_vars
+    if benchmark == '3km233':
+        met_vars = ['SWdown', 'Tair', 'RelHum']
+        flux_vars = ['Qh', 'Qle']
+        return met_vars, flux_vars
+    if benchmark == '3km27_lag':
+        met_vars = ['SWdown', 'Tair', 'RelHum']
+        flux_vars = ['Qh', 'Qle']
+        return met_vars, flux_vars
+    if benchmark == '5km27_lag':
+        met_vars = OrderedDict()
+        [met_vars.update({v: ['2d', '7d']}) for v in ['SWdown', 'Tair', 'RelHum', 'Wind']]
+        met_vars.update({'Rainf': ['2d', '7d', '30d', '90d']})
+        flux_vars = ['Qh', 'Qle']
+        return met_vars, flux_vars
+
+    else:
+        sys.exit("Unknown benchmark %s, exiting" % benchmark)
+
+
+def get_benchmark_model(benchmark):
+    """returns a scikit-learn style model/pipeline
+
+    :benchmark: TODO
+    :returns: TODO
+
+    """
+    if benchmark == '1lin':
+        return MissingDataWrapper(LinearRegression())
+    if benchmark == '3km27':
+        return MissingDataWrapper(ModelByCluster(MiniBatchKMeans(27),
+                                                 LinearRegression()))
+    if benchmark == '3km233':
+        return MissingDataWrapper(ModelByCluster(MiniBatchKMeans(233),
+                                                 LinearRegression()))
+    if benchmark == '3km27_lag':
+        model_dict = {
+            'variable': ['SWdown', 'Tair', 'RelHum'],
+            'clusterregression': {
+                'class': MiniBatchKMeans,
+                'args': {
+                    'n_clusters': 27}
+            },
+            'class': LinearRegression,
+            'lag': {
+                'periods': 1,
+                'freq': 'D'}
+        }
+        return MissingDataWrapper(get_model_from_dict(model_dict))
+    if benchmark == '5km27_lag':
+        var_lags = get_model_vars('5km27_lag')[0]
+        return LagAverageWrapper(var_lags,
+                                 MissingDataWrapper(ModelByCluster(MiniBatchKMeans(27),
+                                                                   LinearRegression()))
+                                 )
+    else:
+        sys.exit("Unknown benchmark {b}".format(b=benchmark))
+
 
 def get_model(name):
     """return a model as defines in model_search.yaml
