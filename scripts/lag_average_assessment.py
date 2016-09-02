@@ -32,7 +32,7 @@ from mutual_info.mutual_info import mutual_information_2d
 
 
 def metric_complete(func, vec1, vec2):
-    """Get the mutual information of two vectors, dropping NAs."""
+    """Get the a metric of two vectors, dropping NAs."""
     index = np.isfinite(vec1) & np.isfinite(vec2)
     if index.sum() == 0:
         return np.nan
