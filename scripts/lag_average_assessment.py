@@ -22,69 +22,13 @@ from docopt import docopt
 from matplotlib import pyplot as plt
 import pandas as pd
 import numpy as np
-import re
 import os
 
 import pals_utils.data as pud
 from ubermodel.data import get_sites
+from ubermodel.transforms import rolling_mean, get_lags
 
 from mutual_info.mutual_info import mutual_information_2d
-
-
-def rolling_window(a, rows):
-    """from http://www.rigtorp.se/2011/01/01/rolling-statistics-numpy.html"""
-    shape = a.shape[:-1] + (a.shape[-1] - rows + 1, rows)
-    strides = a.strides + (a.strides[-1],)
-    return np.lib.stride_tricks.as_strided(a, shape=shape, strides=strides)
-
-
-def window_to_rows(window, datafreq=0.5):
-    """calculate number of rows for window
-
-    :window: window of the format "30min", "3h"
-    :datafreq: data frequency in hours
-    :returns: number of rows
-
-    """
-    n, freq = re.match('(\d*)([a-zA-Z]*)', window).groups()
-    n = int(n)
-    if freq == "min":
-        rows = n / (60 * datafreq)
-    elif freq == "h":
-        rows = n / datafreq
-    elif freq == "d":
-        rows = n * 24 / datafreq
-    else:
-        raise 'Unknown frequency "%s"' % freq
-
-    assert rows == int(rows), "window doesn't match data frequency - not integral result"
-
-    return int(rows)
-
-
-def rolling_mean(data, window, datafreq=0.5):
-    """calculate rolling mean for an array
-
-    :data: ndarray
-    :window: time span, e.g. "30min", "2h"
-    :datafreq: data frequency in hours
-    :returns: data in the same shape as the original, with leading NaNs
-    """
-    rows = window_to_rows(window, datafreq)
-
-    result = np.full_like(data, np.nan)
-
-    np.mean(rolling_window(data.T, rows), -1, out=result[(rows - 1):].T)
-    return result
-
-
-def get_lags():
-    """Gets standard lag times """
-    lags = [('30min'),
-            ('1h'), ('2h'), ('3h'), ('4h'), ('5h'), ('6h'), ('12h'),
-            ('1d'), ('2d'), ('3d'), ('5d'), ('7d'), ('14d'),
-            ('30d'), ('60d'), ('90d'), ('180d'), ('365d')]
-    return lags
 
 
 def get_data(sites, var, qc=True):

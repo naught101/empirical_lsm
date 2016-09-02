@@ -274,53 +274,6 @@ class LagAverageWrapper(object):
         self._model = model
         self._datafreq = datafreq
 
-    def _rolling_window(self, a, rows):
-        """from http://www.rigtorp.se/2011/01/01/rolling-statistics-numpy.html"""
-        shape = a.shape[:-1] + (a.shape[-1] - rows + 1, rows)
-        strides = a.strides + (a.strides[-1],)
-        return np.lib.stride_tricks.as_strided(a, shape=shape, strides=strides)
-
-    def _window_to_rows(self, window, datafreq):
-        """calculate number of rows for window
-
-        :window: window of the format "30min", "3h"
-        :datafreq: data frequency in hours
-        :returns: number of rows
-
-        """
-        n, freq = re.match('(\d*)([a-zA-Z]*)', window).groups()
-        n = int(n)
-        if freq == "min":
-            rows = n / (60 * datafreq)
-        elif freq == "h":
-            rows = n / datafreq
-        elif freq == "d":
-            rows = n * 24 / datafreq
-        else:
-            raise 'Unknown frequency "%s"' % freq
-
-        assert rows == int(rows), "window doesn't match data frequency - not integral result"
-
-        return int(rows)
-
-    def _rolling_mean(self, data, window, datafreq):
-        """calculate rolling mean for an array
-
-        :data: ndarray
-        :window: time span, e.g. "30min", "2h"
-        :datafreq: data frequency in hours
-        :returns: data in the same shape as the original, with leading NaNs
-        """
-        rows = self._window_to_rows(window, datafreq)
-
-        result = np.full_like(data, np.nan)
-        if rows > data.shape[0]:
-            # This lag is too long to get an average. Skip it.
-            return result
-
-        np.mean(self._rolling_window(data.T, rows), -1, out=result[(rows - 1):].T)
-        return result
-
     def _lag_array(self, X, datafreq):
         """TODO: Docstring for _lag_array.
 
@@ -332,7 +285,7 @@ class LagAverageWrapper(object):
         for i, v in enumerate(self._var_lags):
             lagged_data.append(X[:, [i]])
             for l in self._var_lags[v]:
-                lagged_data.append(self._rolling_mean(X[:, [i]], l, datafreq=datafreq))
+                lagged_data.append(rolling_mean(X[:, [i]], l, datafreq=datafreq))
         return np.concatenate(lagged_data, axis=1)
 
     def _lag_data(self, X, datafreq):
@@ -484,3 +437,59 @@ class PandasCleaner(BaseEstimator, TransformerMixin):
 
         """
         pass
+
+
+def rolling_window(a, rows):
+    """from http://www.rigtorp.se/2011/01/01/rolling-statistics-numpy.html"""
+    shape = a.shape[:-1] + (a.shape[-1] - rows + 1, rows)
+    strides = a.strides + (a.strides[-1],)
+    return np.lib.stride_tricks.as_strided(a, shape=shape, strides=strides)
+
+
+def window_to_rows(window, datafreq=0.5):
+    """calculate number of rows for window
+
+    :window: window of the format "30min", "3h"
+    :datafreq: data frequency in hours
+    :returns: number of rows
+
+    """
+    n, freq = re.match('(\d*)([a-zA-Z]*)', window).groups()
+    n = int(n)
+    if freq == "min":
+        rows = n / (60 * datafreq)
+    elif freq == "h":
+        rows = n / datafreq
+    elif freq == "d":
+        rows = n * 24 / datafreq
+    else:
+        raise 'Unknown frequency "%s"' % freq
+
+    assert rows == int(rows), "window doesn't match data frequency - not integral result"
+
+    return int(rows)
+
+
+def rolling_mean(data, window, datafreq=0.5):
+    """calculate rolling mean for an array
+
+    :data: ndarray
+    :window: time span, e.g. "30min", "2h"
+    :datafreq: data frequency in hours
+    :returns: data in the same shape as the original, with leading NaNs
+    """
+    rows = window_to_rows(window, datafreq)
+
+    result = np.full_like(data, np.nan)
+
+    np.mean(rolling_window(data.T, rows), -1, out=result[(rows - 1):].T)
+    return result
+
+
+def get_lags():
+    """Gets standard lag times """
+    lags = [('30min'),
+            ('1h'), ('2h'), ('3h'), ('4h'), ('5h'), ('6h'), ('12h'),
+            ('1d'), ('2d'), ('3d'), ('5d'), ('7d'), ('14d'),
+            ('30d'), ('60d'), ('90d'), ('180d'), ('365d')]
+    return lags
