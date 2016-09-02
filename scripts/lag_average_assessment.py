@@ -24,21 +24,11 @@ import pandas as pd
 import numpy as np
 import os
 
-import pals_utils.data as pud
+from pals_utils.data import get_data_df
 from ubermodel.data import get_sites
 from ubermodel.transforms import rolling_mean, get_lags
 
 from mutual_info.mutual_info import mutual_information_2d
-
-
-def get_data(sites, var, qc=True):
-    """load arbitrary data """
-    if var in ['SWdown', 'LWdown', 'Tair', 'RelHum', 'Qair', 'Wind', 'Rainf']:
-        data = pud.get_met_df(sites, [var], qc=qc)
-    else:
-        data = pud.get_flux_df(sites, [var], qc=qc)
-
-    return data
 
 
 def metric_complete(func, vec1, vec2):
@@ -51,7 +41,7 @@ def metric_complete(func, vec1, vec2):
 
 def plot_self_lag(var, metric, sites):
     """Plots a variable's metric against moving window averages of varying lengths of itself."""
-    data = get_data(sites, var)
+    data = get_data_df(sites, var, qc=True)
 
     lags = get_lags()
 
@@ -98,8 +88,8 @@ def plot_xy_lag(var_y, var_x, metric, sites):
 
     for site in sites:
         try:
-            data_y = get_data([site], var_y)[var_y].reset_index(drop=True)
-            data_x = get_data([site], var_x)
+            data_y = get_data_df([site], var_y, qc=True)[var_y].reset_index(drop=True)
+            data_x = get_data_df([site], var_x, qc=True)
         except RuntimeError:
             print("Loading data for {s} failed, skipping".format(s=site))
             continue
