@@ -84,18 +84,32 @@ def threekm27_residuals(sites, var):
 
 
 def scatter(df, x, y):
-    return df[[x, y]].dropna().plot.scatter(x, y, s=3, alpha=0.5, edgecolors='face')
+    return df[[x, y]].dropna().plot.scatter(x, y, s=3, alpha=0.2, edgecolors='face')
 
 
 def hexbin(df, x, y):
     return df[[x, y]].dropna().plot.hexbin(x, y, bins='log')
 
 def regplot(df, x, y):
-    subset = df[[x, y]].dropna()[0::233]
+    subset = df[[x, y]].dropna().sample(10000)
     return sns.regplot(x, y, data=subset,
                        n_boot=200, truncate=True,
-                       scatter_kws=dict(alpha=0.3),
+                       scatter_kws=dict(alpha=0.2),
                        line_kws=dict(color='red'))
+
+def regplot2(df, x, y, order=4):
+    subset = df[[x, y]].dropna().sample(10000)
+
+    poly = np.poly1d(np.polyfit(subset[x], subset[y], order))
+    RSS = ((subset[y] - poly(subset[x])) ** 2).sum()
+    SStot = ((subset[y] - subset[y].mean()) ** 2).sum()
+    R2 = 1 - RSS /  SStot
+
+    ax = subset.plot.scatter(x, y, s=3, alpha=0.2, edgecolors='face')
+    x_plot = np.linspace(subset[x].min(), subset[x].max(), 1000)
+    plt.plot(x_plot, poly(x_plot), color='red')
+    plt.text(0.7, 0.9, "poly(%d), R2: %0.2f" % (order, R2),
+             transform=ax.transAxes)
 
 
 def plot_stuff(plot_type, site, var):
@@ -128,6 +142,8 @@ def plot_stuff(plot_type, site, var):
             plot_fn = hexbin
         if plot_type == 'regplot':
             plot_fn = regplot
+        if plot_type == 'regplot2':
+            plot_fn = regplot2
 
         for y in y_vars:
             for x in x_vars:
@@ -140,7 +156,7 @@ def plot_stuff(plot_type, site, var):
                     print("%s: %s by %s" % (plot_type, y, x))
                     plt.close()
                 except Exception as e:
-                    print('Warning: %s for %s by %s failed %s' % (plot_type, y, x, e))
+                    print('%s for %s by %s failed - %s' % (plot_type, y, x, e))
 
 
 def main(args):
