@@ -20,6 +20,23 @@ def get_data_dir():
     return './data'
 
 
+def get_sites(site_set='all'):
+    """load names of available sites"""
+
+    data_dir = get_data_dir()
+
+    if site_set == 'debug':
+        sites = ['Tumba']
+    elif site_set == 'all':
+        with open(data_dir + '/PALS/datasets/sites.txt') as f:
+            sites = [s.strip() for s in f.readlines()]
+    elif site_set == 'PLUMBER':
+        with open(data_dir + '/PALS/datasets/sites.txt') as f:
+            sites = [s.strip() for s in f.readlines()]
+
+    return sites
+
+
 def sim_dict_to_xr(sim_dict, old_ds):
     """Converts a dictionary of arrays into a xarray dataset with the same geo data as old_ds
 

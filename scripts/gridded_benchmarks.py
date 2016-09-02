@@ -36,21 +36,8 @@ import pals_utils.data as pud
 from ubermodel.clusterregression import ModelByCluster
 from ubermodel.transforms import MissingDataWrapper, LagAverageWrapper
 from ubermodel.models import get_model_from_dict
-from ubermodel.data import get_data_dir
+from ubermodel.data import get_sites, get_data_dir
 from ubermodel.gridded_datasets import get_dataset_data, get_dataset_freq
-
-
-def get_sites():
-    """load names of available sites"""
-
-    # return ['Tumba']
-
-    data_dir = get_data_dir()
-
-    with open(data_dir + '/PALS/datasets/sites.txt') as f:
-        sites = [s.strip() for s in f.readlines()]
-
-    return sites
 
 
 def get_model_vars(benchmark):

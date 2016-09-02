@@ -26,6 +26,7 @@ import re
 import os
 
 import pals_utils.data as pud
+from ubermodel.data import get_sites
 
 from mutual_info.mutual_info import mutual_information_2d
 
@@ -184,10 +185,7 @@ def main(args):
         sites = ['Tumba']
         plot_self_lag(args['<var>'], args['<metric>'], sites)
     elif args['xy_lag']:
-        sites = ["Amplero", "Blodgett", "Bugac", "Castel", "ElSaler", "ElSaler2",
-                 "Espirra", "FortPeck", "Harvard", "Hesse", "Howard", "Howlandm",
-                 "Hyytiala", "Kruger", "Loobos", "Merbleue", "Mopane", "Palang",
-                 "Rocca1", "Sylvania", "Tharandt", "Tumba", "UniMich"]
+        sites = get_sites('all')
         plot_xy_lag(args['<var_y>'], args['<var_x>'], args['<metric>'], sites)
 
 

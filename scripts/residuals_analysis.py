@@ -27,6 +27,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 from pals_utils import data as pud
+from ubermodel.data import get_sites
 
 from scripts.lag_average_assessment import rolling_mean
 
@@ -116,10 +117,7 @@ def plot_stuff(plot_type, site, var):
     """Plots some stuff, you know?"""
 
     if site == 'all':
-        sites = ["Amplero", "Blodgett", "Bugac", "ElSaler", "ElSaler2",
-                 "Espirra", "FortPeck", "Harvard", "Hesse", "Howard", "Howlandm",
-                 "Hyytiala", "Kruger", "Loobos", "Merbleue", "Mopane", "Palang",
-                 "Sylvania", "Tumba", "UniMich"]
+        sites = get_sites('PLUMBER')
     else:
         sites = [site]
 
