@@ -8,8 +8,10 @@ Github: https://github.com/naught101/
 Description: Transformations for ubermodel
 """
 
+import re
 import pandas as pd
 import numpy as np
+import xarray as xr
 
 from sklearn.utils.validation import check_is_fitted
 from sklearn.base import BaseEstimator, TransformerMixin
@@ -254,6 +256,185 @@ class MarkovWrapper(LagWrapper):
         results = np.concatenate(results)
 
         return results
+
+
+class LagAverageWrapper(object):
+
+    """Modelwrapper that lags takes Tair, SWdown, RelHum, Wind, and Rainf, and lags them to estimate Qle fluxes."""
+
+    def __init__(self, var_lags, model, datafreq=0.5):
+        """Model wrapper
+
+        :var_lags: OrderedDict like {'Tair': ['2d'], 'Rainf': ['2h', '7d', '30d', ...
+        :model: model to use lagged variables with
+        :datafreq: data frequency in hours
+
+        """
+        self._var_lags = var_lags
+        self._model = model
+        self._datafreq = datafreq
+
+    def _rolling_window(self, a, rows):
+        """from http://www.rigtorp.se/2011/01/01/rolling-statistics-numpy.html"""
+        shape = a.shape[:-1] + (a.shape[-1] - rows + 1, rows)
+        strides = a.strides + (a.strides[-1],)
+        return np.lib.stride_tricks.as_strided(a, shape=shape, strides=strides)
+
+    def _window_to_rows(self, window, datafreq):
+        """calculate number of rows for window
+
+        :window: window of the format "30min", "3h"
+        :datafreq: data frequency in hours
+        :returns: number of rows
+
+        """
+        n, freq = re.match('(\d*)([a-zA-Z]*)', window).groups()
+        n = int(n)
+        if freq == "min":
+            rows = n / (60 * datafreq)
+        elif freq == "h":
+            rows = n / datafreq
+        elif freq == "d":
+            rows = n * 24 / datafreq
+        else:
+            raise 'Unknown frequency "%s"' % freq
+
+        assert rows == int(rows), "window doesn't match data frequency - not integral result"
+
+        return int(rows)
+
+    def _rolling_mean(self, data, window, datafreq):
+        """calculate rolling mean for an array
+
+        :data: ndarray
+        :window: time span, e.g. "30min", "2h"
+        :datafreq: data frequency in hours
+        :returns: data in the same shape as the original, with leading NaNs
+        """
+        rows = self._window_to_rows(window, datafreq)
+
+        result = np.full_like(data, np.nan)
+        if rows > data.shape[0]:
+            # This lag is too long to get an average. Skip it.
+            return result
+
+        np.mean(self._rolling_window(data.T, rows), -1, out=result[(rows - 1):].T)
+        return result
+
+    def _lag_array(self, X, datafreq):
+        """TODO: Docstring for _lag_array.
+
+        :X: array with columns matching self._var_lags
+        :returns: array with original and lagged averaged variables
+
+        """
+        lagged_data = []
+        for i, v in enumerate(self._var_lags):
+            lagged_data.append(X[:, [i]])
+            for l in self._var_lags[v]:
+                lagged_data.append(self._rolling_mean(X[:, [i]], l, datafreq=datafreq))
+        return np.concatenate(lagged_data, axis=1)
+
+    def _lag_data(self, X, datafreq):
+        """lag an array. Assumes that each column corresponds to variables listed in lags
+
+        :X: ndarray
+        :datafreq: array data rate in hours
+        :returns: array of lagged averaged variables
+
+        """
+        if isinstance(X, pd.DataFrame):
+            assert all([v in X.columns for v in self._var_lags]), "Variables in X do not match initialised var_lags"
+            if 'site' in X.index.names:
+                # split-apply-combine by site
+                results = {}
+                for site in X.index.get_level_values('site').unique():
+                    results[site] = self._lag_array(X.ix[X.index.get_level_values('site') == site, self._var_lags].values, datafreq)
+                result = np.concatenate([d for d in results.values()])
+            else:
+                result = self._lag_array(X[[self._var_lags]].values, datafreq)
+        elif isinstance(X, np.ndarray) or isinstance(X, xr.DataArray):
+            # we have to assume that the variables are given in the right order
+            assert (X.shape[1] == len(self._var_lags))
+            if isinstance(X, xr.DataArray):
+                result = self._lag_array(np.array(X), datafreq)
+            else:
+                result = self._lag_array(X, datafreq)
+
+        return result
+
+    def fit(self, X, y, datafreq=None):
+        """fit model using X
+
+        :X: Dataframe, or ndarray with len(var_lags) columns
+        :y: frame/array with columns to predict
+
+        """
+        if datafreq is None:
+            datafreq = self._datafreq
+
+        lagged_data = self._lag_data(X, datafreq=datafreq)
+
+        # store mean for filling empty values on predict
+        self._means = np.nanmean(lagged_data, axis=0)
+
+        self._model.fit(lagged_data, y)
+
+    def predict(self, X, datafreq=None):
+        """predict model using X
+
+        :X: Dataframe or ndarray of similar shape
+        :returns: array like y
+
+        """
+        if datafreq is None:
+            datafreq = self._datafreq
+
+        lagged_data = self._lag_data(X, datafreq=datafreq)
+
+        # fill initial NaN values with mean values
+        for i in range(lagged_data.shape[1]):
+            lagged_data[np.isnan(lagged_data[:, i]), i] = self._means[i]
+
+        return self._model.predict(lagged_data)
+
+
+class MissingDataWrapper(object):
+
+    """Model wrapper that kills NAs"""
+
+    def __init__(self, model):
+        """kills NAs
+
+        :model: TODO
+
+        """
+        self._model = model
+
+    def fit(self, X, y):
+        """Removes NAs, then fits
+
+        :X: TODO
+        :y: TODO
+        :returns: TODO
+
+        """
+        qc_index = (np.all(np.isfinite(X), axis=1, keepdims=True) &
+                    np.all(np.isfinite(y), axis=1, keepdims=True)).ravel()
+
+        print("Using {n} samples of {N}".format(
+            n=qc_index.sum(), N=X.shape[0]))
+        # make work with arrays and dataframes
+        self._model.fit(np.array(X)[qc_index, :], np.array(y)[qc_index, :])
+
+    def predict(self, X):
+        """pass on model prediction
+
+        :X: TODO
+        :returns: TODO
+
+        """
+        return self._model.predict(X)
 
 
 class PandasCleaner(BaseEstimator, TransformerMixin):
