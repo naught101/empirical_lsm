@@ -26,27 +26,24 @@ from sklearn.pipeline import make_pipeline
 #################
 def get_model_vars(benchmark):
 
+    flux_vars = ['Qh', 'Qle', 'NEE']
+
     if benchmark == '1lin':
         met_vars = ['SWdown']
-        flux_vars = ['Qh', 'Qle']
         return met_vars, flux_vars
     if benchmark == '3km27':
         met_vars = ['SWdown', 'Tair', 'RelHum']
-        flux_vars = ['Qh', 'Qle']
         return met_vars, flux_vars
     if benchmark == '3km233':
         met_vars = ['SWdown', 'Tair', 'RelHum']
-        flux_vars = ['Qh', 'Qle']
         return met_vars, flux_vars
     if benchmark == '3km27_lag':
         met_vars = ['SWdown', 'Tair', 'RelHum']
-        flux_vars = ['Qh', 'Qle']
         return met_vars, flux_vars
     if benchmark == '5km27_lag':
         met_vars = OrderedDict()
-        [met_vars.update({v: ['2d', '7d']}) for v in ['SWdown', 'Tair', 'RelHum', 'Wind']]
-        met_vars.update({'Rainf': ['2d', '7d', '30d', '90d']})
-        flux_vars = ['Qh', 'Qle']
+        [met_vars.update({v: ['cur', '2d', '7d']}) for v in ['SWdown', 'Tair', 'RelHum', 'Wind']]
+        met_vars.update({'Rainf': ['cur', '2d', '7d', '30d', '90d']})
         return met_vars, flux_vars
 
     else:

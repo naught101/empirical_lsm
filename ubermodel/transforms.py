@@ -265,7 +265,7 @@ class LagAverageWrapper(object):
     def __init__(self, var_lags, model, datafreq=0.5):
         """Model wrapper
 
-        :var_lags: OrderedDict like {'Tair': ['2d'], 'Rainf': ['2h', '7d', '30d', ...
+        :var_lags: OrderedDict like {'Tair': ['cur', '2d'], 'Rainf': ['cur', '2h', '7d', '30d', ...
         :model: model to use lagged variables with
         :datafreq: data frequency in hours
 
@@ -283,9 +283,11 @@ class LagAverageWrapper(object):
         """
         lagged_data = []
         for i, v in enumerate(self._var_lags):
-            lagged_data.append(X[:, [i]])
             for l in self._var_lags[v]:
-                lagged_data.append(rolling_mean(X[:, [i]], l, datafreq=datafreq, shift=1))
+                if l == 'cur':
+                    lagged_data.append(X[:, [i]])
+                else:
+                    lagged_data.append(rolling_mean(X[:, [i]], l, datafreq=datafreq, shift=1))
         return np.concatenate(lagged_data, axis=1)
 
     def _lag_data(self, X, datafreq):
@@ -387,6 +389,10 @@ class MissingDataWrapper(object):
         """
         return self._model.predict(X)
 
+
+#########################################
+# Helper functions
+#########################################
 
 def rolling_window(a, rows):
     """from http://www.rigtorp.se/2011/01/01/rolling-statistics-numpy.html"""
