@@ -388,52 +388,6 @@ class MissingDataWrapper(object):
         return self._model.predict(X)
 
 
-class PandasCleaner(BaseEstimator, TransformerMixin):
-    """Removes rows with NAs from both X and y, and converts to an array and back"""
-
-    def __init__(self, remove_NA=True):
-        """:remove_NA: Whether to remove NA rows from the data
-        """
-        BaseEstimator.__init__(self)
-        TransformerMixin.__init__(self)
-
-        self.remove_NA = remove_NA
-
-    def fit(self, X, y=None):
-        """Gather pandas metadata and store it.
-
-        :X: TODO
-        :y: TODO
-        :returns: TODO
-
-        """
-        if 'site' in X.columns:
-            self.X_sites = X.pop('site')
-        else:
-            self.X_sites = None
-        self.X_columns = X.columns
-        self.X_index = X.index
-        self.X_col_types = X.dtypes
-
-        if y is not None:
-            if 'site' in y.columns:
-                self.y_sites = y.pop('site')
-            else:
-                self.y_sites = None
-            self.y_columns = y.columns
-            self.y_index = y.index
-            self.y_col_types = [(c, y[c].dtype) for c in y.columns]
-
-    def transform(self, X):
-        """Transforms
-
-        :X: TODO
-        :returns: TODO
-
-        """
-        pass
-
-
 def rolling_window(a, rows):
     """from http://www.rigtorp.se/2011/01/01/rolling-statistics-numpy.html"""
     shape = a.shape[:-1] + (a.shape[-1] - rows + 1, rows)
