@@ -285,7 +285,7 @@ class LagAverageWrapper(object):
         for i, v in enumerate(self._var_lags):
             lagged_data.append(X[:, [i]])
             for l in self._var_lags[v]:
-                lagged_data.append(rolling_mean(X[:, [i]], l, datafreq=datafreq))
+                lagged_data.append(rolling_mean(X[:, [i]], l, datafreq=datafreq, shift=1))
         return np.concatenate(lagged_data, axis=1)
 
     def _lag_data(self, X, datafreq):
@@ -476,13 +476,18 @@ def rolling_mean(data, window, datafreq=0.5, shift=0):
     :data: ndarray
     :window: time span, e.g. "30min", "2h"
     :datafreq: data frequency in hours
+    :shift: number of time-steps to skip (0 for inclusive mean, 1 for exclusive mean)
     :returns: data in the same shape as the original, with leading NaNs
     """
     rows = window_to_rows(window, datafreq)
 
     result = np.full_like(data, np.nan)
 
-    np.mean(rolling_window(data.T, rows), -1, out=result[(rows - 1):].T)
+    if shift > 0:
+        np.mean(rolling_window(data[:(-shift), ].T, rows), -1, out=result[(rows - 1 + shift):, :].T)
+    else:
+        assert shift == 0, "TODO: negative shifts not implemented"
+        np.mean(rolling_window(data.T, rows), -1, out=result[(rows - 1):, :].T)
     return result
 
 
