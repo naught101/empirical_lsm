@@ -42,9 +42,9 @@ def save_plot(base_path, rel_path, filename):
 def get_benchmark(name, site):
     """returns an xarray dataset
 
-    :name: TODO
-    :site: TODO
-    :returns: TODO
+    :name: mode name
+    :site: fluxnet site name
+    :returns: xarray dataset
 
     """
     file_path = 'model_data/{name}/{name}_{site}.nc'
@@ -57,10 +57,10 @@ def get_benchmark(name, site):
 def diagnostic_plots(sim_data, flux_data, name):
     """Plot standard diagnostic plots for a single site
 
-    :sim_data: TODO
-    :flux_data: TODO
-    :name: TODO
-    :returns: TODO
+    :sim_data: xarray dataset
+    :flux_data: xarray dataset
+    :name: mode name
+    :returns: list of paths to plots
 
     """
     site = pals_site_name(flux_data)
@@ -182,8 +182,6 @@ def get_PLUMBER_plot(model_dir, site='all'):
     """generate PLUMBER plot and get filename
 
     :name: model name
-    :returns: TODO
-
     """
     name = model_dir.replace('source/models/', '')
 
@@ -199,10 +197,9 @@ def get_PLUMBER_plot(model_dir, site='all'):
 def plot_PLUMBER_sim_metrics(name, site, metrics='all'):
     """Plot metrics from a site, with benchmarks for comparison
 
-    :name: TODO
-    :site: TODO
-    :returns: TODO
-
+    :name: model name
+    :site: fluxnet site name
+    :returns: path to plotted file
     """
     metric_df = get_PLUMBER_metrics(name, site)
 
@@ -214,7 +211,7 @@ def plot_PLUMBER_sim_metrics(name, site, metrics='all'):
 def get_PLUMBER_metrics(name, site='all'):
     """get metrics dataframe from a site, with benchmarks for comparison
 
-    :returns: TODO
+    :returns: dataframe with metrics for model at site
     """
     csv_file = './source/models/{n}/metrics/{n}_{s}_metrics.csv'
 
@@ -269,7 +266,7 @@ def p_plumber_metrics(metric_df, name, site='all', metrics='all'):
     :metric_df: pandas dataframe of results
     :name: site name for title
     :metrics: metrics to include: 'all', 'standard', 'distribution'
-    :returns: TODO
+    :returns: plotted filename
 
     """
     models = ['S_lin', 'ST_lin', 'STH_km27_lin', name]

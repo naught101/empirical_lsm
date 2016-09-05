@@ -5,7 +5,7 @@ File: gridded_benchmarks.py
 Author: naught101
 Email: naught101@email.com
 Github: https://github.com/naught101/
-Description: TODO: File description
+Description: Generates gridded output files from benchmark models
 
 Usage:
     gridded_benchmarks.py generate <benchmark> <forcing> [--years=<years>]
@@ -36,9 +36,9 @@ from ubermodel.models import get_benchmark_model, get_model_vars
 def predict_gridded(model, dataset_data, flux_vars, datafreq=None):
     """predict model results for gridded data
 
-    :model: TODO
-    :data: TODO
-    :returns: TODO
+    :model: scikit-learn style model/pipeline
+    :data: xarray-style dataset
+    :returns: xarray-style dataset
 
     """
     # set prediction metadata

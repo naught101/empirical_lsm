@@ -22,9 +22,9 @@ from ubermodel.data import get_data_dir
 def get_dataset_vars(dataset, met_vars, in_file=False):
     """get the names of dataset variables for each dataset
 
-    :dataset: TODO
-    :met_vars: TODO
-    :returns: TODO
+    :dataset: gridded dataset name
+    :met_vars: list of met variables (must match know variables)
+    :returns: returns dictionary of variables as named in the dataset file
 
     """
     if dataset == "PRINCETON":

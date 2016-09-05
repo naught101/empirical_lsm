@@ -56,8 +56,8 @@ def get_model_vars(benchmark):
 def get_benchmark_model(benchmark):
     """returns a scikit-learn style model/pipeline
 
-    :benchmark: TODO
-    :returns: TODO
+    :benchmark: mode name
+    :returns: scikit-learn style mode/pipeline
 
     """
     if benchmark == '1lin':

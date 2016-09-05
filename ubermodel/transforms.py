@@ -275,7 +275,7 @@ class LagAverageWrapper(object):
         self._datafreq = datafreq
 
     def _lag_array(self, X, datafreq):
-        """TODO: Docstring for _lag_array.
+        """Lags the input array according to the lags specified in self._var_lags
 
         :X: array with columns matching self._var_lags
         :returns: array with original and lagged averaged variables
@@ -359,7 +359,7 @@ class MissingDataWrapper(object):
     def __init__(self, model):
         """kills NAs
 
-        :model: TODO
+        :model: scikit-learn style model to wrap
 
         """
         self._model = model
@@ -367,10 +367,8 @@ class MissingDataWrapper(object):
     def fit(self, X, y):
         """Removes NAs, then fits
 
-        :X: TODO
-        :y: TODO
-        :returns: TODO
-
+        :X: Numpy array-like
+        :y: Numpy array-like
         """
         qc_index = (np.all(np.isfinite(X), axis=1, keepdims=True) &
                     np.all(np.isfinite(y), axis=1, keepdims=True)).ravel()
@@ -383,8 +381,8 @@ class MissingDataWrapper(object):
     def predict(self, X):
         """pass on model prediction
 
-        :X: TODO
-        :returns: TODO
+        :X: numpy array-like
+        :returns: numpy array like y
 
         """
         return self._model.predict(X)
@@ -395,9 +393,6 @@ class PandasCleaner(BaseEstimator, TransformerMixin):
 
     def __init__(self, remove_NA=True):
         """:remove_NA: Whether to remove NA rows from the data
-
-        :remove_NA: TODO
-
         """
         BaseEstimator.__init__(self)
         TransformerMixin.__init__(self)

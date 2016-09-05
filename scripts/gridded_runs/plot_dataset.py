@@ -123,7 +123,7 @@ def get_means(da):
 
 
 def get_stds(da):
-    """TODO: Docstring for get_stds.
+    """get standard deviations, annual and monthly
     """
     monthly_std = da.groupby('time.month').std(dim='time').copy()
     annual_std = da.std(dim='time').copy()

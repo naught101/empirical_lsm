@@ -146,9 +146,9 @@ def main_eval(name, site, sim_file=None):
 def get_existing_plots(name, site):
     """Load all plots saved in the evaluation step.
 
-    :name: TODO
-    :site: TODO
-    :returns: TODO
+    :name: model name
+    :site: site name
+    :returns: list of existing plots
 
     """
     plot_dir = 'source/models/{n}/figures'.format(n=name)
