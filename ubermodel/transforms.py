@@ -470,7 +470,7 @@ def window_to_rows(window, datafreq=0.5):
     return int(rows)
 
 
-def rolling_mean(data, window, datafreq=0.5):
+def rolling_mean(data, window, datafreq=0.5, shift=0):
     """calculate rolling mean for an array
 
     :data: ndarray

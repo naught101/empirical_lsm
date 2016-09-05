@@ -12,10 +12,11 @@ import unittest
 import numpy.testing as npt
 import pandas as pd
 import numpy as np
+import numpy.testing as nt
 from sklearn.linear_model import LinearRegression
 
 from pals_utils.data import get_site_data, xr_list_to_df
-from ubermodel.transforms import LagWrapper, MarkovWrapper
+from ubermodel.transforms import LagWrapper, MarkovWrapper, rolling_mean
 
 
 class TestLagWrapper(unittest.TestCase):
@@ -109,3 +110,38 @@ class TestMarkovWrapper(unittest.TestCase):
 
         self.assertEqual(self.X.shape[0], transformed.shape[0])
         self.assertEqual(self.X.shape[1] + 2, transformed.shape[1])
+
+
+class test_rolling_mean(unittest.TestCase):
+    """Tests rolling lagged averages"""
+
+    def setUp(self):
+        self.df = pd.DataFrame(dict(var1=[1.0, 0, 0, 0] * 12))  # 48 steps
+
+    def tearDown(self):
+        pass
+
+    def test_30m_inclusive(self):
+        df_lagged = rolling_mean(self.df.values, '30min')
+        nt.assert_array_equal(df_lagged, self.df.values, "arrays should match, but don't")
+
+    def test_30m_exclusive(self):
+        df_lagged = rolling_mean(self.df.values, '30min', shift=1)
+        nt.assert_array_equal(df_lagged[:1, ], np.nan, "leading lags should be NAN")
+        nt.assert_array_equal(df_lagged[1:, ], self.df.values[:-1, ], "lagged array should match, but doesn't")
+
+    def test_2h_inclusive(self):
+        df_lagged = rolling_mean(self.df.values, '2h')
+        nt.assert_array_equal(df_lagged[:3, ], np.nan, "leading lags should be NAN")
+        nt.assert_array_equal(df_lagged[3:, ], 0.25, "Moving average should be constant 1/4")
+
+    def test_2h_exclusive(self):
+        df_lagged = rolling_mean(self.df.values, '2h', shift=1)
+        nt.assert_array_equal(df_lagged[:4, ], np.nan, "leading lags should be NAN")
+        nt.assert_array_equal(df_lagged[4:, ], 0.25, "Moving average should be constant 1/4")
+
+    def test_1d_6hourly_inclusive(self):
+        """Should be the same as test_2h_inclusive"""
+        df_lagged = rolling_mean(self.df.values, '1d', datafreq=6)
+        nt.assert_array_equal(df_lagged[:3, ], np.nan, "leading lags should be NAN")
+        nt.assert_array_equal(df_lagged[3:, ], 0.25, "Moving average should be constant 1/4")
