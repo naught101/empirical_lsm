@@ -20,8 +20,8 @@ import pandas as pd
 import sys
 import os
 
-from pals_utils.constants import DATASETS, MET_VARS, FLUX_VARS
-from pals_utils.data import get_met_data, get_flux_data, pals_xr_to_df, xr_list_to_df
+from pals_utils.constants import MET_VARS
+from pals_utils.data import get_datasets, get_met_data, get_flux_data, pals_xr_to_df, xr_list_to_df
 
 from ubermodel.transforms import LagWrapper
 from ubermodel.models import get_model
@@ -70,7 +70,7 @@ def PLUMBER_fit_predict(model, name, site):
     else:
         met_vars = MET_VARS
 
-    flux_vars = FLUX_VARS
+    flux_vars = ['Qle', 'Qh', 'NEE']
 
     use_names = isinstance(model, LagWrapper)
 
@@ -78,12 +78,13 @@ def PLUMBER_fit_predict(model, name, site):
 
     print("Loading all data... ")
 
-    if site not in DATASETS:
+    plumber_datasets = get_datasets('PLUMBER')
+    if site not in plumber_datasets:
         # Using a non-PLUMBER site, train on all PLUMBER sites.
-        train_sets = DATASETS
+        train_sets = plumber_datasets
     else:
         # Using a PLUMBER site, leave one out.
-        train_sets = [s for s in DATASETS if s != site]
+        train_sets = [s for s in plumber_datasets if s != site]
 
     print("Converting... ")
     met_train = get_multisite_df(train_sets, typ='met', variables=met_vars, qc=True, name=use_names)
@@ -152,9 +153,11 @@ def main(args):
     name = args['<name>']
     site = args['<site>']
 
+    datasets = get_datasets('all')
+
     model = get_model(name)
     if site == 'all':
-        for s in DATASETS:
+        for s in datasets:
             main_run(model, name, s)
     else:
         main_run(model, name, site)
