@@ -354,6 +354,32 @@ class LagAverageWrapper(object):
         return self._model.predict(lagged_data)
 
 
+class MarkovLagAverageWrapper(LagAverageWrapper):
+    """Lags variables, and uses markov fitting when fluxes are included"""
+
+    def __init__(self, var_lags, model, datafreq=0.5):
+        super().__init__(self, var_lags, model, datafreq)
+        self._flux_lags = {k: v for k, v in var_lags if k in ['Qle', 'Qh', 'NEE']}
+        self._met_lags = {k: v for k, v in var_lags if k not in ['Qle', 'Qh', 'NEE']}
+
+    def fit(self, X, y, datafreq=None):
+        if isinstance(X, pd.DataFrame):
+            assert X.columns == list(self._met_vars)
+        else:  # Assume we're being passed stuff innthe right order
+            assert X.shape[1] == len(self._met_vars)
+        if isinstance(y, pd.DataFrame):
+            assert y.columns == list(self._flux_vars)
+        else:  # Assume we're being passed stuff in the right order
+            assert y.shape[1] == len(self._flux_vars)
+
+        X_fit = pd.concat([X, y], axis=1)
+
+        super().fit(X_fit, y, datafreq)
+
+    def predict(self, X, datafreq=None):
+        pass
+
+
 class MissingDataWrapper(object):
 
     """Model wrapper that kills NAs"""
