@@ -58,13 +58,13 @@ def get_benchmark_model(benchmark):
 
     """
     if benchmark == '1lin':
-        return MissingDataWrapper(LinearRegression())
+        model = MissingDataWrapper(LinearRegression())
     if benchmark == '3km27':
-        return MissingDataWrapper(ModelByCluster(MiniBatchKMeans(27),
-                                                 LinearRegression()))
+        model = MissingDataWrapper(ModelByCluster(MiniBatchKMeans(27),
+                                                  LinearRegression()))
     if benchmark == '3km233':
-        return MissingDataWrapper(ModelByCluster(MiniBatchKMeans(233),
-                                                 LinearRegression()))
+        model = MissingDataWrapper(ModelByCluster(MiniBatchKMeans(233),
+                                                  LinearRegression()))
     if benchmark == '3km27_lag':
         model_dict = {
             'variable': ['SWdown', 'Tair', 'RelHum'],
@@ -78,15 +78,21 @@ def get_benchmark_model(benchmark):
                 'periods': 1,
                 'freq': 'D'}
         }
-        return MissingDataWrapper(get_model_from_dict(model_dict))
+        model = MissingDataWrapper(get_model_from_dict(model_dict))
     if benchmark == '5km27_lag':
         var_lags = get_model_vars('5km27_lag')[0]
-        return LagAverageWrapper(var_lags,
-                                 MissingDataWrapper(ModelByCluster(MiniBatchKMeans(27),
-                                                                   LinearRegression()))
-                                 )
+        model = LagAverageWrapper(var_lags,
+                                  MissingDataWrapper(ModelByCluster(MiniBatchKMeans(27),
+                                                                    LinearRegression()))
+                                  )
     else:
-        sys.exit("Unknown benchmark {b}".format(b=benchmark))
+        try:
+            model = get_model(benchmark)
+        except KeyError as e:
+            print("Unknown model:", e)
+            sys.exit("Unknown benchmark {b}".format(b=benchmark))
+
+    return model
 
 
 def get_model(name):
