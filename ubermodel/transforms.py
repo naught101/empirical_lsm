@@ -237,7 +237,7 @@ class MarkovWrapper(LagWrapper):
 
         print("Data lagged, now predicting, step by step.")
 
-        # initialise with mean flux values
+        # initialise with mean y values
         init = pd.concat([X_lag.iloc[0], self.y_mean]).reshape(1, -1)
         results = []
         results.append(self.model.predict(init).ravel())
@@ -369,25 +369,54 @@ class MarkovLagAverageWrapper(LagAverageWrapper):
 
     def __init__(self, var_lags, model, datafreq=0.5):
         super().__init__(self, var_lags, model, datafreq)
-        self._flux_lags = {k: v for k, v in var_lags if k in ['Qle', 'Qh', 'NEE']}
-        self._met_lags = {k: v for k, v in var_lags if k not in ['Qle', 'Qh', 'NEE']}
+        self._y_lags = {k: v for k, v in var_lags if k in ['Qle', 'Qh', 'NEE']}
+        self._n_y_lags = np.sum([len(lags) for lags in self._y_lags.values()])
+        self._x_lags = {k: v for k, v in var_lags if k not in ['Qle', 'Qh', 'NEE']}
+        self._n_x_lags = np.sum([len(lags) for lags in self._x_lags.values()])
 
     def fit(self, X, y, datafreq=None):
         if isinstance(X, pd.DataFrame):
-            assert X.columns == list(self._met_vars)
+            assert X.columns == list(self._x_vars)
         else:  # Assume we're being passed stuff innthe right order
-            assert X.shape[1] == len(self._met_vars)
+            assert X.shape[1] == len(self._x_vars)
         if isinstance(y, pd.DataFrame):
-            assert y.columns == list(self._flux_vars)
+            assert y.columns == list(self._y_vars)
         else:  # Assume we're being passed stuff in the right order
-            assert y.shape[1] == len(self._flux_vars)
+            assert y.shape[1] == len(self._y_vars)
 
         X_fit = pd.concat([X, y], axis=1)
 
         super().fit(X_fit, y, datafreq)
 
     def predict(self, X, datafreq=None):
-        pass
+
+        X_lag = self._lag_data(X, self._x_lags)
+
+        print("Data lagged, now predicting, step by step.")
+
+        # initialise with mean y values
+        # TODO: This initialisation is much more complicated than either of the previous versions...
+        init = np.concatenate([X_lag.iloc[[0]], np.full([1, self._n_x_lags], np.nan)], axis=1)
+        # take means where nans exist
+        init = np.where(np.isfinite(init), init, self.means())
+        results = []
+        results.append(self.model.predict(init).ravel())
+        n_steps = X_lag.shape[0]
+        print('Predicting, step 0 of {n}'.format(n=n_steps), end='\r')
+
+        for i in range(1, n_steps):
+            if i % 100 == 0:
+                print('Predicting, step {i} of {n}'.format(i=i, n=n_steps), end="\r")
+            # TODO: currently assuming y=['30min']: single timestep
+            x = np.concatenate([X_lag.iloc[[i]], results[i - 1]], axis=1)
+            results.append(self.model.predict(x).ravel())
+        print('Predicting, step {i} of {n}'.format(i=n_steps, n=n_steps))
+
+        # results = pd.DataFrame.from_records(results, index=X_lag.index, columns=self.y_cols)
+        # Scikit-learn models produce numpy arrays, not pandas dataframes
+        results = np.concatenate(results)
+
+        return results
 
 
 class MissingDataWrapper(object):
