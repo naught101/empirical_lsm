@@ -24,7 +24,7 @@ from pals_utils.constants import MET_VARS
 from pals_utils.data import get_datasets, get_met_data, get_flux_data, pals_xr_to_df, xr_list_to_df
 
 from ubermodel.transforms import LagWrapper
-from ubermodel.models import get_model
+from ubermodel.models import get_benchmark_model
 from ubermodel.data import sim_dict_to_xr
 from ubermodel.utils import print_good, print_warn
 

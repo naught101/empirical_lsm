@@ -30,24 +30,20 @@ def get_model_vars(benchmark):
 
     if benchmark == '1lin':
         met_vars = ['SWdown']
-        return met_vars, flux_vars
     if benchmark == '3km27':
         met_vars = ['SWdown', 'Tair', 'RelHum']
-        return met_vars, flux_vars
     if benchmark == '3km233':
         met_vars = ['SWdown', 'Tair', 'RelHum']
-        return met_vars, flux_vars
     if benchmark == '3km27_lag':
         met_vars = ['SWdown', 'Tair', 'RelHum']
-        return met_vars, flux_vars
     if benchmark == '5km27_lag':
         met_vars = OrderedDict()
         [met_vars.update({v: ['cur', '2d', '7d']}) for v in ['SWdown', 'Tair', 'RelHum', 'Wind']]
         met_vars.update({'Rainf': ['cur', '2d', '7d', '30d', '90d']})
-        return met_vars, flux_vars
-
     else:
         sys.exit("Unknown benchmark %s, exiting" % benchmark)
+
+    return met_vars, flux_vars
 
 
 def get_benchmark_model(benchmark):
