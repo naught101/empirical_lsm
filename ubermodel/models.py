@@ -89,7 +89,17 @@ def get_model_from_def(name):
                                   MissingDataWrapper(ModelByCluster(MiniBatchKMeans(27),
                                                                     LinearRegression()))
                                   )
-        model.forcing_vars = ['SWdown', 'Tair', 'RelHum', 'Wind', 'Rainf']
+        model.forcing_vars = list(var_lags)
+    if name == 'STHR_km233_lR':
+        var_lags = OrderedDict()
+        [var_lags.update({v: ['cur']}) for v in ['SWdown', 'Tair', 'RelHum']]
+        var_lags.update({'Rainf': ['cur', '2d']})
+        model = LagAverageWrapper(var_lags,
+                                  MissingDataWrapper(ModelByCluster(MiniBatchKMeans(233),
+                                                                    LinearRegression()))
+                                  )
+        model.forcing_vars = list(var_lags)
+        model.description = "km233 Linear model with Swdown, Tair, RelHum, Rainf, and Lagged Rainf (2d)"
     else:
         raise Exception("unknown model")
 
