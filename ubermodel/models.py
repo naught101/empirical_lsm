@@ -33,6 +33,28 @@ def get_model(name):
     :returns: scikit-learn style mode/pipeline
 
     """
+
+    try:
+        model = get_model_from_def(name)
+    except Exception:
+        try:
+            model = get_model_from_yaml(name)
+        except KeyError:
+            sys.exit("Unknown model {n}".format(n=name))
+
+    if not hasattr(model, 'name'):
+        model.name = name
+
+    return model
+
+
+def get_model_from_def(name):
+    """returns a scikit-learn style model/pipeline
+
+    :name: model name
+    :returns: scikit-learn style mode/pipeline
+
+    """
     if name == '1lin':
         model = MissingDataWrapper(LinearRegression())
         model.forcing_vars = ['SWdown']
@@ -69,14 +91,7 @@ def get_model(name):
                                   )
         model.forcing_vars = ['SWdown', 'Tair', 'RelHum', 'Wind', 'Rainf']
     else:
-        try:
-            model = get_model_from_yaml(name)
-        except KeyError as e:
-            print("Unknown model:", e)
-            sys.exit("Unknown model {n}".format(n=name))
-
-    if not hasattr(model, 'name'):
-        model.name = name
+        raise Exception("unknown model")
 
     return model
 
