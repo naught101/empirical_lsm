@@ -15,6 +15,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.cluster import MiniBatchKMeans
 from collections import OrderedDict
 
+from pals_utils.constants import MET_VARS
 from ubermodel.clusterregression import ModelByCluster
 from ubermodel.transforms import MissingDataWrapper, LagAverageWrapper
 
@@ -24,44 +25,26 @@ from sklearn.pipeline import make_pipeline
 #################
 # Model loaders
 #################
-def get_model_vars(benchmark):
 
-    flux_vars = ['Qh', 'Qle', 'NEE']
-
-    if benchmark == '1lin':
-        met_vars = ['SWdown']
-    if benchmark == '3km27':
-        met_vars = ['SWdown', 'Tair', 'RelHum']
-    if benchmark == '3km233':
-        met_vars = ['SWdown', 'Tair', 'RelHum']
-    if benchmark == '3km27_lag':
-        met_vars = ['SWdown', 'Tair', 'RelHum']
-    if benchmark == '5km27_lag':
-        met_vars = OrderedDict()
-        [met_vars.update({v: ['cur', '2d', '7d']}) for v in ['SWdown', 'Tair', 'RelHum', 'Wind']]
-        met_vars.update({'Rainf': ['cur', '2d', '7d', '30d', '90d']})
-    else:
-        sys.exit("Unknown benchmark %s, exiting" % benchmark)
-
-    return met_vars, flux_vars
-
-
-def get_benchmark_model(benchmark):
+def get_model(name):
     """returns a scikit-learn style model/pipeline
 
-    :benchmark: mode name
+    :name: model name
     :returns: scikit-learn style mode/pipeline
 
     """
-    if benchmark == '1lin':
+    if name == '1lin':
         model = MissingDataWrapper(LinearRegression())
-    if benchmark == '3km27':
+        model.forcing_vars = ['SWdown']
+    if name == '3km27':
         model = MissingDataWrapper(ModelByCluster(MiniBatchKMeans(27),
                                                   LinearRegression()))
-    if benchmark == '3km233':
+        model.forcing_vars = ['SWdown', 'Tair', 'RelHum']
+    if name == '3km233':
         model = MissingDataWrapper(ModelByCluster(MiniBatchKMeans(233),
                                                   LinearRegression()))
-    if benchmark == '3km27_lag':
+        model.forcing_vars = ['SWdown', 'Tair', 'RelHum']
+    if name == '3km27_lag':
         model_dict = {
             'variable': ['SWdown', 'Tair', 'RelHum'],
             'clusterregression': {
@@ -75,23 +58,30 @@ def get_benchmark_model(benchmark):
                 'freq': 'D'}
         }
         model = MissingDataWrapper(get_model_from_dict(model_dict))
-    if benchmark == '5km27_lag':
-        var_lags = get_model_vars('5km27_lag')[0]
+        model.forcing_vars = ['SWdown', 'Tair', 'RelHum']
+    if name == '5km27_lag':
+        var_lags = OrderedDict()
+        [var_lags.update({v: ['cur', '2d', '7d']}) for v in ['SWdown', 'Tair', 'RelHum', 'Wind']]
+        var_lags.update({'Rainf': ['cur', '2d', '7d', '30d', '90d']})
         model = LagAverageWrapper(var_lags,
                                   MissingDataWrapper(ModelByCluster(MiniBatchKMeans(27),
                                                                     LinearRegression()))
                                   )
+        model.forcing_vars = ['SWdown', 'Tair', 'RelHum', 'Wind', 'Rainf']
     else:
         try:
-            model = get_model(benchmark)
+            model = get_model_from_yaml(name)
         except KeyError as e:
             print("Unknown model:", e)
-            sys.exit("Unknown benchmark {b}".format(b=benchmark))
+            sys.exit("Unknown model {n}".format(n=name))
+
+    if not hasattr(model, 'name'):
+        model.name = name
 
     return model
 
 
-def get_model(name):
+def get_model_from_yaml(name):
     """return a model as defines in model_search.yaml
 
     :returns: sklearn model pipeline
@@ -147,8 +137,11 @@ def get_model_from_dict(model_dict):
         params = model_dict['markov']
         pipe = get_markov_wrapper(pipe, params)
 
-    if 'variables' in model_dict:
-        pipe.variables = model_dict['variables']
+    if 'forcing_vars' in model_dict:
+        pipe.forcing_vars = model_dict['forcing_vars']
+    else:
+        print("Warning: no forcing vars, using defaults (all)")
+        pipe.forcing_vars = MET_VARS
 
     return pipe
 

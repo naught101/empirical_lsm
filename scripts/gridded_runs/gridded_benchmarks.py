@@ -30,7 +30,7 @@ import pals_utils.data as pud
 
 from ubermodel.data import get_sites, get_data_dir
 from ubermodel.gridded_datasets import get_dataset_data, get_dataset_freq
-from ubermodel.models import get_benchmark_model, get_model_vars
+from ubermodel.models import get_model
 
 
 def predict_gridded(model, dataset_data, flux_vars, datafreq=None):
@@ -82,11 +82,10 @@ def predict_gridded(model, dataset_data, flux_vars, datafreq=None):
     return prediction
 
 
-def xr_add_attributes(ds, benchmark, dataset, sites):
+def xr_add_attributes(ds, model, dataset, sites):
 
-    ds.attrs["Model name"] = benchmark
-    met_vars, flux_vars = get_model_vars(benchmark)
-    ds.attrs["Forcing_variables"] = ', '.join(met_vars)
+    ds.attrs["Model name"] = model.name
+    ds.attrs["Forcing_variables"] = ', '.join(model.forcing_vars)
     ds.attrs["Forcing_dataset"] = dataset
     ds.attrs["Training_dataset"] = "Fluxnet_1.4"
     ds.attrs["Training_sites"] = ', '.join(sites)
@@ -96,13 +95,13 @@ def xr_add_attributes(ds, benchmark, dataset, sites):
     ds.attrs["Contact"] = "ned@nedhaughton.com"
 
 
-def fit_and_predict(benchmark, dataset, years='2012-2013'):
+def fit_and_predict(name, dataset, years='2012-2013'):
     """Fit a benchmark to some PALS files, then generate an output matching a gridded dataset
     """
 
-    met_vars, flux_vars = get_model_vars(benchmark)
-
-    model = get_benchmark_model(benchmark)
+    model = get_model(name)
+    met_vars = model.forcing_vars
+    flux_vars = ['Qle']
 
     sites = get_sites()
 
@@ -113,11 +112,11 @@ def fit_and_predict(benchmark, dataset, years='2012-2013'):
     flux_data = pud.get_flux_df(sites, flux_vars, qc=True)
 
     print("Fitting model {b} using {m} to predict {f}".format(
-        b=benchmark, m=met_vars, f=flux_vars))
+        n=name, m=met_vars, f=flux_vars))
     model.fit(met_data, flux_data)
 
     # prediction datasets
-    outdir = "{d}/gridded_benchmarks/{b}_{ds}".format(d=get_data_dir(), b=benchmark, ds=dataset)
+    outdir = "{d}/gridded_benchmarks/{b}_{ds}".format(d=get_data_dir(), n=name, ds=dataset)
     os.makedirs(outdir, exist_ok=True)
     outfile_tpl = outdir + "/{b}_{d}_{v}_{y}.nc"
     for year in range(*years):
@@ -125,14 +124,14 @@ def fit_and_predict(benchmark, dataset, years='2012-2013'):
         print("Loading Forcing data for", year)
         data = get_dataset_data(dataset, met_vars, year)
         print("Predicting", year, end=': ', flush=True)
-        if "lag" in benchmark:
+        if "lag" in name:
             result = predict_gridded(model, data, flux_vars, datafreq=get_dataset_freq(dataset))
         else:
             result = predict_gridded(model, data, flux_vars)
 
-        xr_add_attributes(result, benchmark, dataset, sites)
+        xr_add_attributes(result, model, dataset, sites)
         for fv in flux_vars:
-            filename = outfile_tpl.format(b=benchmark, d=dataset, v=fv, y=year)
+            filename = outfile_tpl.format(n=name, d=dataset, v=fv, y=year)
             print("saving to ", filename)
             result[[fv]].to_netcdf(filename, encoding={fv: {'dtype': 'float32'}})
 

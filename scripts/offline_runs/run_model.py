@@ -24,7 +24,7 @@ from pals_utils.constants import MET_VARS
 from pals_utils.data import get_datasets, get_met_data, get_flux_data, pals_xr_to_df, xr_list_to_df
 
 from ubermodel.transforms import LagWrapper
-from ubermodel.models import get_benchmark_model
+from ubermodel.models import get_model
 from ubermodel.data import sim_dict_to_xr
 from ubermodel.utils import print_good, print_warn
 
@@ -65,9 +65,10 @@ def PLUMBER_fit_predict(model, name, site):
     :returns: xarray dataset of simulation
 
     """
-    if hasattr(model, 'variables'):
-        met_vars = model.variables
+    if hasattr(model, 'forcing_vars'):
+        met_vars = model.forcing_vars
     else:
+        print("Warning: no forcing vars, using defaults (all)")
         met_vars = MET_VARS
 
     flux_vars = ['Qle', 'Qh', 'NEE']
