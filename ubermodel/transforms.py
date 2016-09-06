@@ -274,18 +274,13 @@ class LagAverageWrapper(object):
         self._model = model
         self._datafreq = datafreq
 
-    def _lag_array(self, X, var_lags=None, datafreq=None):
+    def _lag_array(self, X, var_lags, datafreq):
         """Lags the input array according to the lags specified in var_lags
 
         :X: array with columns matching var_lags
         :returns: array with original and lagged averaged variables
 
         """
-        if var_lags is None:
-            var_lags = self._var_lags
-        if datafreq is None:
-            self._datafreq
-
         lagged_data = []
         for i, v in enumerate(var_lags):
             for l in var_lags[v]:
@@ -308,23 +303,28 @@ class LagAverageWrapper(object):
             self._datafreq
 
        """
+        if var_lags is None:
+            var_lags = self._var_lags
+        if datafreq is None:
+            self._datafreq
+
         if isinstance(X, pd.DataFrame):
             assert all([v in X.columns for v in var_lags]), "Variables in X do not match initialised var_lags"
             if 'site' in X.index.names:
                 # split-apply-combine by site
                 results = {}
                 for site in X.index.get_level_values('site').unique():
-                    results[site] = self._lag_array(X.ix[X.index.get_level_values('site') == site, var_lags].values, datafreq)
+                    results[site] = self._lag_array(X.ix[X.index.get_level_values('site') == site, var_lags].values, var_lags, datafreq)
                 result = np.concatenate([d for d in results.values()])
             else:
-                result = self._lag_array(X[[var_lags]].values, datafreq)
+                result = self._lag_array(X[[var_lags]].values, var_lags, datafreq)
         elif isinstance(X, np.ndarray) or isinstance(X, xr.DataArray):
             # we have to assume that the variables are given in the right order
             assert (X.shape[1] == len(var_lags))
             if isinstance(X, xr.DataArray):
-                result = self._lag_array(np.array(X), datafreq)
+                result = self._lag_array(np.array(X), var_lags, datafreq)
             else:
-                result = self._lag_array(X, datafreq)
+                result = self._lag_array(X, var_lags, datafreq)
 
         return result
 
