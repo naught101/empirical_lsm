@@ -21,11 +21,11 @@ import sys
 import os
 
 from pals_utils.constants import MET_VARS
-from pals_utils.data import get_datasets, get_met_data, get_flux_data, pals_xr_to_df, xr_list_to_df
+from pals_utils.data import get_met_data, get_flux_data, pals_xr_to_df, xr_list_to_df
 
 from ubermodel.transforms import LagWrapper
 from ubermodel.models import get_model
-from ubermodel.data import sim_dict_to_xr
+from ubermodel.data import get_sites, sim_dict_to_xr
 from ubermodel.utils import print_good, print_warn
 
 
@@ -79,7 +79,7 @@ def PLUMBER_fit_predict(model, name, site):
 
     print("Loading all data... ")
 
-    plumber_datasets = get_datasets('PLUMBER')
+    plumber_datasets = get_sites('PLUMBER')
     if site not in plumber_datasets:
         # Using a non-PLUMBER site, train on all PLUMBER sites.
         train_sets = plumber_datasets
@@ -154,7 +154,7 @@ def main(args):
     name = args['<name>']
     site = args['<site>']
 
-    datasets = get_datasets('all')
+    datasets = get_sites('all')
 
     model = get_model(name)
     if site == 'all':
