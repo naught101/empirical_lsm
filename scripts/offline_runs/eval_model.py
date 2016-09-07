@@ -32,9 +32,10 @@ from ubermodel.evaluate import evaluate_simulation, load_sim_evaluation
 from ubermodel.plots import diagnostic_plots
 from ubermodel.utils import print_good, print_bad, dataframe_to_rst
 from ubermodel.data import get_sites, get_sim_nc_path
+from ubermodel.models import get_model
 
 
-def model_site_rst_format(model, name, site, eval_text, plot_files):
+def model_site_rst_format(name, site, eval_text, plot_files):
     """format all the datas into an rst!
     """
 
@@ -51,6 +52,21 @@ def model_site_rst_format(model, name, site, eval_text, plot_files):
     title = '{name} at {site}'.format(name=name, site=site)
     title += '\n' + '=' * len(title)
 
+    try:
+        model = get_model(name)
+        try:
+            description = model.description
+        except:
+            description = "description missing"
+        description = dedent("""
+            {desc}
+
+            .. code:: python
+
+              `{model}`""").format(desc=description, model=model)
+    except:
+        description = "Description missing - unknown model"
+
     template = dedent("""
     {title}
 
@@ -59,9 +75,7 @@ def model_site_rst_format(model, name, site, eval_text, plot_files):
     Model details:
     --------------
 
-    .. code:: python
-
-      `{model}`
+    {desc}
 
     Evaluation results:
     -------------------
@@ -78,6 +92,7 @@ def model_site_rst_format(model, name, site, eval_text, plot_files):
 
     output = (template.format(model=model,
                               title=title,
+                              desc=description,
                               plots=plots_text,
                               date=date,
                               eval_text=eval_text))
@@ -85,7 +100,7 @@ def model_site_rst_format(model, name, site, eval_text, plot_files):
     return output
 
 
-def model_site_rst_write(model, name, site, eval_results, plot_files):
+def model_site_rst_write(name, site, eval_results, plot_files):
     """run a model and generate an rst file.
 
     This is useful for importing.
@@ -100,7 +115,7 @@ def model_site_rst_write(model, name, site, eval_results, plot_files):
 
     eval_text = dataframe_to_rst(eval_results)
 
-    output = model_site_rst_format(model, name, site, eval_text, plot_files)
+    output = model_site_rst_format(name, site, eval_text, plot_files)
 
     with open(model_site_rst_file, 'w') as f:
         f.write(output)
@@ -185,7 +200,7 @@ def main_rst_gen(name, site):
             n=name, s=site, e=e))
         return
 
-    model_site_rst_write("Not generated", name, site, eval_results, plot_files)
+    model_site_rst_write(name, site, eval_results, plot_files)
 
     return
 
