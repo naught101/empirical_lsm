@@ -179,6 +179,9 @@ def get_model_from_dict(model_dict):
         print("Warning: no forcing vars, using defaults (all)")
         pipe.forcing_vars = MET_VARS
 
+    if 'description' in model_dict:
+        pipe.description = model_dict['description']
+
     return pipe
 
 
