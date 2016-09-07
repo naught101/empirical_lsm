@@ -20,6 +20,8 @@ import pandas as pd
 import sys
 import os
 
+from multiprocessing import Pool
+
 from pals_utils.constants import MET_VARS
 from pals_utils.data import get_met_data, get_flux_data, pals_xr_to_df, xr_list_to_df
 
@@ -171,8 +173,10 @@ def main(args):
     model = get_model(name)
     if site == 'all':
         datasets = get_sites('PLUMBER_ext')
-        for s in datasets:
-            main_run(model, name, s)
+        f_args = [[model, name, s] for s in datasets]
+        ncores = min(os.cpu_count(), 2 + int(os.cpu_count() * 0.25))
+        with Pool(ncores) as p:
+            p.starmap(main_run, f_args)
     else:
         main_run(model, name, site)
 

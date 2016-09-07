@@ -20,6 +20,8 @@ import xarray as xr
 import os
 import glob
 
+from multiprocessing import Pool
+
 from matplotlib.cbook import dedent
 from datetime import datetime as dt
 
@@ -197,16 +199,21 @@ def main(args):
         if site == 'all':
             # will only work if simulations are already run.
             datasets = get_sites('PLUMBER_ext')
-            for s in datasets:
-                main_eval(name, s)
+            f_args = [[name, s] for s in datasets]
+            ncores = min(os.cpu_count(), 2 + int(os.cpu_count() * 0.25))
+            with Pool(ncores) as p:
+                p.starmap(main_eval, f_args)
         else:
             main_eval(name, site, sim_file)
 
     if args['rst-gen']:
         if site == 'all':
             # will only work if simulations are already evaluated.
-            for s in get_sites('PLUMBER_ext'):
-                main_rst_gen(name, s)
+            datasets = get_sites('PLUMBER_ext')
+            f_args = [[name, s] for s in datasets]
+            ncores = min(os.cpu_count(), 2 + int(os.cpu_count() * 0.25))
+            with Pool(ncores) as p:
+                p.starmap(main_rst_gen, f_args)
         else:
             main_rst_gen(name, site)
 
