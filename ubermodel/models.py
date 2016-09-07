@@ -58,15 +58,21 @@ def get_model_from_def(name):
     if name == '1lin':
         model = MissingDataWrapper(LinearRegression())
         model.forcing_vars = ['SWdown']
-    if name == '3km27':
+        model.description = "PLUMBER-style 1lin (SWdown only)"
+
+    elif name == '3km27':
         model = MissingDataWrapper(ModelByCluster(MiniBatchKMeans(27),
                                                   LinearRegression()))
         model.forcing_vars = ['SWdown', 'Tair', 'RelHum']
-    if name == '3km233':
+        model.description = "PLUMBER-style 3km27 (SWdown, Tair, RelHum)"
+
+    elif name == '3km233':
         model = MissingDataWrapper(ModelByCluster(MiniBatchKMeans(233),
                                                   LinearRegression()))
         model.forcing_vars = ['SWdown', 'Tair', 'RelHum']
-    if name == '3km27_lag':
+        model.description = "Like 3km27, but with more clusters"
+
+    elif name == '3km27_lag':
         model_dict = {
             'variable': ['SWdown', 'Tair', 'RelHum'],
             'clusterregression': {
@@ -81,7 +87,9 @@ def get_model_from_def(name):
         }
         model = MissingDataWrapper(get_model_from_dict(model_dict))
         model.forcing_vars = ['SWdown', 'Tair', 'RelHum']
-    if name == '5km27_lag':
+        model.description = "like 3km27, but includes 1-day lagged versions of all three variables"
+
+    elif name == '5km27_lag':
         var_lags = OrderedDict()
         [var_lags.update({v: ['cur', '2d', '7d']}) for v in ['SWdown', 'Tair', 'RelHum', 'Wind']]
         var_lags.update({'Rainf': ['cur', '2d', '7d', '30d', '90d']})
@@ -90,7 +98,9 @@ def get_model_from_def(name):
                                                                     LinearRegression()))
                                   )
         model.forcing_vars = list(var_lags)
-    if name == 'STHR_km233_lR':
+        model.description = "km27 linear regression with SW, T, RH, Wind, Rain, and 2 and 7 day lagged-averages for each, plus 30- and 90-day lagged averages for Rainf (probably needs more clusters...)"
+
+    elif name == 'STHR_km233_lR':
         var_lags = OrderedDict()
         [var_lags.update({v: ['cur']}) for v in ['SWdown', 'Tair', 'RelHum']]
         var_lags.update({'Rainf': ['cur', '2d']})
@@ -100,6 +110,7 @@ def get_model_from_def(name):
                                   )
         model.forcing_vars = list(var_lags)
         model.description = "km233 Linear model with Swdown, Tair, RelHum, Rainf, and Lagged Rainf (2d)"
+
     else:
         raise Exception("unknown model")
 
