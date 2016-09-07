@@ -7,7 +7,7 @@ Email: ned@nedhaughton.com
 Description: Fits and runs a basic model and produces rst output with diagnostics
 
 Usage:
-    run_model.py run <name> <site> [--debug]
+    run_model.py run <name> <site>
 
 Options:
     -h, --help  Show this screen and exit.
@@ -56,7 +56,7 @@ mem = jl.Memory(cachedir=os.path.join(os.path.expanduser('~'), 'tmp', 'cache'))
 get_multisite_df_cached = mem.cache(get_multisite_df)
 
 
-def PLUMBER_fit_predict(model, name, site, debug):
+def PLUMBER_fit_predict(model, name, site):
     """Fit and predict a model
 
     :model: sklearn-style model or pipeline (regression estimator)
@@ -87,7 +87,7 @@ def PLUMBER_fit_predict(model, name, site, debug):
         # Using a PLUMBER site, leave one out.
         train_sets = [s for s in plumber_datasets if s != site]
 
-    if debug:
+    if site == 'debug':
         train_sets = [train_sets[0]]
 
     print("Converting... ")
@@ -99,10 +99,13 @@ def PLUMBER_fit_predict(model, name, site, debug):
 
     flux_train = get_multisite_df(train_sets, typ='flux', variables=flux_vars, qc=True, name=use_names)
 
-    if debug:
-        met_train = met_train[0:1000]
-        flux_train = flux_train[0:1000]
-        met_test = met_test[0:1000]
+    if site == 'debug':
+        idx = (met_train.dropna()
+                        .index
+                        .join(flux_train.dropna().index, "inner"))[0:5000]
+        met_train = met_train.loc[idx]
+        flux_train = flux_train.loc[idx]
+        met_test = met_test.dropna()[0:5000]
 
     print('Fitting and running {f} using {m}'.format(f=flux_vars, m=met_vars))
     sim_data_dict = dict()
@@ -130,24 +133,27 @@ def PLUMBER_fit_predict(model, name, site, debug):
         print("No fluxes successfully fitted, quitting")
         sys.exit()
 
-    sim_data = sim_dict_to_xr(sim_data_dict, met_test_xr)
+    if site == 'debug':
+        sim_data = sim_dict_to_xr(sim_data_dict, met_test_xr.isel(time=slice(0, 5000)))
+    else:
+        sim_data = sim_dict_to_xr(sim_data_dict, met_test_xr)
 
     return sim_data
 
 
-def main_run(model, name, site, debug=None):
+def main_run(model, name, site):
     """Main function for fitting and running a model.
 
     :model: sklearn-style model or pipeline (regression estimator)
     :name: name of the model
-    :site: PALS site name to run the model at
+    :site: PALS site name to run the model at (or 'all', or 'debug')
     """
     sim_dir = 'model_data/{n}'.format(n=name)
     os.makedirs(sim_dir, exist_ok=True)
 
     nc_file = '{d}/{n}_{s}.nc'.format(d=sim_dir, n=name, s=site)
 
-    sim_data = PLUMBER_fit_predict(model, name, site, debug)
+    sim_data = PLUMBER_fit_predict(model, name, site)
 
     if os.path.exists(nc_file):
         print_warn("Overwriting sim file at {f}".format(f=nc_file))
@@ -168,7 +174,7 @@ def main(args):
         for s in datasets:
             main_run(model, name, s)
     else:
-        main_run(model, name, site, args['--debug'])
+        main_run(model, name, site)
 
     return
 
