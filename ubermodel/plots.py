@@ -18,9 +18,10 @@ import xray as xr
 from dateutil.parser import parse
 
 from pals_utils.data import pals_site_name, pals_xr_to_df
-from pals_utils.constants import FLUX_VARS, DATASETS
+from pals_utils.constants import FLUX_VARS
 
 from .utils import print_bad, print_warn
+from .data import get_sites
 
 
 def save_plot(base_path, rel_path, filename):
@@ -219,7 +220,7 @@ def get_PLUMBER_metrics(name, site='all'):
     benchmark_names = ['S_lin', 'ST_lin', 'STH_km27_lin']
 
     if site == 'all':
-        sites = DATASETS
+        sites = get_sites('PLUMBER_ext')
     else:
         sites = [site]
 

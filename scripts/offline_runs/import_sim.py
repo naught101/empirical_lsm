@@ -17,10 +17,8 @@ Options:
 from docopt import docopt
 import xarray as xr
 
-from pals_utils.constants import DATASETS
-
 from ubermodel.utils import print_good
-from ubermodel.data import get_sim_nc_path
+from ubermodel.data import get_sites, get_sim_nc_path
 
 
 def fix_benchmark(site_data, name, site):
@@ -61,7 +59,7 @@ def main_import_benchmark(name, site):
     print_good('Importing {n} data for: '.format(n=name))
 
     if len(site) == 0:
-        datasets = DATASETS
+        datasets = get_sites('PLUMBER')
     else:
         datasets = site
 

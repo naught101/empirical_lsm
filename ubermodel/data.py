@@ -27,11 +27,16 @@ def get_sites(site_set='all'):
 
     if site_set == 'debug':
         sites = ['Tumba']
-    elif site_set == 'all':
-        with open(data_dir + '/PALS/datasets/sites.txt') as f:
-            sites = [s.strip() for s in f.readlines()]
-    elif site_set == 'PLUMBER':
-        with open(data_dir + '/PALS/datasets/sites.txt') as f:
+    else:
+        if site_set == 'all':
+            filename = 'sites.txt'
+        elif site_set == 'PLUMBER':
+            filename = 'sites_PLUMBER.txt'
+        elif site_set == 'PLUMBER_ext':
+            filename = 'sites_PLUMBER_ext.txt'
+
+        path = '{d}/PALS/datasets/{f}'.format(d=data_dir, f=filename)
+        with open(path) as f:
             sites = [s.strip() for s in f.readlines()]
 
     return sites

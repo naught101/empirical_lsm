@@ -103,7 +103,7 @@ def fit_and_predict(name, dataset, years='2012-2013'):
     met_vars = model.forcing_vars
     flux_vars = ['Qle']
 
-    sites = get_sites()
+    sites = get_sites('PLUMBER_ext')
 
     years = [int(s) for s in years.split('-')]
 

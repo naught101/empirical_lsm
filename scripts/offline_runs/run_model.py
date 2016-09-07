@@ -170,7 +170,7 @@ def main(args):
 
     model = get_model(name)
     if site == 'all':
-        datasets = get_sites('all')
+        datasets = get_sites('PLUMBER_ext')
         for s in datasets:
             main_run(model, name, s)
     else:

@@ -23,13 +23,13 @@ import glob
 from matplotlib.cbook import dedent
 from datetime import datetime as dt
 
-from pals_utils.constants import DATASETS, FLUX_VARS
+from pals_utils.constants import FLUX_VARS
 from pals_utils.data import get_site_data
 
 from ubermodel.evaluate import evaluate_simulation, load_sim_evaluation
 from ubermodel.plots import diagnostic_plots
 from ubermodel.utils import print_good, print_bad, dataframe_to_rst
-from ubermodel.data import get_sim_nc_path
+from ubermodel.data import get_sites, get_sim_nc_path
 
 
 def model_site_rst_format(model, name, site, eval_text, plot_files):
@@ -196,7 +196,7 @@ def main(args):
     if args['eval']:
         if site == 'all':
             # will only work if simulations are already run.
-            datasets = DATASETS + ['Castel', 'Rocca1', 'Tharandt']
+            datasets = get_sites('PLUMBER_ext')
             for s in datasets:
                 main_eval(name, s)
         else:
@@ -205,7 +205,7 @@ def main(args):
     if args['rst-gen']:
         if site == 'all':
             # will only work if simulations are already evaluated.
-            for s in DATASETS:
+            for s in get_sites('PLUMBER_ext'):
                 main_rst_gen(name, s)
         else:
             main_rst_gen(name, site)
