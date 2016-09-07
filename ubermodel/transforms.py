@@ -520,3 +520,9 @@ def get_lags():
             ('1d'), ('2d'), ('3d'), ('5d'), ('7d'), ('14d'),
             ('30d'), ('60d'), ('90d'), ('180d'), ('365d')]
     return lags
+
+
+def dropna(array):
+    """like pandas.dropna, but for arrays"""
+
+    return array[np.isfinite(array).all(axis=1)]
