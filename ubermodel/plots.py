@@ -87,8 +87,9 @@ def diagnostic_plots(sim_data, flux_data, name):
     sns.set_palette(sns.color_palette(['red', 'pink', 'orange', 'black', 'blue']))
 
     # Generalise if more multi-variable plots needed
-    for plot in [plot_PLUMBER_sim_metrics]:
-        filename = plot(name, site)
+    metric_df = get_PLUMBER_metrics(name, site)
+    for plot in [p_plumber_metrics, p_metric_rank_counts]:
+        filename = plot(metric_df, name, site)
         rel_plot_path = save_plot(base_path, rel_path, filename)
         files.append(rel_plot_path)
 
@@ -193,6 +194,8 @@ def get_PLUMBER_plot(model_dir, site='all'):
     for metrics in ['all', 'standard', 'distribution']:
         filename = p_plumber_metrics(metric_df, name, site, metrics)
         save_plot('source/models', name + '/figures', filename)
+        filename = p_metric_rank_counts(metric_df, name, site, metrics)
+        save_plot('source/models', name + '/figures', filename)
 
 
 def plot_PLUMBER_sim_metrics(name, site, metrics='all'):
@@ -261,6 +264,19 @@ def get_PLUMBER_metrics(name, site='all'):
     return metric_df
 
 
+def subset_metric_df(metric_df, metrics):
+    """Return only the metrics required
+    """
+    if metrics == 'standard':
+        metrics_list = ['nme', 'mbe', 'sd_diff', 'corr']
+        return metric_df[metric_df.metric.isin(metrics_list)]
+    elif metrics == 'distribution':
+        metrics_list = ['extreme_5', 'extreme_95', 'skewness', 'kurtosis', 'overlap']
+        return metric_df[metric_df.metric.isin(metrics_list)]
+    else:
+        return metric_df
+
+
 def p_plumber_metrics(metric_df, name, site='all', metrics='all'):
     """Plot metric results as averages over site and metric
 
@@ -272,12 +288,7 @@ def p_plumber_metrics(metric_df, name, site='all', metrics='all'):
     """
     models = ['S_lin', 'ST_lin', 'STH_km27_lin', name]
 
-    if metrics == 'standard':
-        metrics_list = ['nme', 'mbe', 'sd_diff', 'corr']
-        metric_df = metric_df[metric_df.metric.isin(metrics_list)]
-    if metrics == 'distribution':
-        metrics_list = ['extreme_5', 'extreme_95', 'skewness', 'kurtosis', 'overlap']
-        metric_df = metric_df[metric_df.metric.isin(metrics_list)]
+    metric_df = subset_metric_df(metric_df, metrics)
 
     mean_df = metric_df.groupby(['variable', 'name'])['rank'].mean().reset_index()
 
@@ -287,6 +298,32 @@ def p_plumber_metrics(metric_df, name, site='all', metrics='all'):
     pl.title('{n}: PLUMBER plot: {m} metrics at {s}'.format(n=name, s=site, m=metrics))
 
     filename = '{n}_{s}_PLUMBER_plot_{m}_metrics.png'.format(n=name, s=site, m=metrics)
+
+    return filename
+
+
+def p_metric_rank_counts(metric_df, name, site='all', metrics='all'):
+    """plots hostograms of ranks for each variable and model
+    """
+    models = ['S_lin', 'ST_lin', 'STH_km27_lin', name]
+
+    metric_df = subset_metric_df(metric_df, metrics)
+
+    metric_df['name'] = pd.Categorical(metric_df['name'], models)
+    metric_df.sort_values('name', inplace=True)
+
+    count_df = (metric_df[['rank', 'name', 'variable', 'value']]
+                .groupby(['rank', 'variable', 'name'])
+                .agg('count')
+                .reset_index()
+                .rename(columns={'value': 'count'}))
+
+    sns.factorplot(y="rank", x="count", col="variable", hue="name", data=count_df, orient='h')
+    pl.gca().invert_yaxis()
+
+    pl.suptitle('{n}: Rank counts: {m} metrics at {s}'.format(n=name, s=site, m=metrics))
+
+    filename = '{n}_{s}_rank_counts_{m}_metrics.png'.format(n=name, s=site, m=metrics)
 
     return filename
 
