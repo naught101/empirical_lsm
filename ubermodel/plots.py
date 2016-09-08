@@ -111,7 +111,7 @@ def diagnostic_plots(sim_data, flux_data, name):
 
 
 def plot_weekly_timeseries(data, name, var, site):
-    data.resample('1W').plot()
+    data.resample('1W').mean().plot()
     pl.title('{n}: Weekly average {v} at {s}'.format(n=name, v=var, s=site))
 
     filename = '{n}_{v}_{s}_weekly_timeseries.png'.format(n=name, v=var, s=site)
@@ -320,13 +320,13 @@ def plot_drydown(sim_data, flux_data, met_data, name, date_range):
 
     # Plot rainfall in mm
     Rainf = (pals_xr_to_df(met_data.sel(time=slice(*year_range)), ['Rainf'])
-             .resample('1W', how='sum') * 1000)
+             .resample('1W', how='sum') * 1000).mean()
 
     obs = (pals_xr_to_df(flux_data.sel(time=slice(*year_range)), ['Qh', 'Qle'])
-           .resample('1D'))
+           .resample('1D')).mean()
 
     sim = (pals_xr_to_df(sim_data.sel(time=slice(*year_range)), ['Qh', 'Qle'])
-           .resample('1D'))
+           .resample('1D')).mean()
 
     x_vals = Rainf.index.to_pydatetime()
 
