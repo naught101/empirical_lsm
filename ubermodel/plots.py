@@ -333,6 +333,34 @@ def p_metric_rank_counts(metric_df, name, site='all', metrics='all'):
     return filename
 
 
+def p_metric_normalised_violins(metric_df, name, site='all', metrics='all'):
+    """plots violins of metrics normalised for each variable and model
+    """
+    models = ['S_lin', 'ST_lin', 'STH_km27_lin', name]
+
+    metric_df = subset_metric_df(metric_df, metrics)
+
+    metric_df['name'] = pd.Categorical(metric_df['name'], models)
+    metric_df.sort_values('name', inplace=True)
+
+    one_metrics = ['corr', 'overlap']
+    metric_df.ix[metric_df['metric'].isin(one_metrics), 'value'] = 1 - metric_df.ix[metric_df['metric'].isin(one_metrics), 'value']
+
+    metric_df['value'] = (metric_df
+                          .groupby(['site', 'variable', 'metric'])['value']
+                          .apply(lambda x: (x - x.min()) / (x.max() - x.min())))
+
+    fg = sns.factorplot(y="value", x="variable", hue="name", data=metric_df, orient='v', kind='violin', bw=0.1)
+    sns.factorplot(y="value", x="variable", hue="name", data=metric_df, orient='v', kind='point', ax=fg.ax, ci=None)
+    fg.ax.legend().set_visible(False)
+
+    pl.suptitle('{n}: Minmax normalised metrics: {m} metrics at {s}'.format(n=name, s=site, m=metrics))
+
+    filename = '{n}_{s}_minmax_normalised_{m}_metrics.png'.format(n=name, s=site, m=metrics)
+
+    return filename
+
+
 PLUMBER_PLOTS = {
     "source/models/{n}/figures/{n}_all_PLUMBER_plot_{m}_metrics.png": get_PLUMBER_plot,
     "source/models/{n}/figures/{s}/{n}_{s}_PLUMBER_plot_{m}_metrics.png": plot_PLUMBER_sim_metrics,
