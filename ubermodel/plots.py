@@ -257,9 +257,14 @@ def get_PLUMBER_metrics(name, site='all'):
 
     metric_df = pd.concat(metric_df).reset_index(drop=True)
 
-    metric_df.ix[metric_df['metric'] == 'corr', 'value'] = - metric_df.ix[metric_df['metric'] == 'corr', 'value']
+    # invert 1-centred metrics
+    one_metrics = ['corr', 'overlap']
+    metric_df.ix[metric_df['metric'].isin(one_metrics), 'value'] = 1 - metric_df.ix[metric_df['metric'].isin(one_metrics), 'value']
 
-    metric_df['rank'] = metric_df.groupby(['variable', 'metric', 'site'])['value'].rank()
+    metric_df['rank'] = metric_df.groupby(['variable', 'metric', 'site'])['value'].apply(lambda x: x.abs().rank())
+
+    # and reinvert
+    metric_df.ix[metric_df['metric'].isin(one_metrics), 'value'] = 1 - metric_df.ix[metric_df['metric'].isin(one_metrics), 'value']
 
     return metric_df
 
