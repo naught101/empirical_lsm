@@ -212,7 +212,7 @@ def plot_PLUMBER_sim_metrics(name, site, metrics='all'):
     return filename
 
 
-def get_PLUMBER_metrics(name, site='all'):
+def get_PLUMBER_metrics(name, site='all', variables=['Qle', 'Qh', 'NEE']):
     """get metrics dataframe from a site, with benchmarks for comparison
 
     :returns: dataframe with metrics for model at site
@@ -236,14 +236,14 @@ def get_PLUMBER_metrics(name, site='all'):
             site_metrics = pd.melt(site_metrics, id_vars='metric')
             site_metrics['name'] = name
             site_metrics['site'] = s
-            metric_df.append(site_metrics)
+            metric_df.append(site_metrics[site_metrics.variable.isin(variables)])
 
             for b in benchmark_names:
                 benchmark_metrics = pd.read_csv(csv_file.format(n=b, s=s))
                 benchmark_metrics = pd.melt(benchmark_metrics, id_vars='metric')
                 benchmark_metrics['name'] = b
                 benchmark_metrics['site'] = s
-                metric_df.append(benchmark_metrics)
+                metric_df.append(benchmark_metrics[benchmark_metrics.variable.isin(variables)])
         except Exception:
             failures.append(s)
             continue
