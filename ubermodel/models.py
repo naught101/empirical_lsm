@@ -48,6 +48,10 @@ def get_model(name):
     return model
 
 
+def km_lin(n):
+    return MissingDataWrapper(ModelByCluster(MiniBatchKMeans(27), LinearRegression()))
+
+
 def get_model_from_def(name):
     """returns a scikit-learn style model/pipeline
 
@@ -61,14 +65,12 @@ def get_model_from_def(name):
         model.description = "PLUMBER-style 1lin (SWdown only)"
 
     elif name == '3km27':
-        model = MissingDataWrapper(ModelByCluster(MiniBatchKMeans(27),
-                                                  LinearRegression()))
+        model = km_lin(27)
         model.forcing_vars = ['SWdown', 'Tair', 'RelHum']
         model.description = "PLUMBER-style 3km27 (SWdown, Tair, RelHum)"
 
     elif name == '3km233':
-        model = MissingDataWrapper(ModelByCluster(MiniBatchKMeans(233),
-                                                  LinearRegression()))
+        model = km_lin(233)
         model.forcing_vars = ['SWdown', 'Tair', 'RelHum']
         model.description = "Like 3km27, but with more clusters"
 
@@ -93,10 +95,7 @@ def get_model_from_def(name):
         var_lags = OrderedDict()
         [var_lags.update({v: ['cur', '2d', '7d']}) for v in ['SWdown', 'Tair', 'RelHum', 'Wind']]
         var_lags.update({'Rainf': ['cur', '2d', '7d', '30d', '90d']})
-        model = LagAverageWrapper(var_lags,
-                                  MissingDataWrapper(ModelByCluster(MiniBatchKMeans(27),
-                                                                    LinearRegression()))
-                                  )
+        model = LagAverageWrapper(var_lags, km_lin(27))
         model.forcing_vars = list(var_lags)
         model.description = "km27 linear regression with SW, T, RH, Wind, Rain, and 2 and 7 day lagged-averages for each, plus 30- and 90-day lagged averages for Rainf (probably needs more clusters...)"
 
@@ -104,10 +103,7 @@ def get_model_from_def(name):
         var_lags = OrderedDict()
         [var_lags.update({v: ['cur']}) for v in ['SWdown', 'Tair', 'RelHum']]
         var_lags.update({'Rainf': ['2d']})
-        model = LagAverageWrapper(var_lags,
-                                  MissingDataWrapper(ModelByCluster(MiniBatchKMeans(233),
-                                                                    LinearRegression()))
-                                  )
+        model = LagAverageWrapper(var_lags, km_lin(233))
         model.forcing_vars = list(var_lags)
         model.description = "km233 Linear model with Swdown, Tair, RelHum, and Lagged Rainf (2d)"
 
@@ -115,10 +111,7 @@ def get_model_from_def(name):
         var_lags = OrderedDict()
         [var_lags.update({v: ['cur']}) for v in ['SWdown', 'Tair', 'RelHum']]
         var_lags.update({'Rainf': ['cur', '2d']})
-        model = LagAverageWrapper(var_lags,
-                                  MissingDataWrapper(ModelByCluster(MiniBatchKMeans(233),
-                                                                    LinearRegression()))
-                                  )
+        model = LagAverageWrapper(var_lags, km_lin(233))
         model.forcing_vars = list(var_lags)
         model.description = "km233 Linear model with Swdown, Tair, RelHum, Rainf, and Lagged Rainf (2d)"
 
