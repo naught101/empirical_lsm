@@ -99,13 +99,34 @@ def get_model_from_def(name):
         model.forcing_vars = list(var_lags)
         model.description = "km27 linear regression with SW, T, RH, Wind, Rain, and 2 and 7 day lagged-averages for each, plus 30- and 90-day lagged averages for Rainf (probably needs more clusters...)"
 
-    elif name == 'STH_km233_lR':
+    elif name == 'STH_km233_lR2d':
         var_lags = OrderedDict()
         [var_lags.update({v: ['cur']}) for v in ['SWdown', 'Tair', 'RelHum']]
         var_lags.update({'Rainf': ['2d']})
         model = LagAverageWrapper(var_lags, km_lin(233))
         model.forcing_vars = list(var_lags)
         model.description = "km233 Linear model with Swdown, Tair, RelHum, and Lagged Rainf (2d)"
+    elif name == 'STH_km233_lR10d':
+        var_lags = OrderedDict()
+        [var_lags.update({v: ['cur']}) for v in ['SWdown', 'Tair', 'RelHum']]
+        var_lags.update({'Rainf': ['10d']})
+        model = LagAverageWrapper(var_lags, km_lin(233))
+        model.forcing_vars = list(var_lags)
+        model.description = "km233 Linear model with Swdown, Tair, RelHum, and Lagged Rainf (10d)"
+    elif name == 'STH_km233_lR30d':
+        var_lags = OrderedDict()
+        [var_lags.update({v: ['cur']}) for v in ['SWdown', 'Tair', 'RelHum']]
+        var_lags.update({'Rainf': ['30d']})
+        model = LagAverageWrapper(var_lags, km_lin(233))
+        model.forcing_vars = list(var_lags)
+        model.description = "km233 Linear model with Swdown, Tair, RelHum, and Lagged Rainf (30d)"
+    elif name == 'STH_km233_lR180d':
+        var_lags = OrderedDict()
+        [var_lags.update({v: ['cur']}) for v in ['SWdown', 'Tair', 'RelHum']]
+        var_lags.update({'Rainf': ['180d']})
+        model = LagAverageWrapper(var_lags, km_lin(233))
+        model.forcing_vars = list(var_lags)
+        model.description = "km233 Linear model with Swdown, Tair, RelHum, and Lagged Rainf (180d)"
 
     elif name == 'STHR_km233_lR':
         var_lags = OrderedDict()
