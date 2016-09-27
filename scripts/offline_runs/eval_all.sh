@@ -1,21 +1,25 @@
 #!/bin/bash
 
-MODELS=$@
+set -ex
+
+MODELS=$*
 
 N=3
+i=0
 for m in $MODELS ; do
-    ((i=i%N))
-    ((i++==0)) && wait
+    i=$(echo "$i%$N" | bc)
+    i=$(echo "$i+1" | bc)
+    if [[ $i -eq 0 ]] ; then wait ; fi
     (
-    for s in `cat data/sites.txt` ; do
-        # scripts/run_model.py run $m $s
-        scripts/eval_model.py eval $m $s ;
-        scripts/eval_model.py rst-gen $m $s ;
+    for s in `cat data/PALS/datasets/sites_PLUMBER_ext.txt` ; do
+        scripts/offline_runs/run_model.py run $m $s
+        scripts/offline_runs/eval_model.py eval $m $s ;
+        scripts/offline_runs/eval_model.py rst-gen $m $s ;
     done
     )
-    scripts/model_search_indexes.py model $m &
+    scripts/offline_runs/model_search_indexes.py model $m &
 done    
 
-scripts/model_search_indexes.py all
+scripts/offline_runs/model_search_indexes.py all
 
 make html
