@@ -166,19 +166,27 @@ def main_run(model, name, site):
     return
 
 
-def main(args):
-    name = args['<name>']
-    site = args['<site>']
+def main_run_mp(name, site):
+    """Multi-processor run handling."""
 
     model = get_model(name)
-    if site == 'all':
-        datasets = get_sites('PLUMBER_ext')
+    if site == 'all' or site == 'PLUMBER_ext' or site == 'PLUMBER':
+        datasets = get_sites(site)
         f_args = [[model, name, s] for s in datasets]
         ncores = min(os.cpu_count(), 2 + int(os.cpu_count() * 0.25))
         with Pool(ncores) as p:
             p.starmap(main_run, f_args)
     else:
         main_run(model, name, site)
+
+    return
+
+
+def main(args):
+    name = args['<name>']
+    site = args['<site>']
+
+    main_run_mp(name, site)
 
     return
 

@@ -205,32 +205,48 @@ def main_rst_gen(name, site):
     return
 
 
+def main_eval_mp(name, site, sim_file):
+    """Evaluate using multiple processes if necessary"""
+    if site == 'all':
+        # will only work if simulations are already run.
+        datasets = get_sites('PLUMBER_ext')
+        f_args = [[name, s] for s in datasets]
+        ncores = min(os.cpu_count(), 2 + int(os.cpu_count() * 0.25))
+        with Pool(ncores) as p:
+            p.starmap(main_eval, f_args)
+    else:
+        main_eval(name, site, sim_file)
+
+
+def main_rst_gen_mp(name, site, sim_file):
+    """Generate rst files using multiple processes if necessary
+
+    :name: TODO
+    :site: TODO
+    :sim_file: TODO
+    :returns: TODO
+
+    """
+    if site == 'all':
+        # will only work if simulations are already evaluated.
+        datasets = get_sites('PLUMBER_ext')
+        f_args = [[name, s] for s in datasets]
+        ncores = min(os.cpu_count(), 2 + int(os.cpu_count() * 0.25))
+        with Pool(ncores) as p:
+            p.starmap(main_rst_gen, f_args)
+    else:
+        main_rst_gen(name, site)
+
+
 def main(args):
     name = args['<name>']
     site = args['<site>']
     sim_file = args['<file>']
 
     if args['eval']:
-        if site == 'all':
-            # will only work if simulations are already run.
-            datasets = get_sites('PLUMBER_ext')
-            f_args = [[name, s] for s in datasets]
-            ncores = min(os.cpu_count(), 2 + int(os.cpu_count() * 0.25))
-            with Pool(ncores) as p:
-                p.starmap(main_eval, f_args)
-        else:
-            main_eval(name, site, sim_file)
-
+        main_eval_mp(name, site, sim_file)
     if args['rst-gen']:
-        if site == 'all':
-            # will only work if simulations are already evaluated.
-            datasets = get_sites('PLUMBER_ext')
-            f_args = [[name, s] for s in datasets]
-            ncores = min(os.cpu_count(), 2 + int(os.cpu_count() * 0.25))
-            with Pool(ncores) as p:
-                p.starmap(main_rst_gen, f_args)
-        else:
-            main_rst_gen(name, site)
+        main_rst_gen_mp(name, site, sim_file)
 
     return
 
