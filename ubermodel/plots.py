@@ -314,7 +314,7 @@ def p_metric_rank_counts(metric_df, name, site='all', metrics='all'):
 
     metric_df = subset_metric_df(metric_df, metrics)
 
-    metric_df['name'] = pd.Categorical(metric_df['name'], models)
+    metric_df['name'] = pd.Categorical(metric_df['name'], list(set(models)))
     metric_df.sort_values('name', inplace=True)
 
     count_df = (metric_df[['rank', 'name', 'variable', 'value']]
