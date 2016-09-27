@@ -274,10 +274,10 @@ def subset_metric_df(metric_df, metrics):
     """
     if metrics == 'standard':
         metrics_list = ['nme', 'mbe', 'sd_diff', 'corr']
-        return metric_df[metric_df.metric.isin(metrics_list)]
+        return metric_df[metric_df.metric.isin(metrics_list)].copy()
     elif metrics == 'distribution':
         metrics_list = ['extreme_5', 'extreme_95', 'skewness', 'kurtosis', 'overlap']
-        return metric_df[metric_df.metric.isin(metrics_list)]
+        return metric_df[metric_df.metric.isin(metrics_list)].copy()
     else:
         return metric_df
 
