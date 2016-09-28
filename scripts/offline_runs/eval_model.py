@@ -7,8 +7,8 @@ Email: ned@nedhaughton.com
 Description: Evaluates a model (sim or set of sims) and produces rst output with diagnostics
 
 Usage:
-    eval_model.py eval <name> <site> [<file>]
-    eval_model.py rst-gen <name> <site>
+    eval_model.py eval <name> <site> [<file>] [--no-mp]
+    eval_model.py rst-gen <name> <site> [--no-mp]
 
 Options:
     -h, --help  Show this screen and exit.
@@ -205,20 +205,26 @@ def main_rst_gen(name, site):
     return
 
 
-def main_eval_mp(name, site, sim_file):
+def main_eval_mp(name, site, sim_file=None, no_mp=False):
     """Evaluate using multiple processes if necessary"""
     if site == 'all':
         # will only work if simulations are already run.
         datasets = get_sites('PLUMBER_ext')
-        f_args = [[name, s] for s in datasets]
-        ncores = min(os.cpu_count(), 2 + int(os.cpu_count() * 0.25))
-        with Pool(ncores) as p:
-            p.starmap(main_eval, f_args)
+
+        if no_mp:
+            for s in datasets:
+                main_eval(name, s)
+        else:
+            f_args = [[name, s] for s in datasets]
+            ncores = min(os.cpu_count(), 2 + int(os.cpu_count() * 0.25))
+            with Pool(ncores) as p:
+                p.starmap(main_eval, f_args)
+
     else:
         main_eval(name, site, sim_file)
 
 
-def main_rst_gen_mp(name, site, sim_file):
+def main_rst_gen_mp(name, site, sim_file=None, no_mp=False):
     """Generate rst files using multiple processes if necessary
 
     :name: TODO
@@ -230,10 +236,16 @@ def main_rst_gen_mp(name, site, sim_file):
     if site == 'all':
         # will only work if simulations are already evaluated.
         datasets = get_sites('PLUMBER_ext')
-        f_args = [[name, s] for s in datasets]
-        ncores = min(os.cpu_count(), 2 + int(os.cpu_count() * 0.25))
-        with Pool(ncores) as p:
-            p.starmap(main_rst_gen, f_args)
+
+        if no_mp:
+            for s in datasets:
+                main_rst_gen(name, s)
+        else:
+            f_args = [[name, s] for s in datasets]
+            ncores = min(os.cpu_count(), 2 + int(os.cpu_count() * 0.25))
+            with Pool(ncores) as p:
+                p.starmap(main_rst_gen, f_args)
+
     else:
         main_rst_gen(name, site)
 
@@ -244,9 +256,9 @@ def main(args):
     sim_file = args['<file>']
 
     if args['eval']:
-        main_eval_mp(name, site, sim_file)
+        main_eval_mp(name, site, sim_file, args['--no-mp'])
     if args['rst-gen']:
-        main_rst_gen_mp(name, site, sim_file)
+        main_rst_gen_mp(name, site, sim_file, args['--no-mp'])
 
     return
 

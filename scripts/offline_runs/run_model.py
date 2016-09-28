@@ -7,7 +7,7 @@ Email: ned@nedhaughton.com
 Description: Fits and runs a basic model and produces rst output with diagnostics
 
 Usage:
-    run_model.py run <name> <site>
+    run_model.py run <name> <site> [--no-mp]
 
 Options:
     -h, --help  Show this screen and exit.
@@ -166,16 +166,21 @@ def main_run(model, name, site):
     return
 
 
-def main_run_mp(name, site):
+def main_run_mp(name, site, no_mp=False):
     """Multi-processor run handling."""
 
     model = get_model(name)
+
     if site == 'all' or site == 'PLUMBER_ext' or site == 'PLUMBER':
         datasets = get_sites(site)
-        f_args = [[model, name, s] for s in datasets]
-        ncores = min(os.cpu_count(), 2 + int(os.cpu_count() * 0.25))
-        with Pool(ncores) as p:
-            p.starmap(main_run, f_args)
+        if no_mp:
+            for s in datasets:
+                main_run(model, name, s)
+        else:
+            f_args = [[model, name, s] for s in datasets]
+            ncores = min(os.cpu_count(), 2 + int(os.cpu_count() * 0.25))
+            with Pool(ncores) as p:
+                p.starmap(main_run, f_args)
     else:
         main_run(model, name, site)
 
@@ -186,7 +191,7 @@ def main(args):
     name = args['<name>']
     site = args['<site>']
 
-    main_run_mp(name, site)
+    main_run_mp(name, site, args['--no-mp'])
 
     return
 
