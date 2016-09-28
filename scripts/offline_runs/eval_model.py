@@ -54,6 +54,10 @@ def model_site_rst_format(name, site, eval_text, plot_files):
 
     try:
         model = get_model(name)
+    except:
+        model = None
+
+    if model is not None:
         try:
             description = model.description
         except:
@@ -64,7 +68,7 @@ def model_site_rst_format(name, site, eval_text, plot_files):
             .. code:: python
 
               `{model}`""").format(desc=description, model=model)
-    except:
+    else:
         description = "Description missing - unknown model"
 
     template = dedent("""
