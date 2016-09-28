@@ -20,6 +20,8 @@ for m in $MODELS ; do
     scripts/offline_runs/model_search_indexes.py model $m &
 done    
 
-scripts/offline_runs/model_search_indexes.py all
+wait
+
+scripts/offline_runs/model_search_indexes.py summary
 
 make html
