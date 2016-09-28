@@ -143,7 +143,7 @@ def main_eval(name, site, sim_file=None):
 
     try:
         sim_data = xr.open_dataset(filename)
-    except RuntimeError as e:
+    except OSError as e:
         print_bad("Sim file ({f}) doesn't exist. What are you doing? {e}".format(f=filename, e=e))
         return
 
