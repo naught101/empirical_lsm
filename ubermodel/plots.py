@@ -311,15 +311,18 @@ def p_metric_rank_counts(metric_df, name, site='all', metrics='all'):
     """plots hostograms of ranks for each variable and model
     """
     models = ['S_lin', 'ST_lin', 'STH_km27_lin', name]
+    if name not in models:
+        models.append(name)
 
     metric_df = subset_metric_df(metric_df, metrics)
 
-    metric_df['name'] = pd.Categorical(metric_df['name'], list(set(models)))
+    metric_df['name'] = pd.Categorical(metric_df['name'], models)
     metric_df.sort_values('name', inplace=True)
 
     count_df = (metric_df[['rank', 'name', 'variable', 'value']]
                 .groupby(['rank', 'variable', 'name'])
                 .agg('count')
+                .fillna(0)
                 .reset_index()
                 .rename(columns={'value': 'count'}))
 
