@@ -171,7 +171,7 @@ def main_run_mp(name, site, no_mp=False):
 
     model = get_model(name)
 
-    if site == 'all' or site == 'PLUMBER_ext' or site == 'PLUMBER':
+    if site in ['all', 'PLUMBER_ext', 'PLUMBER']:
         datasets = get_sites(site)
         if no_mp:
             for s in datasets:

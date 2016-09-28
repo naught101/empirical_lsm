@@ -207,7 +207,7 @@ def main_rst_gen(name, site):
 
 def main_eval_mp(name, site, sim_file=None, no_mp=False):
     """Evaluate using multiple processes if necessary"""
-    if site == 'all':
+    if site in ['all', 'PLUMBER_ext']:
         # will only work if simulations are already run.
         datasets = get_sites('PLUMBER_ext')
 
@@ -233,7 +233,7 @@ def main_rst_gen_mp(name, site, sim_file=None, no_mp=False):
     :returns: TODO
 
     """
-    if site == 'all':
+    if site in ['all', 'PLUMBER_ext']:
         # will only work if simulations are already evaluated.
         datasets = get_sites('PLUMBER_ext')
 
