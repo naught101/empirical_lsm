@@ -39,7 +39,7 @@ def main_eval_all(names, sites, run, evalu, html, rebuild=False, no_mp=False):
         model_site_index_rst_mp(names, rebuild, no_mp)
         model_search_index_rst()
 
-        subprocess.call('make', 'html')
+        subprocess.call(['make', 'html'])
 
 
 def main(args):
