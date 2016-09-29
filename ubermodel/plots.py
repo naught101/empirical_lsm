@@ -310,7 +310,7 @@ def p_plumber_metrics(metric_df, name, site='all', metrics='all'):
 def p_metric_rank_counts(metric_df, name, site='all', metrics='all'):
     """plots hostograms of ranks for each variable and model
     """
-    models = ['S_lin', 'ST_lin', 'STH_km27_lin', name]
+    models = ['S_lin', 'ST_lin', 'STH_km27_lin']
     if name not in models:
         models.append(name)
 
