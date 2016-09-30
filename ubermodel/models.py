@@ -127,6 +127,13 @@ def get_model_from_def(name):
         model = LagAverageWrapper(var_lags, km_lin(233))
         model.forcing_vars = list(var_lags)
         model.description = "km233 Linear model with Swdown, Tair, RelHum, and Lagged Rainf (180d)"
+    elif name == 'STH_km233_lR2d30d':
+        var_lags = OrderedDict()
+        [var_lags.update({v: ['cur']}) for v in ['SWdown', 'Tair', 'RelHum']]
+        var_lags.update({'Rainf': ['2d', '30d']})
+        model = LagAverageWrapper(var_lags, km_lin(233))
+        model.forcing_vars = list(var_lags)
+        model.description = "km233 Linear model with Swdown, Tair, RelHum, and Lagged Rainf (2d,30d)"
 
     elif name == 'STHR_km233_lR':
         var_lags = OrderedDict()
