@@ -28,10 +28,12 @@ from scripts.offline_runs.model_search_indexes import model_site_index_rst_mp, m
 def main_eval_all(names, sites, run, evalu, html, rebuild=False, no_mp=False):
 
     # All scripts already use multiprocessing
-    for name in names:
-        if run:
+    if run:
+        for name in names:
             main_run_mp(name, sites, no_mp)
-        if evalu:
+
+    if evalu:
+        for name in names:
             main_eval_mp(name, sites, no_mp)
             main_rst_gen_mp(name, sites, no_mp)
 
