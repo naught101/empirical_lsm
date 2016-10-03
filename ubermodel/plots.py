@@ -299,7 +299,8 @@ def p_plumber_metrics(metric_df, name, site='all', metrics='all'):
 
     mean_df_wide = mean_df.pivot(index='variable', columns='name', values='rank')
 
-    mean_df_wide[models].plot()
+    ax = mean_df_wide[models].plot()
+    ax.set_ylim([1.5, len(models) - 0.5])
     pl.title('{n}: PLUMBER plot: {m} metrics at {s}'.format(n=name, s=site, m=metrics))
 
     filename = '{n}_{s}_PLUMBER_plot_{m}_metrics.png'.format(n=name, s=site, m=metrics)
