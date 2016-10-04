@@ -90,13 +90,16 @@ def PLUMBER_fit_predict(model, name, site):
         train_sets = [s for s in plumber_datasets if s != site]
 
     if site == 'debug':
-        train_sets = [train_sets[0]]
+        train_sets = ['Amplero']
 
     print("Converting... ")
     met_train = get_multisite_df(train_sets, typ='met', variables=met_vars, qc=True, name=use_names)
 
     # We use gap-filled data for the testing period, or the model fails.
-    met_test_xr = get_met_data(site)
+    if site == 'debug':
+        met_test_xr = get_met_data('Tumba')
+    else:
+        met_test_xr = get_met_data(site)
     met_test = pals_xr_to_df(met_test_xr, variables=met_vars)
 
     flux_train = get_multisite_df(train_sets, typ='flux', variables=flux_vars, qc=True, name=use_names)
