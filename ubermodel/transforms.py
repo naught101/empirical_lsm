@@ -13,6 +13,7 @@ import pandas as pd
 import numpy as np
 import xarray as xr
 
+from collections import OrderedDict
 from sklearn.utils.validation import check_is_fitted
 from sklearn.base import BaseEstimator, TransformerMixin
 
@@ -370,19 +371,28 @@ class MarkovLagAverageWrapper(LagAverageWrapper):
     """Lags variables, and uses markov fitting when fluxes are included"""
 
     def __init__(self, var_lags, model, datafreq=0.5):
-        super().__init__(self, var_lags, model, datafreq)
-        self._y_lags = {k: v for k, v in var_lags if k in ['Qle', 'Qh', 'NEE']}
+        super().__init__(var_lags, model, datafreq)
+        self._x_vars = []
+        self._x_lags = OrderedDict()
+        self._y_vars = []
+        self._y_lags = OrderedDict()
+        for k, v in var_lags.items():
+            if k in ['Qle', 'Qh', 'NEE', 'Rnet', 'Qg']:
+                self._y_vars.append(k)
+                self._y_lags[k] = v
+            else:
+                self._x_vars.append(k)
+                self._x_lags[k] = v
         self._n_y_lags = np.sum([len(lags) for lags in self._y_lags.values()])
-        self._x_lags = {k: v for k, v in var_lags if k not in ['Qle', 'Qh', 'NEE']}
         self._n_x_lags = np.sum([len(lags) for lags in self._x_lags.values()])
 
     def fit(self, X, y, datafreq=None):
         if isinstance(X, pd.DataFrame):
-            assert X.columns == list(self._x_vars)
+            assert all(X.columns == list(self._x_vars))
         else:  # Assume we're being passed stuff innthe right order
             assert X.shape[1] == len(self._x_vars)
         if isinstance(y, pd.DataFrame):
-            assert y.columns == list(self._y_vars)
+            assert all(y.columns == list(self._y_vars))
         else:  # Assume we're being passed stuff in the right order
             assert y.shape[1] == len(self._y_vars)
 
