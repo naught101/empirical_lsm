@@ -311,6 +311,7 @@ class LagAverageWrapper(object):
 
         if isinstance(X, pd.DataFrame):
             assert all([v in X.columns for v in var_lags]), "Variables in X do not match initialised var_lags"
+            columns = ["%s_%s" % (k, v) for k, l in var_lags.items() for v in l]
             if 'site' in X.index.names:
                 # split-apply-combine by site
                 results = {}
@@ -319,6 +320,7 @@ class LagAverageWrapper(object):
                 result = np.concatenate([d for d in results.values()])
             else:
                 result = self._lag_array(X[list(var_lags)].values, var_lags, datafreq)
+            result = pd.DataFrame(result, index=X.index, columns=columns)
         elif isinstance(X, np.ndarray) or isinstance(X, xr.DataArray):
             # we have to assume that the variables are given in the right order
             assert (X.shape[1] == len(var_lags))
@@ -392,15 +394,23 @@ class MarkovLagAverageWrapper(LagAverageWrapper):
         else:  # Assume we're being passed stuff innthe right order
             assert X.shape[1] == len(self._x_vars)
         if isinstance(y, pd.DataFrame):
-            assert all(y.columns == list(self._y_vars))
+            assert all([v in y.columns for v in list(self._y_vars)])
         else:  # Assume we're being passed stuff in the right order
-            assert y.shape[1] == len(self._y_vars)
+            assert False, "Require dataframe input for y"
 
         X_fit = pd.concat([X, y], axis=1)
 
         super().fit(X_fit, y, datafreq)
 
+    def _lag_mean(self, results_list, idx, lag, datafreq):
+        timesteps = window_to_rows(lag, datafreq)
+        if timesteps < len(results_list):
+            timesteps = len(results_list)  # Use all steps
+        return np.sum([r[idx] for r in results_list[-timesteps:]])
+
     def predict(self, X, datafreq=None):
+        if datafreq is None:
+            datafreq = self._datafreq
 
         X_lag = self._lag_data(X, self._x_lags)
 
@@ -408,20 +418,25 @@ class MarkovLagAverageWrapper(LagAverageWrapper):
 
         # initialise with mean y values
         # TODO: This initialisation is much more complicated than either of the previous versions...
-        init = np.concatenate([X_lag.iloc[[0]], np.full([1, self._n_x_lags], np.nan)], axis=1)
+        init = np.concatenate([X_lag.iloc[[0]], np.full([1, self._n_y_lags], np.nan)], axis=1)
         # take means where nans exist
-        init = np.where(np.isfinite(init), init, self.means())
+        init = np.where(np.isfinite(init), init, self._means)
         results = []
-        results.append(self.model.predict(init).ravel())
+        results.append(self._model.predict(init).ravel())
         n_steps = X_lag.shape[0]
         print('Predicting, step 0 of {n}'.format(n=n_steps), end='\r')
 
         for i in range(1, n_steps):
             if i % 100 == 0:
                 print('Predicting, step {i} of {n}'.format(i=i, n=n_steps), end="\r")
-            # TODO: currently assuming y=['30min']: single timestep
-            x = np.concatenate([X_lag.iloc[[i]], results[i - 1]], axis=1)
-            results.append(self.model.predict(x).ravel())
+            # TODO: Averaging of past fluxes - may need efficiency gains
+            last_result = []
+            for i, v in enumerate(self._y_lags):
+                for l in self._y_lags[v]:
+                    last_result.append(self._lag_mean(results, i, l, datafreq))
+            last_result = np.array(last_result, ndmin=2)
+            x = np.concatenate([X_lag.iloc[[i]], last_result], axis=1)
+            results.append(self._model.predict(x).ravel())
         print('Predicting, step {i} of {n}'.format(i=n_steps, n=n_steps))
 
         # results = pd.DataFrame.from_records(results, index=X_lag.index, columns=self.y_cols)
