@@ -36,7 +36,7 @@ def get_model(name):
 
     try:
         model = get_model_from_def(name)
-    except Exception:
+    except NameError:
         try:
             model = get_model_from_yaml(name)
         except KeyError:
