@@ -17,7 +17,7 @@ from collections import OrderedDict
 
 from pals_utils.constants import MET_VARS
 from ubermodel.clusterregression import ModelByCluster
-from ubermodel.transforms import MissingDataWrapper, LagAverageWrapper
+from ubermodel.transforms import MissingDataWrapper, LagAverageWrapper, MarkovLagAverageWrapper
 
 from sklearn.pipeline import make_pipeline
 
@@ -142,6 +142,14 @@ def get_model_from_def(name):
         model = LagAverageWrapper(var_lags, km_lin(233))
         model.forcing_vars = list(var_lags)
         model.description = "km233 Linear model with Swdown, Tair, RelHum, Rainf, and Lagged Rainf (2d)"
+
+    elif name == 'STH_km233_lQle2d':
+        var_lags = OrderedDict()
+        [var_lags.update({v: ['cur']}) for v in ['SWdown', 'Tair', 'RelHum']]
+        var_lags.update({'Qle': ['2d']})
+        model = MarkovLagAverageWrapper(var_lags, km_lin(233))
+        model.forcing_vars = list(['SWdown', 'Tair', 'RelHum'])
+        model.description = "km233 Linear model with Swdown, Tair, RelHum, and Markov-Lagged Qle (2d)"
 
     else:
         raise Exception("unknown model")
