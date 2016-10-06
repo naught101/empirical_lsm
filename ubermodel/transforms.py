@@ -440,9 +440,9 @@ class MarkovLagAverageWrapper(LagAverageWrapper):
             results.append(self._model.predict(x).ravel())
         print('Predicting, step {i} of {n}'.format(i=n_steps, n=n_steps))
 
-        # results = pd.DataFrame.from_records(results, index=X_lag.index, columns=self.y_cols)
+        results = pd.DataFrame.from_records(results, index=X.index, columns=self._y_cols)
         # Scikit-learn models produce numpy arrays, not pandas dataframes
-        results = np.concatenate(results)
+        # results = np.stack(results)
 
         return results
 
