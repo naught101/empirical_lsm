@@ -99,31 +99,8 @@ def get_train_test_sets(site, met_vars, flux_vars, use_names):
     return met_train, met_test, met_test_xr, flux_train
 
 
-def PLUMBER_fit_predict(model, name, site):
-    """Fit and predict a model
-
-    :model: sklearn-style model or pipeline (regression estimator)
-    :name: name of the model
-    :site: PALS site name to run the model at
-    :returns: xarray dataset of simulation
-
-    """
-    if hasattr(model, 'forcing_vars'):
-        met_vars = model.forcing_vars
-    else:
-        print("Warning: no forcing vars, using defaults (all)")
-        met_vars = MET_VARS
-
-    flux_vars = ['Qle']  # , 'Qh', 'NEE']
-
-    use_names = isinstance(model, LagWrapper)
-
-    met_train, met_test, met_test_xr, flux_train = \
-        get_train_test_sets(site, met_vars, flux_vars, use_names)
-
-    print_good("Running {n} at {s}".format(n=name, s=site))
-
-    print('Fitting and running {f} using {m}'.format(f=flux_vars, m=met_vars))
+def fit_predict_univariate(model, flux_vars, met_train, met_test, met_test_xr, flux_train):
+    """Fits a model one output variable at a time """
     sim_data_dict = dict()
     for v in flux_vars:
         # TODO: Might eventually want to update this to run multivariate-out models
@@ -150,6 +127,36 @@ def PLUMBER_fit_predict(model, name, site):
         sys.exit()
 
     sim_data = sim_dict_to_xr(sim_data_dict, met_test_xr)
+
+    return sim_data
+
+
+def PLUMBER_fit_predict(model, name, site):
+    """Fit and predict a model
+
+    :model: sklearn-style model or pipeline (regression estimator)
+    :name: name of the model
+    :site: PALS site name to run the model at
+    :returns: xarray dataset of simulation
+
+    """
+    if hasattr(model, 'forcing_vars'):
+        met_vars = model.forcing_vars
+    else:
+        print("Warning: no forcing vars, using defaults (all)")
+        met_vars = MET_VARS
+
+    flux_vars = ['Qle']  # , 'Qh', 'NEE']
+
+    use_names = isinstance(model, LagWrapper)
+
+    met_train, met_test, met_test_xr, flux_train = \
+        get_train_test_sets(site, met_vars, flux_vars, use_names)
+
+    print_good("Running {n} at {s}".format(n=name, s=site))
+
+    print('Fitting and running {f} using {m}'.format(f=flux_vars, m=met_vars))
+    sim_data = fit_predict_univariate(model, flux_vars, met_train, met_test, met_test_xr, flux_train)
 
     return sim_data
 
