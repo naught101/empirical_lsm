@@ -41,6 +41,8 @@ class ModelByCluster(BaseEstimator):
         return self
 
     def predict(self, X):
+        # this returns -1 if any of the values squared are too large
+        # models with numerical instability will fail.
         clusters = self.clusterer_.predict(X)
 
         y_tmp = []
