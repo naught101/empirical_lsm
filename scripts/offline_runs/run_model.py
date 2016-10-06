@@ -58,6 +58,47 @@ mem = jl.Memory(cachedir=os.path.join(os.path.expanduser('~'), 'tmp', 'cache'))
 get_multisite_df_cached = mem.cache(get_multisite_df)
 
 
+def get_train_test_sets(site, met_vars, flux_vars, use_names):
+    print("Loading all data... ")
+
+    if site == 'debug':
+        train_sets = ['Amplero']
+        test_site = 'Tumba'
+
+        print("Converting... ")
+        # Use non-quality controlled data, to ensure there's enough to train
+        met_train = get_multisite_df(train_sets, typ='met', variables=met_vars, name=use_names)
+        flux_train = get_multisite_df(train_sets, typ='flux', variables=flux_vars, name=use_names)
+
+        met_test_xr = get_met_data(test_site)
+        met_test = pals_xr_to_df(met_test_xr, variables=met_vars)
+
+        met_test_xr = met_test_xr.isel(time=slice(0, 5000))
+        met_train = met_train.loc[0:5000]
+        flux_train = flux_train.loc[0:5000]
+        met_test = met_test[0:5000]
+
+    else:
+        plumber_datasets = get_sites('PLUMBER')
+        if site not in plumber_datasets:
+            # Using a non-PLUMBER site, train on all PLUMBER sites.
+            train_sets = plumber_datasets
+        else:
+            # Using a PLUMBER site, leave one out.
+            train_sets = [s for s in plumber_datasets if s != site]
+
+        print("Converting... ")
+        met_train = get_multisite_df(train_sets, typ='met', variables=met_vars, qc=True, name=use_names)
+
+        # We use gap-filled data for the testing period, or the model fails.
+        met_test_xr = get_met_data(site)
+        met_test = pals_xr_to_df(met_test_xr, variables=met_vars)
+
+        flux_train = get_multisite_df(train_sets, typ='flux', variables=flux_vars, qc=True, name=use_names)
+
+    return met_train, met_test, met_test_xr, flux_train
+
+
 def PLUMBER_fit_predict(model, name, site):
     """Fit and predict a model
 
@@ -73,44 +114,14 @@ def PLUMBER_fit_predict(model, name, site):
         print("Warning: no forcing vars, using defaults (all)")
         met_vars = MET_VARS
 
-    flux_vars = ['Qle', 'Qh', 'NEE']
+    flux_vars = ['Qle']  # , 'Qh', 'NEE']
 
     use_names = isinstance(model, LagWrapper)
 
+    met_train, met_test, met_test_xr, flux_train = \
+        get_train_test_sets(site, met_vars, flux_vars, use_names)
+
     print_good("Running {n} at {s}".format(n=name, s=site))
-
-    print("Loading all data... ")
-
-    plumber_datasets = get_sites('PLUMBER')
-    if site not in plumber_datasets:
-        # Using a non-PLUMBER site, train on all PLUMBER sites.
-        train_sets = plumber_datasets
-    else:
-        # Using a PLUMBER site, leave one out.
-        train_sets = [s for s in plumber_datasets if s != site]
-
-    if site == 'debug':
-        train_sets = ['Amplero']
-
-    print("Converting... ")
-    met_train = get_multisite_df(train_sets, typ='met', variables=met_vars, qc=True, name=use_names)
-
-    # We use gap-filled data for the testing period, or the model fails.
-    if site == 'debug':
-        met_test_xr = get_met_data('Tumba')
-    else:
-        met_test_xr = get_met_data(site)
-    met_test = pals_xr_to_df(met_test_xr, variables=met_vars)
-
-    flux_train = get_multisite_df(train_sets, typ='flux', variables=flux_vars, qc=True, name=use_names)
-
-    if site == 'debug':
-        idx = (met_train.dropna()
-                        .index
-                        .join(flux_train.dropna().index, "inner"))[0:5000]
-        met_train = met_train.loc[idx]
-        flux_train = flux_train.loc[idx]
-        met_test = met_test.dropna()[0:5000]
 
     print('Fitting and running {f} using {m}'.format(f=flux_vars, m=met_vars))
     sim_data_dict = dict()
@@ -138,10 +149,7 @@ def PLUMBER_fit_predict(model, name, site):
         print("No fluxes successfully fitted, quitting")
         sys.exit()
 
-    if site == 'debug':
-        sim_data = sim_dict_to_xr(sim_data_dict, met_test_xr.isel(time=slice(0, 5000)))
-    else:
-        sim_data = sim_dict_to_xr(sim_data_dict, met_test_xr)
+    sim_data = sim_dict_to_xr(sim_data_dict, met_test_xr)
 
     return sim_data
 
