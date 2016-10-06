@@ -7,7 +7,7 @@ Email: ned@nedhaughton.com
 Description: Fits and runs a basic model and produces rst output with diagnostics
 
 Usage:
-    run_model.py run <name> <site> [--no-mp]
+    run_model.py run <name> <site> [--no-mp] [--multivariate]
 
 Options:
     -h, --help  Show this screen and exit.
@@ -74,8 +74,8 @@ def get_train_test_sets(site, met_vars, flux_vars, use_names):
         met_test = pals_xr_to_df(met_test_xr, variables=met_vars)
 
         met_test_xr = met_test_xr.isel(time=slice(0, 5000))
-        met_train = met_train.loc[0:5000]
-        flux_train = flux_train.loc[0:5000]
+        met_train = met_train[0:5000]
+        flux_train = flux_train[0:5000]
         met_test = met_test[0:5000]
 
     else:
@@ -131,7 +131,30 @@ def fit_predict_univariate(model, flux_vars, met_train, met_test, met_test_xr, f
     return sim_data
 
 
-def PLUMBER_fit_predict(model, name, site):
+def fit_predict_multivariate(model, flux_vars, met_train, met_test, met_test_xr, flux_train):
+    """Fits a model one output variable at a time """
+
+    # Ditch all of the incomplete data
+    qc_index = (~pd.concat([met_train, flux_train], axis=1).isnull()).apply(all, axis=1)
+    if qc_index.sum() > 0:
+        print("Training {v} using {count} complete samples out of {total}"
+              .format(v=flux_vars, count=qc_index.sum(), total=met_train.shape[0]))
+    else:
+        print("No training data, failing")
+        return
+
+    model.fit(X=met_train[qc_index], y=flux_train[qc_index])
+    print("Fitting complete.")
+
+    sim_data = model.predict(met_test)
+    print("Prediction complete.")
+
+    sim_data = sim_dict_to_xr(sim_data, met_test_xr)
+
+    return sim_data
+
+
+def PLUMBER_fit_predict(model, name, site, multivariate=False):
     """Fit and predict a model
 
     :model: sklearn-style model or pipeline (regression estimator)
@@ -146,7 +169,7 @@ def PLUMBER_fit_predict(model, name, site):
         print("Warning: no forcing vars, using defaults (all)")
         met_vars = MET_VARS
 
-    flux_vars = ['Qle']  # , 'Qh', 'NEE']
+    flux_vars = ['Qle', 'Qh', 'NEE']
 
     use_names = isinstance(model, LagWrapper)
 
@@ -156,12 +179,15 @@ def PLUMBER_fit_predict(model, name, site):
     print_good("Running {n} at {s}".format(n=name, s=site))
 
     print('Fitting and running {f} using {m}'.format(f=flux_vars, m=met_vars))
-    sim_data = fit_predict_univariate(model, flux_vars, met_train, met_test, met_test_xr, flux_train)
+    if multivariate:
+        sim_data = fit_predict_multivariate(model, flux_vars, met_train, met_test, met_test_xr, flux_train)
+    else:
+        sim_data = fit_predict_univariate(model, flux_vars, met_train, met_test, met_test_xr, flux_train)
 
     return sim_data
 
 
-def main_run(model, name, site):
+def main_run(model, name, site, multivariate=False):
     """Main function for fitting and running a model.
 
     :model: sklearn-style model or pipeline (regression estimator)
@@ -173,7 +199,7 @@ def main_run(model, name, site):
 
     nc_file = '{d}/{n}_{s}.nc'.format(d=sim_dir, n=name, s=site)
 
-    sim_data = PLUMBER_fit_predict(model, name, site)
+    sim_data = PLUMBER_fit_predict(model, name, site, multivariate)
 
     if os.path.exists(nc_file):
         print_warn("Overwriting sim file at {f}".format(f=nc_file))
@@ -184,7 +210,7 @@ def main_run(model, name, site):
     return
 
 
-def main_run_mp(name, site, no_mp=False):
+def main_run_mp(name, site, no_mp=False, multivariate=False):
     """Multi-processor run handling."""
 
     model = get_model(name)
@@ -193,14 +219,14 @@ def main_run_mp(name, site, no_mp=False):
         datasets = get_sites(site)
         if no_mp:
             for s in datasets:
-                main_run(model, name, s)
+                main_run(model, name, s, multivariate)
         else:
-            f_args = [[model, name, s] for s in datasets]
+            f_args = [(model, name, s, multivariate) for s in datasets]
             ncores = min(os.cpu_count(), 2 + int(os.cpu_count() * 0.25))
             with Pool(ncores) as p:
                 p.starmap(main_run, f_args)
     else:
-        main_run(model, name, site)
+        main_run(model, name, site, multivariate)
 
     return
 
@@ -209,7 +235,7 @@ def main(args):
     name = args['<name>']
     site = args['<site>']
 
-    main_run_mp(name, site, args['--no-mp'])
+    main_run_mp(name, site, args['--no-mp'], args['--multivariate'])
 
     return
 
