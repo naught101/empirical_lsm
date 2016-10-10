@@ -17,6 +17,7 @@ from docopt import docopt
 
 import joblib as jl
 import pandas as pd
+import numpy as np
 import sys
 import os
 
@@ -148,6 +149,10 @@ def fit_predict_multivariate(model, flux_vars, met_train, met_test, met_test_xr,
 
     sim_data = model.predict(met_test)
     print("Prediction complete.")
+
+    # TODO: some models return arrays... convert to dicts in that case.
+    if isinstance(sim_data, np.ndarray):
+        sim_data = {v: sim_data[:, i] for i, v in enumerate(flux_vars)}
 
     sim_data = sim_dict_to_xr(sim_data, met_test_xr)
 

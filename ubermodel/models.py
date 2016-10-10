@@ -19,6 +19,8 @@ from pals_utils.constants import MET_VARS
 from ubermodel.clusterregression import ModelByCluster
 from ubermodel.transforms import MissingDataWrapper, LagAverageWrapper, MarkovLagAverageWrapper
 
+from sklearn.neural_network import MLPRegressor
+
 from sklearn.pipeline import make_pipeline
 
 
@@ -150,6 +152,20 @@ def get_model_from_def(name):
         model = MarkovLagAverageWrapper(var_lags, km_lin(233))
         model.forcing_vars = list(['SWdown', 'Tair', 'RelHum'])
         model.description = "km233 Linear model with Swdown, Tair, RelHum, and Markov-Lagged Qle (2d)"
+
+    elif name == 'STH_MLP':
+        var_lags = OrderedDict()
+        [var_lags.update({v: ['cur']}) for v in ['SWdown', 'Tair', 'RelHum']]
+        model = LagAverageWrapper(var_lags, MLPRegressor((15, 10, 5, 10)))
+        model.forcing_vars = list(var_lags)
+        model.description = "Neural-network model with Swdown, Tair, RelHum"
+    elif name == 'STH_MLP_lR2d':
+        var_lags = OrderedDict()
+        [var_lags.update({v: ['cur']}) for v in ['SWdown', 'Tair', 'RelHum']]
+        var_lags.update({'Rainf': ['2d']})
+        model = LagAverageWrapper(var_lags, MLPRegressor((15, 10, 5, 10)))
+        model.forcing_vars = list(var_lags)
+        model.description = "Neural-network model with Swdown, Tair, RelHum, and Lagged Rainf (2d)"
 
     else:
         raise Exception("unknown model")

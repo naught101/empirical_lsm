@@ -364,7 +364,7 @@ class LagAverageWrapper(object):
 
         # fill initial NaN values with mean values
         for i in range(lagged_data.shape[1]):
-            lagged_data[np.isnan(lagged_data[:, i]), i] = self._means[i]
+            lagged_data.ix[np.isnan(lagged_data.iloc[:, i]), i] = self._means[i]
 
         return self._model.predict(lagged_data)
 
