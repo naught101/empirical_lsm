@@ -15,11 +15,11 @@ from sklearn.utils import safe_mask
 class ModelByCluster(BaseEstimator):
     """Cluster data, then run a regression independently on each cluster.
 
-    Parameters
-    ----------
-    clusterer: scikit-learn style clustering model
+    Parameters:
 
-    regression: scikit-learn style regression model
+    :clusterer: scikit-learn style clustering model
+
+    :regression: scikit-learn style regression model
     """
 
     def __init__(self, clusterer, estimator):
