@@ -259,7 +259,7 @@ class MarkovWrapper(LagWrapper):
         return results
 
 
-class LagAverageWrapper(object):
+class LagAverageWrapper(BaseEstimator):
 
     """Modelwrapper that lags takes Tair, SWdown, RelHum, Wind, and Rainf, and lags them to estimate Qle fluxes."""
 
@@ -447,7 +447,7 @@ class MarkovLagAverageWrapper(LagAverageWrapper):
         return results
 
 
-class MissingDataWrapper(object):
+class MissingDataWrapper(BaseEstimator):
 
     """Model wrapper that kills NAs"""
 
