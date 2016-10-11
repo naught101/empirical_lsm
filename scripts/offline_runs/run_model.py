@@ -71,7 +71,7 @@ def get_train_test_sets(site, met_vars, flux_vars, use_names):
         met_train = get_multisite_df(train_sets, typ='met', variables=met_vars, name=use_names)
         flux_train = get_multisite_df(train_sets, typ='flux', variables=flux_vars, name=use_names)
 
-        met_test_xr = get_met_data(test_site)
+        met_test_xr = get_met_data(test_site)[test_site]
         met_test = pals_xr_to_df(met_test_xr, variables=met_vars)
 
         met_test_xr = met_test_xr.isel(time=slice(0, 5000))
@@ -92,7 +92,7 @@ def get_train_test_sets(site, met_vars, flux_vars, use_names):
         met_train = get_multisite_df(train_sets, typ='met', variables=met_vars, qc=True, name=use_names)
 
         # We use gap-filled data for the testing period, or the model fails.
-        met_test_xr = get_met_data(site)
+        met_test_xr = get_met_data(site)[site]
         met_test = pals_xr_to_df(met_test_xr, variables=met_vars)
 
         flux_train = get_multisite_df(train_sets, typ='flux', variables=flux_vars, qc=True, name=use_names)
