@@ -183,7 +183,7 @@ def get_model_from_def(name):
         model.description = "Neural-network model with Swdown, Tair, RelHum, and Lagged Rainf (2d)"
 
     else:
-        raise Exception("unknown model")
+        raise NameError("unknown model")
 
     return model
 
