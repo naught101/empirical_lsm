@@ -170,6 +170,27 @@ def get_model_from_def(name):
         model.forcing_vars = list(var_lags)
         model.description = "km233 Linear model with Swdown, Tair, RelHum, and Lagged Wind (2d,30d)"
 
+    # Building the Heirarchy
+    elif name == 'STHR_km233_lR2d':
+        var_lags = cur_3_var()
+        var_lags.update({'Rainf': ['cur', '2d']})
+        model = LagAverageWrapper(var_lags, km_lin(233))
+        model.forcing_vars = list(var_lags)
+        model.description = "km233 Linear model with Swdown, Tair, RelHum, Rainf, and Lagged Rainf (2d)"
+    elif name == 'STHW_km233_lR2d':
+        var_lags = cur_3_var()
+        var_lags.update({'Wind': ['cur']})
+        var_lags.update({'Rainf': ['2d']})
+        model = LagAverageWrapper(var_lags, km_lin(233))
+        model.forcing_vars = list(var_lags)
+        model.description = "km233 Linear model with Swdown, Tair, RelHum, Wind, and Lagged Rainf (2d)"
+    elif name == 'STH_km729_lR2d':
+        var_lags = cur_3_var()
+        var_lags.update({'Rainf': ['2d']})
+        model = LagAverageWrapper(var_lags, km_lin(729))
+        model.forcing_vars = list(var_lags)
+        model.description = "km729 Linear model with Swdown, Tair, RelHum, and Lagged Rainf (2d)"
+
     # Lagged and non-lagged rainfall
     elif name == 'STHR_km233_lR':
         var_lags = cur_3_var()
