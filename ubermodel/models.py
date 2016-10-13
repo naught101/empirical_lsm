@@ -68,6 +68,7 @@ def get_model_from_def(name):
     :returns: scikit-learn style mode/pipeline
 
     """
+    # PLUMBER-style benchmarks
     if name == '1lin':
         model = MissingDataWrapper(LinearRegression())
         model.forcing_vars = ['SWdown']
@@ -78,11 +79,13 @@ def get_model_from_def(name):
         model.forcing_vars = ['SWdown', 'Tair', 'RelHum']
         model.description = "PLUMBER-style 3km27 (SWdown, Tair, RelHum)"
 
+    # higher non-linearity
     elif name == '3km233':
         model = km_lin(233)
         model.forcing_vars = ['SWdown', 'Tair', 'RelHum']
         model.description = "Like 3km27, but with more clusters"
 
+    # All lagged-inputs
     elif name == '3km27_lag':
         model_dict = {
             'variable': ['SWdown', 'Tair', 'RelHum'],
@@ -100,6 +103,7 @@ def get_model_from_def(name):
         model.forcing_vars = ['SWdown', 'Tair', 'RelHum']
         model.description = "like 3km27, but includes 1-day lagged versions of all three variables"
 
+    # Many variables, lags. Doesn't work very well... (not enough non-linearity?)
     elif name == '5km27_lag':
         var_lags = OrderedDict()
         [var_lags.update({v: ['cur', '2d', '7d']}) for v in ['SWdown', 'Tair', 'RelHum', 'Wind']]
@@ -108,6 +112,7 @@ def get_model_from_def(name):
         model.forcing_vars = list(var_lags)
         model.description = "km27 linear regression with SW, T, RH, Wind, Rain, and 2 and 7 day lagged-averages for each, plus 30- and 90-day lagged averages for Rainf (probably needs more clusters...)"
 
+    # 3km233 with lagged Rainf
     elif name == 'STH_km233_lR1h':
         var_lags = cur_3_var()
         var_lags.update({'Rainf': ['1h']})
@@ -145,6 +150,7 @@ def get_model_from_def(name):
         model.forcing_vars = list(var_lags)
         model.description = "km233 Linear model with Swdown, Tair, RelHum, and Lagged Rainf (2d,30d)"
 
+    # Lagged and non-lagged rainfall
     elif name == 'STHR_km233_lR':
         var_lags = cur_3_var()
         var_lags.update({'Rainf': ['cur', '2d']})
@@ -152,6 +158,7 @@ def get_model_from_def(name):
         model.forcing_vars = list(var_lags)
         model.description = "km233 Linear model with Swdown, Tair, RelHum, Rainf, and Lagged Rainf (2d)"
 
+    # Markov-lagged Qle variants (doesn't seem to be working very well)
     elif name == 'STH_km233_lQle1h':
         var_lags = cur_3_var()
         var_lags.update({'Qle': ['1h']})
@@ -165,6 +172,7 @@ def get_model_from_def(name):
         model.forcing_vars = list(['SWdown', 'Tair', 'RelHum'])
         model.description = "km233 Linear model with Swdown, Tair, RelHum, and Markov-Lagged Qle (2d)"
 
+    # Neural network models
     elif name == 'STH_MLP':
         var_lags = cur_3_var()
         model = LagAverageWrapper(var_lags, make_pipeline(StandardScaler(), MLPRegressor((15, 10, 5, 10))))
