@@ -83,6 +83,12 @@ def get_model_from_def(name):
         model.description = "km27 linear regression with SW, T, RH, Wind, Rain, and 2 and 7 day lagged-averages for each, plus 30- and 90-day lagged averages for Rainf (probably needs more clusters...)"
 
     # 3km233 with lagged Rainf
+    elif name == 'STH_km233_lR30min':
+        var_lags = cur_3_var()
+        var_lags.update({'Rainf': ['30min']})
+        model = LagAverageWrapper(var_lags, km_lin(233))
+        model.forcing_vars = list(var_lags)
+        model.description = "km233 Linear model with Swdown, Tair, RelHum, and Lagged Rainf (30min)"
     elif name == 'STH_km233_lR1h':
         var_lags = cur_3_var()
         var_lags.update({'Rainf': ['1h']})
@@ -121,6 +127,12 @@ def get_model_from_def(name):
         model.description = "km233 Linear model with Swdown, Tair, RelHum, and Lagged Rainf (2d,30d)"
 
     # 3km233 with lagged Wind
+    elif name == 'STH_km233_lW30min':
+        var_lags = cur_3_var()
+        var_lags.update({'Wind': ['30min']})
+        model = LagAverageWrapper(var_lags, km_lin(233))
+        model.forcing_vars = list(var_lags)
+        model.description = "km233 Linear model with Swdown, Tair, RelHum, and Lagged Wind (30min)"
     elif name == 'STH_km233_lW1h':
         var_lags = cur_3_var()
         var_lags.update({'Wind': ['1h']})
@@ -167,6 +179,12 @@ def get_model_from_def(name):
         model.description = "km233 Linear model with Swdown, Tair, RelHum, Rainf, and Lagged Rainf (2d)"
 
     # Markov-lagged Qle variants (doesn't seem to be working very well)
+    elif name == 'STH_km233_lQle30min':
+        var_lags = cur_3_var()
+        var_lags.update({'Qle': ['30min']})
+        model = MarkovLagAverageWrapper(var_lags, km_lin(233))
+        model.forcing_vars = list(['SWdown', 'Tair', 'RelHum'])
+        model.description = "km233 Linear model with Swdown, Tair, RelHum, and Markov-Lagged Qle (30min)"
     elif name == 'STH_km233_lQle1h':
         var_lags = cur_3_var()
         var_lags.update({'Qle': ['1h']})
