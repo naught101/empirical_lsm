@@ -55,6 +55,12 @@ def km_lin(n):
     return MissingDataWrapper(ModelByCluster(MiniBatchKMeans(27), LinearRegression()))
 
 
+def cur_3_var():
+    var_lags = OrderedDict()
+    [var_lags.update({v: ['cur']}) for v in ['SWdown', 'Tair', 'RelHum']]
+    return var_lags
+
+
 def get_model_from_def(name):
     """returns a scikit-learn style model/pipeline
 
@@ -103,80 +109,69 @@ def get_model_from_def(name):
         model.description = "km27 linear regression with SW, T, RH, Wind, Rain, and 2 and 7 day lagged-averages for each, plus 30- and 90-day lagged averages for Rainf (probably needs more clusters...)"
 
     elif name == 'STH_km233_lR1h':
-        var_lags = OrderedDict()
-        [var_lags.update({v: ['cur']}) for v in ['SWdown', 'Tair', 'RelHum']]
+        var_lags = cur_3_var()
         var_lags.update({'Rainf': ['1h']})
         model = LagAverageWrapper(var_lags, km_lin(233))
         model.forcing_vars = list(var_lags)
         model.description = "km233 Linear model with Swdown, Tair, RelHum, and Lagged Rainf (1h)"
     elif name == 'STH_km233_lR2d':
-        var_lags = OrderedDict()
-        [var_lags.update({v: ['cur']}) for v in ['SWdown', 'Tair', 'RelHum']]
+        var_lags = cur_3_var()
         var_lags.update({'Rainf': ['2d']})
         model = LagAverageWrapper(var_lags, km_lin(233))
         model.forcing_vars = list(var_lags)
         model.description = "km233 Linear model with Swdown, Tair, RelHum, and Lagged Rainf (2d)"
     elif name == 'STH_km233_lR10d':
-        var_lags = OrderedDict()
-        [var_lags.update({v: ['cur']}) for v in ['SWdown', 'Tair', 'RelHum']]
+        var_lags = cur_3_var()
         var_lags.update({'Rainf': ['10d']})
         model = LagAverageWrapper(var_lags, km_lin(233))
         model.forcing_vars = list(var_lags)
         model.description = "km233 Linear model with Swdown, Tair, RelHum, and Lagged Rainf (10d)"
     elif name == 'STH_km233_lR30d':
-        var_lags = OrderedDict()
-        [var_lags.update({v: ['cur']}) for v in ['SWdown', 'Tair', 'RelHum']]
+        var_lags = cur_3_var()
         var_lags.update({'Rainf': ['30d']})
         model = LagAverageWrapper(var_lags, km_lin(233))
         model.forcing_vars = list(var_lags)
         model.description = "km233 Linear model with Swdown, Tair, RelHum, and Lagged Rainf (30d)"
     elif name == 'STH_km233_lR180d':
-        var_lags = OrderedDict()
-        [var_lags.update({v: ['cur']}) for v in ['SWdown', 'Tair', 'RelHum']]
+        var_lags = cur_3_var()
         var_lags.update({'Rainf': ['180d']})
         model = LagAverageWrapper(var_lags, km_lin(233))
         model.forcing_vars = list(var_lags)
         model.description = "km233 Linear model with Swdown, Tair, RelHum, and Lagged Rainf (180d)"
     elif name == 'STH_km233_lR2d30d':
-        var_lags = OrderedDict()
-        [var_lags.update({v: ['cur']}) for v in ['SWdown', 'Tair', 'RelHum']]
+        var_lags = cur_3_var()
         var_lags.update({'Rainf': ['2d', '30d']})
         model = LagAverageWrapper(var_lags, km_lin(233))
         model.forcing_vars = list(var_lags)
         model.description = "km233 Linear model with Swdown, Tair, RelHum, and Lagged Rainf (2d,30d)"
 
     elif name == 'STHR_km233_lR':
-        var_lags = OrderedDict()
-        [var_lags.update({v: ['cur']}) for v in ['SWdown', 'Tair', 'RelHum']]
+        var_lags = cur_3_var()
         var_lags.update({'Rainf': ['cur', '2d']})
         model = LagAverageWrapper(var_lags, km_lin(233))
         model.forcing_vars = list(var_lags)
         model.description = "km233 Linear model with Swdown, Tair, RelHum, Rainf, and Lagged Rainf (2d)"
 
     elif name == 'STH_km233_lQle1h':
-        var_lags = OrderedDict()
-        [var_lags.update({v: ['cur']}) for v in ['SWdown', 'Tair', 'RelHum']]
+        var_lags = cur_3_var()
         var_lags.update({'Qle': ['1h']})
         model = MarkovLagAverageWrapper(var_lags, km_lin(233))
         model.forcing_vars = list(['SWdown', 'Tair', 'RelHum'])
         model.description = "km233 Linear model with Swdown, Tair, RelHum, and Markov-Lagged Qle (1h)"
     elif name == 'STH_km233_lQle2d':
-        var_lags = OrderedDict()
-        [var_lags.update({v: ['cur']}) for v in ['SWdown', 'Tair', 'RelHum']]
+        var_lags = cur_3_var()
         var_lags.update({'Qle': ['2d']})
         model = MarkovLagAverageWrapper(var_lags, km_lin(233))
         model.forcing_vars = list(['SWdown', 'Tair', 'RelHum'])
         model.description = "km233 Linear model with Swdown, Tair, RelHum, and Markov-Lagged Qle (2d)"
 
     elif name == 'STH_MLP':
-        var_lags = OrderedDict()
-        [var_lags.update({v: ['cur']}) for v in ['SWdown', 'Tair', 'RelHum']]
+        var_lags = cur_3_var()
         model = LagAverageWrapper(var_lags, make_pipeline(StandardScaler(), MLPRegressor((15, 10, 5, 10))))
         model.forcing_vars = list(var_lags)
         model.description = "Neural-network model with Swdown, Tair, RelHum"
     elif name == 'STH_MLP_lR2d':
-        var_lags = OrderedDict()
-        [var_lags.update({v: ['cur']}) for v in ['SWdown', 'Tair', 'RelHum']]
+        var_lags = cur_3_var()
         var_lags.update({'Rainf': ['2d']})
         model = LagAverageWrapper(var_lags, make_pipeline(StandardScaler(), MLPRegressor((15, 10, 5, 10))))
         model.forcing_vars = list(var_lags)
