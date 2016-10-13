@@ -220,7 +220,7 @@ def main_eval_mp(name, site, sim_file=None, no_mp=False):
                 main_eval(name, s)
         else:
             f_args = [[name, s] for s in datasets]
-            ncores = min(os.cpu_count(), 2 + int(os.cpu_count() * 0.25))
+            ncores = min(os.cpu_count(), 1 + int(os.cpu_count() * 0.5))
             with Pool(ncores) as p:
                 p.starmap(main_eval, f_args)
 

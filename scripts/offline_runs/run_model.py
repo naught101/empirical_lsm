@@ -227,7 +227,7 @@ def main_run_mp(name, site, no_mp=False, multivariate=False):
                 main_run(model, name, s, multivariate)
         else:
             f_args = [(model, name, s, multivariate) for s in datasets]
-            ncores = min(os.cpu_count(), 2 + int(os.cpu_count() * 0.25))
+            ncores = min(os.cpu_count(), 1 + int(os.cpu_count() * 0.5))
             with Pool(ncores) as p:
                 p.starmap(main_run, f_args)
     else:
