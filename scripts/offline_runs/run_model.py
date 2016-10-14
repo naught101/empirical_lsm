@@ -46,10 +46,15 @@ def get_multisite_df(sites, typ, variables, name=False, qc=False):
         sites = [sites]
 
     if typ == 'met':
-        return xr_list_to_df(get_met_data(sites).values(),
-                             variables=variables, qc=True, name=name)
+        print("Met data: loading... ", end='')
+        data = get_met_data(sites)
+        print("converting... ")
+        return xr_list_to_df(data.values(), variables=variables, qc=True, name=name)
     elif typ == 'flux':
-        return xr_list_to_df(get_flux_data(sites).values(),
+        print("Flux data: loading... ", end='')
+        data = get_flux_data(sites)
+        print("converting... ")
+        return xr_list_to_df(data.values(),
                              variables=variables, qc=True, name=name)
     else:
         assert False, "Bad dataset type: %s" % typ
@@ -60,13 +65,11 @@ get_multisite_df_cached = mem.cache(get_multisite_df)
 
 
 def get_train_test_sets(site, met_vars, flux_vars, use_names):
-    print("Loading all data... ")
 
     if site == 'debug':
         train_sets = ['Amplero']
         test_site = 'Tumba'
 
-        print("Converting... ")
         # Use non-quality controlled data, to ensure there's enough to train
         met_train = get_multisite_df(train_sets, typ='met', variables=met_vars, name=use_names)
         flux_train = get_multisite_df(train_sets, typ='flux', variables=flux_vars, name=use_names)
@@ -88,7 +91,6 @@ def get_train_test_sets(site, met_vars, flux_vars, use_names):
             # Using a PLUMBER site, leave one out.
             train_sets = [s for s in plumber_datasets if s != site]
 
-        print("Converting... ")
         met_train = get_multisite_df(train_sets, typ='met', variables=met_vars, qc=True, name=use_names)
 
         # We use gap-filled data for the testing period, or the model fails.
