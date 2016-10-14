@@ -83,13 +83,14 @@ def get_train_test_sets(site, met_vars, flux_vars, use_names):
         met_test = met_test[0:5000]
 
     else:
-        plumber_datasets = get_sites('PLUMBER')
+        plumber_datasets = get_sites('PLUMBER_ext')
         if site not in plumber_datasets:
             # Using a non-PLUMBER site, train on all PLUMBER sites.
             train_sets = plumber_datasets
         else:
             # Using a PLUMBER site, leave one out.
             train_sets = [s for s in plumber_datasets if s != site]
+        print("Training with {n} datasets".format(n=len(train_sets)))
 
         met_train = get_multisite_df(train_sets, typ='met', variables=met_vars, qc=True, name=use_names)
 
