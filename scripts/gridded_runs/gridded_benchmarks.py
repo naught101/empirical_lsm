@@ -12,7 +12,7 @@ Usage:
     gridded_benchmarks.py (-h | --help | --version)
 
 Options:
-    benchmark:       1lin, 3km27, 3km233
+    benchmark:       1lin, 3km27, 3km243
     forcing:         PRINCETON, CRUNCEP, WATCH_WFDEI, GSWP3
     --years=<years>  2012-2013, python indexing style
     -h, --help       Show this screen and exit.

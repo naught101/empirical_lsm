@@ -49,8 +49,8 @@ def get_model_from_def(name):
         model.description = "PLUMBER-style 3km27 (SWdown, Tair, RelHum)"
 
     # higher non-linearity
-    elif name == '3km233':
-        model = km_lin(233)
+    elif name == '3km243':
+        model = km_lin(243)
         model.forcing_vars = ['SWdown', 'Tair', 'RelHum']
         model.description = "Like 3km27, but with more clusters"
 
@@ -82,108 +82,108 @@ def get_model_from_def(name):
         model.forcing_vars = list(var_lags)
         model.description = "km27 linear regression with SW, T, RH, Wind, Rain, and 2 and 7 day lagged-averages for each, plus 30- and 90-day lagged averages for Rainf (probably needs more clusters...)"
 
-    # 3km233 with lagged Rainf
-    elif name == 'STH_km233_lR30min':
+    # 3km243 with lagged Rainf
+    elif name == 'STH_km243_lR30min':
         var_lags = cur_3_var()
         var_lags.update({'Rainf': ['30min']})
-        model = LagAverageWrapper(var_lags, km_lin(233))
+        model = LagAverageWrapper(var_lags, km_lin(243))
         model.forcing_vars = list(var_lags)
-        model.description = "km233 Linear model with Swdown, Tair, RelHum, and Lagged Rainf (30min)"
-    elif name == 'STH_km233_lR1h':
+        model.description = "km243 Linear model with Swdown, Tair, RelHum, and Lagged Rainf (30min)"
+    elif name == 'STH_km243_lR1h':
         var_lags = cur_3_var()
         var_lags.update({'Rainf': ['1h']})
-        model = LagAverageWrapper(var_lags, km_lin(233))
+        model = LagAverageWrapper(var_lags, km_lin(243))
         model.forcing_vars = list(var_lags)
-        model.description = "km233 Linear model with Swdown, Tair, RelHum, and Lagged Rainf (1h)"
-    elif name == 'STH_km233_lR2d':
+        model.description = "km243 Linear model with Swdown, Tair, RelHum, and Lagged Rainf (1h)"
+    elif name == 'STH_km243_lR2d':
         var_lags = cur_3_var()
         var_lags.update({'Rainf': ['2d']})
-        model = LagAverageWrapper(var_lags, km_lin(233))
+        model = LagAverageWrapper(var_lags, km_lin(243))
         model.forcing_vars = list(var_lags)
-        model.description = "km233 Linear model with Swdown, Tair, RelHum, and Lagged Rainf (2d)"
-    elif name == 'STH_km233_lR10d':
+        model.description = "km243 Linear model with Swdown, Tair, RelHum, and Lagged Rainf (2d)"
+    elif name == 'STH_km243_lR10d':
         var_lags = cur_3_var()
         var_lags.update({'Rainf': ['10d']})
-        model = LagAverageWrapper(var_lags, km_lin(233))
+        model = LagAverageWrapper(var_lags, km_lin(243))
         model.forcing_vars = list(var_lags)
-        model.description = "km233 Linear model with Swdown, Tair, RelHum, and Lagged Rainf (10d)"
-    elif name == 'STH_km233_lR30d':
+        model.description = "km243 Linear model with Swdown, Tair, RelHum, and Lagged Rainf (10d)"
+    elif name == 'STH_km243_lR30d':
         var_lags = cur_3_var()
         var_lags.update({'Rainf': ['30d']})
-        model = LagAverageWrapper(var_lags, km_lin(233))
+        model = LagAverageWrapper(var_lags, km_lin(243))
         model.forcing_vars = list(var_lags)
-        model.description = "km233 Linear model with Swdown, Tair, RelHum, and Lagged Rainf (30d)"
-    elif name == 'STH_km233_lR180d':
+        model.description = "km243 Linear model with Swdown, Tair, RelHum, and Lagged Rainf (30d)"
+    elif name == 'STH_km243_lR180d':
         var_lags = cur_3_var()
         var_lags.update({'Rainf': ['180d']})
-        model = LagAverageWrapper(var_lags, km_lin(233))
+        model = LagAverageWrapper(var_lags, km_lin(243))
         model.forcing_vars = list(var_lags)
-        model.description = "km233 Linear model with Swdown, Tair, RelHum, and Lagged Rainf (180d)"
-    elif name == 'STH_km233_lR2d30d':
+        model.description = "km243 Linear model with Swdown, Tair, RelHum, and Lagged Rainf (180d)"
+    elif name == 'STH_km243_lR2d30d':
         var_lags = cur_3_var()
         var_lags.update({'Rainf': ['2d', '30d']})
-        model = LagAverageWrapper(var_lags, km_lin(233))
+        model = LagAverageWrapper(var_lags, km_lin(243))
         model.forcing_vars = list(var_lags)
-        model.description = "km233 Linear model with Swdown, Tair, RelHum, and Lagged Rainf (2d,30d)"
+        model.description = "km243 Linear model with Swdown, Tair, RelHum, and Lagged Rainf (2d,30d)"
 
-    # 3km233 with lagged Wind
-    elif name == 'STH_km233_lW30min':
+    # 3km243 with lagged Wind
+    elif name == 'STH_km243_lW30min':
         var_lags = cur_3_var()
         var_lags.update({'Wind': ['30min']})
-        model = LagAverageWrapper(var_lags, km_lin(233))
+        model = LagAverageWrapper(var_lags, km_lin(243))
         model.forcing_vars = list(var_lags)
-        model.description = "km233 Linear model with Swdown, Tair, RelHum, and Lagged Wind (30min)"
-    elif name == 'STH_km233_lW1h':
+        model.description = "km243 Linear model with Swdown, Tair, RelHum, and Lagged Wind (30min)"
+    elif name == 'STH_km243_lW1h':
         var_lags = cur_3_var()
         var_lags.update({'Wind': ['1h']})
-        model = LagAverageWrapper(var_lags, km_lin(233))
+        model = LagAverageWrapper(var_lags, km_lin(243))
         model.forcing_vars = list(var_lags)
-        model.description = "km233 Linear model with Swdown, Tair, RelHum, and Lagged Wind (1h)"
-    elif name == 'STH_km233_lW2d':
+        model.description = "km243 Linear model with Swdown, Tair, RelHum, and Lagged Wind (1h)"
+    elif name == 'STH_km243_lW2d':
         var_lags = cur_3_var()
         var_lags.update({'Wind': ['2d']})
-        model = LagAverageWrapper(var_lags, km_lin(233))
+        model = LagAverageWrapper(var_lags, km_lin(243))
         model.forcing_vars = list(var_lags)
-        model.description = "km233 Linear model with Swdown, Tair, RelHum, and Lagged Wind (2d)"
-    elif name == 'STH_km233_lW10d':
+        model.description = "km243 Linear model with Swdown, Tair, RelHum, and Lagged Wind (2d)"
+    elif name == 'STH_km243_lW10d':
         var_lags = cur_3_var()
         var_lags.update({'Wind': ['10d']})
-        model = LagAverageWrapper(var_lags, km_lin(233))
+        model = LagAverageWrapper(var_lags, km_lin(243))
         model.forcing_vars = list(var_lags)
-        model.description = "km233 Linear model with Swdown, Tair, RelHum, and Lagged Wind (10d)"
-    elif name == 'STH_km233_lW30d':
+        model.description = "km243 Linear model with Swdown, Tair, RelHum, and Lagged Wind (10d)"
+    elif name == 'STH_km243_lW30d':
         var_lags = cur_3_var()
         var_lags.update({'Wind': ['30d']})
-        model = LagAverageWrapper(var_lags, km_lin(233))
+        model = LagAverageWrapper(var_lags, km_lin(243))
         model.forcing_vars = list(var_lags)
-        model.description = "km233 Linear model with Swdown, Tair, RelHum, and Lagged Wind (30d)"
-    elif name == 'STH_km233_lW180d':
+        model.description = "km243 Linear model with Swdown, Tair, RelHum, and Lagged Wind (30d)"
+    elif name == 'STH_km243_lW180d':
         var_lags = cur_3_var()
         var_lags.update({'Wind': ['180d']})
-        model = LagAverageWrapper(var_lags, km_lin(233))
+        model = LagAverageWrapper(var_lags, km_lin(243))
         model.forcing_vars = list(var_lags)
-        model.description = "km233 Linear model with Swdown, Tair, RelHum, and Lagged Wind (180d)"
-    elif name == 'STH_km233_lW2d30d':
+        model.description = "km243 Linear model with Swdown, Tair, RelHum, and Lagged Wind (180d)"
+    elif name == 'STH_km243_lW2d30d':
         var_lags = cur_3_var()
         var_lags.update({'Wind': ['2d', '30d']})
-        model = LagAverageWrapper(var_lags, km_lin(233))
+        model = LagAverageWrapper(var_lags, km_lin(243))
         model.forcing_vars = list(var_lags)
-        model.description = "km233 Linear model with Swdown, Tair, RelHum, and Lagged Wind (2d,30d)"
+        model.description = "km243 Linear model with Swdown, Tair, RelHum, and Lagged Wind (2d,30d)"
 
     # Building the Heirarchy
-    elif name == 'STHR_km233_lR2d':
+    elif name == 'STHR_km243_lR2d':
         var_lags = cur_3_var()
         var_lags.update({'Rainf': ['cur', '2d']})
-        model = LagAverageWrapper(var_lags, km_lin(233))
+        model = LagAverageWrapper(var_lags, km_lin(243))
         model.forcing_vars = list(var_lags)
-        model.description = "km233 Linear model with Swdown, Tair, RelHum, Rainf, and Lagged Rainf (2d)"
-    elif name == 'STHW_km233_lR2d':
+        model.description = "km243 Linear model with Swdown, Tair, RelHum, Rainf, and Lagged Rainf (2d)"
+    elif name == 'STHW_km243_lR2d':
         var_lags = cur_3_var()
         var_lags.update({'Wind': ['cur']})
         var_lags.update({'Rainf': ['2d']})
-        model = LagAverageWrapper(var_lags, km_lin(233))
+        model = LagAverageWrapper(var_lags, km_lin(243))
         model.forcing_vars = list(var_lags)
-        model.description = "km233 Linear model with Swdown, Tair, RelHum, Wind, and Lagged Rainf (2d)"
+        model.description = "km243 Linear model with Swdown, Tair, RelHum, Wind, and Lagged Rainf (2d)"
     elif name == 'STH_km729_lR2d':
         var_lags = cur_3_var()
         var_lags.update({'Rainf': ['2d']})
@@ -192,32 +192,32 @@ def get_model_from_def(name):
         model.description = "km729 Linear model with Swdown, Tair, RelHum, and Lagged Rainf (2d)"
 
     # Lagged and non-lagged rainfall
-    elif name == 'STHR_km233_lR':
+    elif name == 'STHR_km243_lR':
         var_lags = cur_3_var()
         var_lags.update({'Rainf': ['cur', '2d']})
-        model = LagAverageWrapper(var_lags, km_lin(233))
+        model = LagAverageWrapper(var_lags, km_lin(243))
         model.forcing_vars = list(var_lags)
-        model.description = "km233 Linear model with Swdown, Tair, RelHum, Rainf, and Lagged Rainf (2d)"
+        model.description = "km243 Linear model with Swdown, Tair, RelHum, Rainf, and Lagged Rainf (2d)"
 
     # Markov-lagged Qle variants (doesn't seem to be working very well)
-    elif name == 'STH_km233_lQle30min':
+    elif name == 'STH_km243_lQle30min':
         var_lags = cur_3_var()
         var_lags.update({'Qle': ['30min']})
-        model = MarkovLagAverageWrapper(var_lags, km_lin(233))
+        model = MarkovLagAverageWrapper(var_lags, km_lin(243))
         model.forcing_vars = list(['SWdown', 'Tair', 'RelHum'])
-        model.description = "km233 Linear model with Swdown, Tair, RelHum, and Markov-Lagged Qle (30min)"
-    elif name == 'STH_km233_lQle1h':
+        model.description = "km243 Linear model with Swdown, Tair, RelHum, and Markov-Lagged Qle (30min)"
+    elif name == 'STH_km243_lQle1h':
         var_lags = cur_3_var()
         var_lags.update({'Qle': ['1h']})
-        model = MarkovLagAverageWrapper(var_lags, km_lin(233))
+        model = MarkovLagAverageWrapper(var_lags, km_lin(243))
         model.forcing_vars = list(['SWdown', 'Tair', 'RelHum'])
-        model.description = "km233 Linear model with Swdown, Tair, RelHum, and Markov-Lagged Qle (1h)"
-    elif name == 'STH_km233_lQle2d':
+        model.description = "km243 Linear model with Swdown, Tair, RelHum, and Markov-Lagged Qle (1h)"
+    elif name == 'STH_km243_lQle2d':
         var_lags = cur_3_var()
         var_lags.update({'Qle': ['2d']})
-        model = MarkovLagAverageWrapper(var_lags, km_lin(233))
+        model = MarkovLagAverageWrapper(var_lags, km_lin(243))
         model.forcing_vars = list(['SWdown', 'Tair', 'RelHum'])
-        model.description = "km233 Linear model with Swdown, Tair, RelHum, and Markov-Lagged Qle (2d)"
+        model.description = "km243 Linear model with Swdown, Tair, RelHum, and Markov-Lagged Qle (2d)"
 
     # Neural network models
     elif name == 'STH_MLP':
