@@ -22,6 +22,8 @@ class LagWrapper(BaseEstimator, TransformerMixin):
 
     """Wraps a scikit-learn model, lags the data, and deals with NAs."""
 
+    partial_data_ok = True
+
     def __init__(self, model, periods=1, freq='30min'):
         """Lags a dataset.
 
@@ -59,7 +61,7 @@ class LagWrapper(BaseEstimator, TransformerMixin):
 
         X_lag = self.transform(X, nans='drop')
 
-        print("Data lagged, now fitting.")
+        print("LW: Data lagged, fitting with {nk} samples out of {nx}".format(nk=X_lag.shape[0], nx=X.shape[0]))
 
         self.model.fit(X_lag, y.ix[X_lag.index])
 
@@ -158,6 +160,8 @@ class LagWrapper(BaseEstimator, TransformerMixin):
 class MarkovWrapper(LagWrapper):
     """Wraps a scikit-learn model, Markov-lags the data (includes y values), and deals with NAs."""
 
+    partial_data_ok = True
+
     def __init__(self, model, periods=1, freq='30min', lag_X=True):
         """Markov lagged dataset
 
@@ -189,7 +193,7 @@ class MarkovWrapper(LagWrapper):
 
         X_lag = self.transform(X, y, nans='drop')
 
-        print("Data lagged, now fitting.")
+        print("MW: Data lagged, fitting with {nk} samples out of {nx}".format(nk=X_lag.shape[0], nx=X.shape[0]))
 
         self.model.fit(X_lag, y.ix[X_lag.index])
 
@@ -262,6 +266,8 @@ class MarkovWrapper(LagWrapper):
 class LagAverageWrapper(BaseEstimator):
 
     """Modelwrapper that lags takes Tair, SWdown, RelHum, Wind, and Rainf, and lags them to estimate Qle fluxes."""
+
+    partial_data_ok = True
 
     def __init__(self, var_lags, model, datafreq=0.5):
         """Model wrapper
@@ -348,6 +354,8 @@ class LagAverageWrapper(BaseEstimator):
 
         fit_idx = np.isfinite(lagged_data).all(axis=1)
 
+        print("LAW: Data lagged, fitting with {nk} samples out of {nx}".format(nk=sum(fit_idx), nx=X.shape[0]))
+
         self._model.fit(lagged_data[fit_idx], y[fit_idx])
 
     def predict(self, X, datafreq=None):
@@ -371,6 +379,8 @@ class LagAverageWrapper(BaseEstimator):
 
 class MarkovLagAverageWrapper(LagAverageWrapper):
     """Lags variables, and uses markov fitting when fluxes are included"""
+
+    partial_data_ok = True
 
     def __init__(self, var_lags, model, datafreq=0.5):
         super().__init__(var_lags, model, datafreq)
@@ -451,6 +461,8 @@ class MissingDataWrapper(BaseEstimator):
 
     """Model wrapper that kills NAs"""
 
+    partial_data_ok = True
+
     def __init__(self, model):
         """kills NAs
 
@@ -468,7 +480,7 @@ class MissingDataWrapper(BaseEstimator):
         qc_index = (np.all(np.isfinite(X), axis=1, keepdims=True) &
                     np.all(np.isfinite(y), axis=1, keepdims=True)).ravel()
 
-        print("Using {n} samples of {N}".format(
+        print("MDW: Dropping data... using {n} samples of {N}".format(
             n=qc_index.sum(), N=X.shape[0]))
         # make work with arrays and dataframes
         self._model.fit(np.array(X)[qc_index, :], np.array(y)[qc_index, :])
