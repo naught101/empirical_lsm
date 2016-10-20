@@ -30,6 +30,11 @@ def cur_3_var():
     return var_lags
 
 
+def MLP(*args, **kwargs):
+    """Multilayer perceptron """
+    return MissingDataWrapper(make_pipeline(StandardScaler(), MLPRegressor(*args, **kwargs)))
+
+
 def get_model_from_def(name):
     """returns a scikit-learn style model/pipeline
 
@@ -222,13 +227,13 @@ def get_model_from_def(name):
     # Neural network models
     elif name == 'STH_MLP':
         var_lags = cur_3_var()
-        model = LagAverageWrapper(var_lags, make_pipeline(StandardScaler(), MLPRegressor((15, 10, 5, 10))))
+        model = LagAverageWrapper(var_lags, MLP((15, 10, 5, 10)))
         model.forcing_vars = list(var_lags)
         model.description = "Neural-network model with Swdown, Tair, RelHum"
     elif name == 'STH_MLP_lR2d':
         var_lags = cur_3_var()
         var_lags.update({'Rainf': ['2d']})
-        model = LagAverageWrapper(var_lags, make_pipeline(StandardScaler(), MLPRegressor((15, 10, 5, 10))))
+        model = LagAverageWrapper(var_lags, MLP((15, 10, 5, 10)))
         model.forcing_vars = list(var_lags)
         model.description = "Neural-network model with Swdown, Tair, RelHum, and Lagged Rainf (2d)"
 
