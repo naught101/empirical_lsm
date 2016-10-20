@@ -8,7 +8,7 @@ Github: https://github.com/naught101/
 Description: Runs all steps of the offline runs/ubermodel search page generator
 
 Usage:
-    eval_all.py <model>... [--sites=<sites>] [--run] [--multivariate] [--eval] [--html] [--rebuild] [--no-mp]
+    eval_all.py <model>... [--sites=<sites>] [--run] [--multivariate] [--eval] [--rst] [--html] [--rebuild] [--no-mp]
     eval_all.py (-h | --help | --version)
 
 Options:
@@ -25,7 +25,7 @@ from scripts.offline_runs.eval_model import main_eval_mp, main_rst_gen_mp
 from scripts.offline_runs.model_search_indexes import model_site_index_rst_mp, model_search_index_rst, get_available_models
 
 
-def main_eval_all(names, sites, run, multivariate, evalu, html, rebuild=False, no_mp=False):
+def main_eval_all(names, sites, run, multivariate, evalu, rst, html, rebuild=False, no_mp=False):
 
     # All scripts already use multiprocessing
     if run:
@@ -35,12 +35,14 @@ def main_eval_all(names, sites, run, multivariate, evalu, html, rebuild=False, n
     if evalu:
         for name in names:
             main_eval_mp(name, sites, no_mp)
-            main_rst_gen_mp(name, sites, no_mp)
 
-    if html:
+    if rst:
+        for name in names:
+            main_rst_gen_mp(name, sites, no_mp)
         model_site_index_rst_mp(names, rebuild, no_mp)
         model_search_index_rst()
 
+    if html:
         subprocess.call(['make', 'html'])
 
 
@@ -51,15 +53,16 @@ def main(args):
     else:
         names = args['<model>']
 
-    sites = args['--sites']
-    run = args['--run']
-    multivariate = args['--multivariate']
-    evalu = args['--eval']
-    html = args['--html']
-    rebuild = args['--rebuild']
-    no_mp = args['--no-mp']
-
-    main_eval_all(names, sites, run, multivariate, evalu, html, rebuild, no_mp)
+    main_eval_all(names=names,
+            sites=args['--sites'],
+            run=args['--run'],
+            multivariate=args['--multivariate'],
+            evalu=args['--eval'],
+            rst=args['--rst'],
+            html=args['--html'],
+            rebuild=args['--rebuild'],
+            no_mp=args['--no-mp']
+            )
 
     return
 
