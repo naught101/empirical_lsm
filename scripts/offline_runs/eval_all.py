@@ -30,16 +30,16 @@ def main_eval_all(names, sites, run, multivariate, evalu, rst, html, rebuild=Fal
     # All scripts already use multiprocessing
     if run:
         for name in names:
-            main_run_mp(name, sites, no_mp, multivariate)
+            main_run_mp(name, sites, no_mp=no_mp, multivariate=multivariate)
 
     if evalu:
         for name in names:
-            main_eval_mp(name, sites, no_mp)
+            main_eval_mp(name, sites, no_mp=no_mp)
 
     if rst:
         for name in names:
-            main_rst_gen_mp(name, sites, no_mp)
-        model_site_index_rst_mp(names, rebuild, no_mp)
+            main_rst_gen_mp(name, sites, no_mp=no_mp)
+        model_site_index_rst_mp(names, rebuild, no_mp=no_mp)
         model_search_index_rst()
 
     if html:
