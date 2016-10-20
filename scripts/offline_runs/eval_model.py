@@ -7,7 +7,7 @@ Email: ned@nedhaughton.com
 Description: Evaluates a model (sim or set of sims) and produces rst output with diagnostics
 
 Usage:
-    eval_model.py eval <name> <site> [<file>] [--no-mp]
+    eval_model.py eval <name> <site> [<file>] [--no-mp] [--no-plots]
     eval_model.py rst-gen <name> <site> [--no-mp]
 
 Options:
@@ -127,7 +127,7 @@ def model_site_rst_write(name, site, eval_results, plot_files):
     return
 
 
-def main_eval(name, site, sim_file=None):
+def main_eval(name, site, sim_file=None, plots=True):
     """Main function for evaluating an existing simulation.
 
     Copies simulation data to source directory.
@@ -159,7 +159,8 @@ def main_eval(name, site, sim_file=None):
 
     evaluate_simulation(sim_data, flux_data, name)
 
-    diagnostic_plots(sim_data, flux_data, name)
+    if plots:
+        diagnostic_plots(sim_data, flux_data, name)
 
     return
 
@@ -209,7 +210,7 @@ def main_rst_gen(name, site):
     return
 
 
-def main_eval_mp(name, site, sim_file=None, no_mp=False):
+def main_eval_mp(name, site, sim_file=None, plots=True, no_mp=False):
     """Evaluate using multiple processes if necessary"""
     if site in ['all', 'PLUMBER_ext']:
         # will only work if simulations are already run.
@@ -217,15 +218,15 @@ def main_eval_mp(name, site, sim_file=None, no_mp=False):
 
         if no_mp:
             for s in datasets:
-                main_eval(name, s)
+                main_eval(name, s, plots=plots)
         else:
-            f_args = [[name, s] for s in datasets]
+            f_args = [[name, s, None, plots] for s in datasets]
             ncores = min(os.cpu_count(), 1 + int(os.cpu_count() * 0.5))
             with Pool(ncores) as p:
                 p.starmap(main_eval, f_args)
 
     else:
-        main_eval(name, site, sim_file)
+        main_eval(name, site, sim_file, plots)
 
 
 def main_rst_gen_mp(name, site, sim_file=None, no_mp=False):
@@ -258,9 +259,10 @@ def main(args):
     name = args['<name>']
     site = args['<site>']
     sim_file = args['<file>']
+    plots = not args['--no-plots']
 
     if args['eval']:
-        main_eval_mp(name, site, sim_file, args['--no-mp'])
+        main_eval_mp(name, site, sim_file, plots, args['--no-mp'])
     if args['rst-gen']:
         main_rst_gen_mp(name, site, sim_file, args['--no-mp'])
 
