@@ -76,7 +76,7 @@ def diagnostic_plots(sim_data, flux_data, name):
     files = []
 
     # benchmark_names = ['1lin', '2lin', '3km27']
-    benchmark_names = ['S_lin', 'ST_lin', 'STH_km27_lin']
+    benchmark_names = ['S_lin', 'ST_lin', 'STH_km27']
 
     try:
         benchmarks = [get_benchmark(bname, site) for bname in benchmark_names]
@@ -220,7 +220,7 @@ def get_PLUMBER_metrics(name, site='all', variables=['Qle', 'Qh', 'NEE']):
     csv_file = './source/models/{n}/metrics/{n}_{s}_metrics.csv'
 
     # benchmark_names = ['1lin', '2lin', '3km27']
-    benchmark_names = ['S_lin', 'ST_lin', 'STH_km27_lin']
+    benchmark_names = ['S_lin', 'ST_lin', 'STH_km27']
 
     if site == 'all':
         sites = get_sites('PLUMBER_ext')
@@ -291,7 +291,7 @@ def p_plumber_metrics(metric_df, name, site='all', metrics='all'):
     :returns: plotted filename
 
     """
-    models = ['S_lin', 'ST_lin', 'STH_km27_lin', name]
+    models = ['S_lin', 'ST_lin', 'STH_km27', name]
 
     metric_df = subset_metric_df(metric_df, metrics)
 
@@ -314,7 +314,7 @@ def p_plumber_metrics(metric_df, name, site='all', metrics='all'):
 def p_metric_rank_counts(metric_df, name, site='all', metrics='all'):
     """plots hostograms of ranks for each variable and model
     """
-    models = ['S_lin', 'ST_lin', 'STH_km27_lin']
+    models = ['S_lin', 'ST_lin', 'STH_km27']
     if name not in models:
         models.append(name)
 
@@ -347,7 +347,7 @@ def p_metric_rank_counts(metric_df, name, site='all', metrics='all'):
 def p_metric_normalised_violins(metric_df, name, site='all', metrics='all'):
     """plots violins of metrics normalised for each variable and model
     """
-    models = ['S_lin', 'ST_lin', 'STH_km27_lin', name]
+    models = ['S_lin', 'ST_lin', 'STH_km27', name]
 
     metric_df = subset_metric_df(metric_df, metrics)
 
