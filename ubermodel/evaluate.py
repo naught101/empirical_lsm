@@ -11,7 +11,7 @@ Description: PALS-style model evaluation
 import pandas as pd
 import os
 
-from pals_utils.data import pals_site_name, FLUX_VARS
+from pals_utils.data import pals_site_name
 from pals_utils.stats import run_metrics
 
 from .utils import print_good
@@ -30,7 +30,8 @@ def evaluate_simulation(sim_data, flux_data, name):
     site = pals_site_name(flux_data)
     print_good('Evaluating data for {n} at {s}'.format(n=name, s=site))
 
-    eval_vars = list(set(FLUX_VARS).intersection(sim_data.data_vars)
+    flux_vars = ['Qle', 'Qh', 'NEE']
+    eval_vars = list(set(flux_vars).intersection(sim_data.data_vars)
                                    .intersection(flux_data.data_vars))
 
     metric_data = pd.DataFrame()

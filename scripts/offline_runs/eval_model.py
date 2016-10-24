@@ -25,7 +25,6 @@ from multiprocessing import Pool
 from matplotlib.cbook import dedent
 from datetime import datetime as dt
 
-from pals_utils.constants import FLUX_VARS
 from pals_utils.data import get_site_data
 
 from ubermodel.evaluate import evaluate_simulation, load_sim_evaluation
@@ -181,7 +180,9 @@ def get_existing_plots(name, site):
     if os.path.exists(plot_name):
         plots['All variables'] = ['figures/{p}'.format(p=os.path.basename(plot_name))]
 
-    for v in FLUX_VARS:
+    flux_vars = ['Qle', 'Qh', 'NEE']
+
+    for v in flux_vars:
         plots[v] = ['figures/{s}/{p}'.format(s=site, p=os.path.basename(p)) for p in
                     sorted(glob.glob('{d}/{s}/{n}_{v}_{s}_*.png'.format(d=plot_dir, n=name, v=v, s=site)))]
 

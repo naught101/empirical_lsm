@@ -18,7 +18,6 @@ import xray as xr
 from dateutil.parser import parse
 
 from pals_utils.data import pals_site_name, pals_xr_to_df
-from pals_utils.constants import FLUX_VARS
 
 from .utils import print_bad, print_warn
 from .data import get_sites
@@ -93,7 +92,9 @@ def diagnostic_plots(sim_data, flux_data, name):
         rel_plot_path = save_plot(base_path, rel_path, filename)
         files.append(rel_plot_path)
 
-    for var in FLUX_VARS:
+    flux_vars = ['Qle', 'Qh', 'NEE']
+
+    for var in flux_vars:
         try:
             data = pd.concat([pals_xr_to_df(ds, [var]) for ds in
                               benchmarks + [flux_data, sim_data]], axis=1)
