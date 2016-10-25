@@ -296,7 +296,7 @@ def p_plumber_metrics(metric_df, name, site='all', metrics='all'):
 
     metric_df = subset_metric_df(metric_df, metrics)
 
-    n_sites = metric_df.site.unique
+    n_sites = len(metric_df.site.unique())
 
     mean_df = metric_df.groupby(['variable', 'name'])['rank'].mean().reset_index()
 
@@ -304,8 +304,9 @@ def p_plumber_metrics(metric_df, name, site='all', metrics='all'):
 
     ax = mean_df_wide[models].plot()
     ax.set_ylim([1.5, len(models) - 0.5])
-    ax.text(0.03, 0.1, '%s sites' % n_sites, transform=ax.transAxes)
-    pl.title('{n}: PLUMBER plot: {m} metrics at {s}'.format(n=name, s=site, m=metrics))
+
+    site_name = "{n} sites".format(n=n_sites) if (site == "all") else site
+    pl.title('{n}: PLUMBER plot: {m} metrics at {s}'.format(n=name, s=site_name, m=metrics))
 
     filename = '{n}_{s}_PLUMBER_plot_{m}_metrics.png'.format(n=name, s=site, m=metrics)
 
@@ -321,7 +322,7 @@ def p_metric_rank_counts(metric_df, name, site='all', metrics='all'):
 
     metric_df = subset_metric_df(metric_df, metrics)
 
-    n_sites = metric_df.site.unique
+    n_sites = len(metric_df.site.unique())
 
     metric_df['name'] = pd.Categorical(metric_df['name'], models)
     metric_df.sort_values('name', inplace=True)
@@ -336,9 +337,9 @@ def p_metric_rank_counts(metric_df, name, site='all', metrics='all'):
     sns.factorplot(y="rank", x="count", col="variable", hue="name", data=count_df, orient='h')
     ax = pl.gca()
     ax.invert_yaxis()
-    ax.text(0.03, 0.1, '%s sites' % n_sites, transform=ax.transAxes)
 
-    pl.suptitle('{n}: Rank counts: {m} metrics at {s}'.format(n=name, s=site, m=metrics))
+    site_name = "{n} sites".format(n=n_sites) if (site == "all") else site
+    pl.suptitle('{n}: Rank counts: {m} metrics at {s}'.format(n=name, s=site_name, m=metrics))
 
     filename = '{n}_{s}_rank_counts_{m}_metrics.png'.format(n=name, s=site, m=metrics)
 
@@ -352,7 +353,7 @@ def p_metric_normalised_violins(metric_df, name, site='all', metrics='all'):
 
     metric_df = subset_metric_df(metric_df, metrics)
 
-    n_sites = metric_df.site.unique
+    n_sites = len(metric_df.site.unique())
 
     metric_df['name'] = pd.Categorical(metric_df['name'], models)
     metric_df.sort_values('name', inplace=True)
@@ -367,9 +368,9 @@ def p_metric_normalised_violins(metric_df, name, site='all', metrics='all'):
     fg = sns.factorplot(y="value", x="variable", hue="name", data=metric_df, orient='v', kind='violin', bw=0.1)
     sns.factorplot(y="value", x="variable", hue="name", data=metric_df, orient='v', kind='point', ax=fg.ax, ci=None)
     fg.ax.legend().set_visible(False)
-    fg.ax.text(0.03, 0.1, '%s sites' % n_sites, transform=fg.ax.transAxes)
 
-    pl.suptitle('{n}: Minmax normalised metrics: {m} metrics at {s}'.format(n=name, s=site, m=metrics))
+    site_name = "{n} sites".format(n=n_sites) if (site == "all") else site
+    pl.suptitle('{n}: Minmax normalised metrics: {m} metrics at {s}'.format(n=name, s=site_name, m=metrics))
 
     filename = '{n}_{s}_minmax_normalised_{m}_metrics.png'.format(n=name, s=site, m=metrics)
 
