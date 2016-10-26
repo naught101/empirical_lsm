@@ -262,7 +262,8 @@ def get_PLUMBER_metrics(name, site='all', variables=['Qle', 'Qh', 'NEE']):
     one_metrics = ['corr', 'overlap']
     metric_df.ix[metric_df['metric'].isin(one_metrics), 'value'] = 1 - metric_df.ix[metric_df['metric'].isin(one_metrics), 'value']
 
-    metric_df['rank'] = metric_df.groupby(['variable', 'metric', 'site'])['value'].apply(lambda x: x.abs().rank())
+    # use worst option for tied ranks
+    metric_df['rank'] = metric_df.groupby(['variable', 'metric', 'site'])['value'].apply(lambda x: x.abs().rank(method='max'))
 
     # and reinvert
     metric_df.ix[metric_df['metric'].isin(one_metrics), 'value'] = 1 - metric_df.ix[metric_df['metric'].isin(one_metrics), 'value']
