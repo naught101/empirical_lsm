@@ -213,6 +213,21 @@ def plot_PLUMBER_sim_metrics(name, site, metrics='all'):
     return filename
 
 
+def rank_metric_df(df):
+    """Ranks all models by metric, at each site/variable, correcting for inverted metrics"""
+    # invert 1-centred metrics
+    one_metrics = ['corr', 'overlap']
+    df.ix[df['metric'].isin(one_metrics), 'value'] = 1 - df.ix[df['metric'].isin(one_metrics), 'value']
+
+    # use worst option for tied ranks
+    df['rank'] = df.groupby(['variable', 'metric', 'site'])['value'].apply(lambda x: x.abs().rank(method='max'))
+
+    # and reinvert
+    df.ix[df['metric'].isin(one_metrics), 'value'] = 1 - df.ix[df['metric'].isin(one_metrics), 'value']
+
+    return df
+
+
 def get_PLUMBER_metrics(name, site='all', variables=['Qle', 'Qh', 'NEE']):
     """get metrics dataframe from a site, with benchmarks for comparison
 
@@ -258,15 +273,7 @@ def get_PLUMBER_metrics(name, site='all', variables=['Qle', 'Qh', 'NEE']):
 
     metric_df = pd.concat(metric_df).reset_index(drop=True)
 
-    # invert 1-centred metrics
-    one_metrics = ['corr', 'overlap']
-    metric_df.ix[metric_df['metric'].isin(one_metrics), 'value'] = 1 - metric_df.ix[metric_df['metric'].isin(one_metrics), 'value']
-
-    # use worst option for tied ranks
-    metric_df['rank'] = metric_df.groupby(['variable', 'metric', 'site'])['value'].apply(lambda x: x.abs().rank(method='max'))
-
-    # and reinvert
-    metric_df.ix[metric_df['metric'].isin(one_metrics), 'value'] = 1 - metric_df.ix[metric_df['metric'].isin(one_metrics), 'value']
+    metric_df = rank_metric_df(metric_df)
 
     return metric_df
 
