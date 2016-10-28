@@ -335,9 +335,9 @@ def p_metric_rank_counts(metric_df, name, site='all', metrics='all'):
                 .reset_index()
                 .rename(columns={'value': 'count'}))
 
-    sns.factorplot(y="rank", x="count", col="variable", hue="name", data=count_df, orient='h')
-    ax = pl.gca()
-    ax.invert_yaxis()
+    g = sns.factorplot(y="rank", x="count", col="variable", hue="name", data=count_df, orient='h', legen=False)
+    g.axes[0, 0].invert_yaxis()
+    g.fig.legend(loc='lower center', *g.axes[0,0].get_legend_handles_labels(), ncol=10)
 
     site_name = "{n} sites".format(n=n_sites) if (site == "all") else site
     pl.suptitle('{n}: Rank counts: {m} metrics at {s}'.format(n=name, s=site_name, m=metrics))
