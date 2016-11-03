@@ -114,7 +114,7 @@ def fit_predict_univariate(model, flux_vars, met_train, met_test, met_test_xr, f
         if hasattr(model, 'partial_data_ok'):
             # model accepts partial data
             print("Training {v} using all (possibly incomplete) data.".format(v=v))
-            model.fit(X=met_train, y=flux_train)
+            model.fit(X=met_train, y=flux_train_v)
         else:
             # Ditch all of the incomplete data
             qc_index = (~pd.concat([met_train, flux_train_v], axis=1).isnull()).apply(all, axis=1)
