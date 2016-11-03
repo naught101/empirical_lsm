@@ -130,8 +130,8 @@ def get_clusterer(name, kwargs):
         from sklearn.cluster import KMeans
         return KMeans(**kwargs)
     if name == 'MiniBatchKMeans':
-        from sklearn.cluster import KMeans
-        return KMeans(**kwargs)
+        from sklearn.cluster import MiniBatchKMeans
+        return MiniBatchKMeans(**kwargs)
 
 
 def get_scaler(scaler):
