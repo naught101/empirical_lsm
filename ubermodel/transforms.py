@@ -18,6 +18,18 @@ from sklearn.utils.validation import check_is_fitted
 from sklearn.base import BaseEstimator, TransformerMixin
 
 
+class Mean(BaseEstimator):
+    """Base class for Linear Models"""
+
+    def fit(self, X, y):
+        """Fit model."""
+        self.mean = y.mean(axis=0)
+
+    def predict(self, X):
+        """return the mean"""
+        return self.mean
+
+
 class LagWrapper(BaseEstimator, TransformerMixin):
 
     """Wraps a scikit-learn model, lags the data, and deals with NAs."""

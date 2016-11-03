@@ -17,11 +17,14 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import make_pipeline
 
 from ubermodel.clusterregression import ModelByCluster
-from ubermodel.transforms import MissingDataWrapper, LagAverageWrapper, MarkovLagAverageWrapper
+from ubermodel.transforms import MissingDataWrapper, LagAverageWrapper, MarkovLagAverageWrapper, Mean
 
+
+def km_regression(n, model):
+    return MissingDataWrapper(ModelByCluster(MiniBatchKMeans(27), model))
 
 def km_lin(n):
-    return MissingDataWrapper(ModelByCluster(MiniBatchKMeans(27), LinearRegression()))
+    return km_regression(n, LinearRegression())
 
 
 def cur_3_var():
@@ -236,6 +239,24 @@ def get_model_from_def(name):
         model = LagAverageWrapper(var_lags, MLP((15, 10, 5, 10)))
         model.forcing_vars = list(var_lags)
         model.description = "Neural-network model with Swdown, Tair, RelHum, and Lagged Rainf (2d)"
+
+    # Stupid mean models
+    elif name == 'STH_km27_mean':
+        model = km_regression(27, Mean())
+        model.forcing_vars = list(var_lags)
+        model.description = "km27 mean model with Swdown, Tair, RelHum"
+    elif name == 'STH_km243_mean':
+        model = km_regression(243, Mean())
+        model.forcing_vars = list(var_lags)
+        model.description = "km243 mean model with Swdown, Tair, RelHum"
+    elif name == 'STH_km729_mean':
+        model = km_regression(729, Mean())
+        model.forcing_vars = list(var_lags)
+        model.description = "km729 mean model with Swdown, Tair, RelHum"
+    elif name == 'STH_km2187_mean':
+        model = km_regression(2187, Mean())
+        model.forcing_vars = list(var_lags)
+        model.description = "km2187 mean model with Swdown, Tair, RelHum"
 
     else:
         raise NameError("unknown model")
