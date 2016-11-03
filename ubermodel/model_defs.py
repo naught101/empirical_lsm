@@ -23,6 +23,7 @@ from ubermodel.transforms import MissingDataWrapper, LagAverageWrapper, MarkovLa
 def km_regression(n, model):
     return MissingDataWrapper(ModelByCluster(MiniBatchKMeans(27), model))
 
+
 def km_lin(n):
     return km_regression(n, LinearRegression())
 
@@ -243,19 +244,19 @@ def get_model_from_def(name):
     # Stupid mean models
     elif name == 'STH_km27_mean':
         model = km_regression(27, Mean())
-        model.forcing_vars = list(var_lags)
+        model.forcing_vars = ['SWdown', 'Tair', 'RelHum']
         model.description = "km27 mean model with Swdown, Tair, RelHum"
     elif name == 'STH_km243_mean':
         model = km_regression(243, Mean())
-        model.forcing_vars = list(var_lags)
+        model.forcing_vars = ['SWdown', 'Tair', 'RelHum']
         model.description = "km243 mean model with Swdown, Tair, RelHum"
     elif name == 'STH_km729_mean':
         model = km_regression(729, Mean())
-        model.forcing_vars = list(var_lags)
+        model.forcing_vars = ['SWdown', 'Tair', 'RelHum']
         model.description = "km729 mean model with Swdown, Tair, RelHum"
     elif name == 'STH_km2187_mean':
         model = km_regression(2187, Mean())
-        model.forcing_vars = list(var_lags)
+        model.forcing_vars = ['SWdown', 'Tair', 'RelHum']
         model.description = "km2187 mean model with Swdown, Tair, RelHum"
 
     else:
