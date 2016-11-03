@@ -224,7 +224,7 @@ def main_run(model, name, site, multivariate=False):
     else:
         print_good("Writing sim file at {f}".format(f=nc_file))
 
-    if site is not 'debug':
+    if site != 'debug':
         sim_data.to_netcdf(nc_file)
 
     return
