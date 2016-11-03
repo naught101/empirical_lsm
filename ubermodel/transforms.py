@@ -27,7 +27,7 @@ class Mean(BaseEstimator):
 
     def predict(self, X):
         """return the mean"""
-        return self.mean
+        return np.tile(self.mean, (X.shape[0], 1))
 
 
 class LagWrapper(BaseEstimator, TransformerMixin):
