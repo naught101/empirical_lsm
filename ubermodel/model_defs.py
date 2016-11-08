@@ -208,6 +208,15 @@ def get_model_from_def(name):
         model.forcing_vars = list(var_lags)
         model.description = "km243 Linear model with Swdown, Tair, RelHum, Rainf, and Lagged Rainf (2d)"
 
+    # Wind plus lagged Rainf
+    elif name == 'STHW_km729_lR2d':
+        var_lags = cur_3_var()
+        var_lags.update({'Wind': ['cur']})
+        var_lags.update({'Rainf': ['2d']})
+        model = LagAverageWrapper(var_lags, km_lin(729))
+        model.forcing_vars = list(var_lags)
+        model.description = "km729 Linear model with Swdown, Tair, RelHum, Wind, and Lagged Rainf (2d)"
+
     # Markov-lagged Qle variants (doesn't seem to be working very well)
     elif name == 'STH_km243_lQle30min':
         var_lags = cur_3_var()
