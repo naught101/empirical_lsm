@@ -8,6 +8,8 @@ Github: https://github.com/naught101
 Description: diagnostic plots for evaluating models
 """
 
+import matplotlib as mpl
+mpl.use('Agg')
 import matplotlib.pyplot as pl
 import seaborn as sns
 import pandas as pd
