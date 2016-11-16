@@ -253,6 +253,84 @@ def get_model_from_def(name):
         model.forcing_vars = list(var_lags)
         model.description = "km243 Linear model with Swdown, Tair, RelHum, and Lagged LWdown (2d)"
 
+    # 3km243 with lagged SWdown
+    elif name == 'STH_km243_lS30min':
+        var_lags = cur_3_var()
+        var_lags.update({'SWdown': ['30min']})
+        model = LagAverageWrapper(var_lags, km_lin(243))
+        model.forcing_vars = list(var_lags)
+        model.description = "km243 Linear model with Swdown, Tair, RelHum, and Lagged SWdown (30min)"
+    elif name == 'STH_km243_lS1h':
+        var_lags = cur_3_var()
+        var_lags.update({'SWdown': ['1h']})
+        model = LagAverageWrapper(var_lags, km_lin(243))
+        model.forcing_vars = list(var_lags)
+        model.description = "km243 Linear model with Swdown, Tair, RelHum, and Lagged SWdown (1h)"
+    elif name == 'STH_km243_lS12h':
+        var_lags = cur_3_var()
+        var_lags.update({'SWdown': ['12h']})
+        model = LagAverageWrapper(var_lags, km_lin(243))
+        model.forcing_vars = list(var_lags)
+        model.description = "km243 Linear model with Swdown, Tair, RelHum, and Lagged SWdown (12h)"
+    elif name == 'STH_km243_lS2d':
+        var_lags = cur_3_var()
+        var_lags.update({'SWdown': ['2d']})
+        model = LagAverageWrapper(var_lags, km_lin(243))
+        model.forcing_vars = list(var_lags)
+        model.description = "km243 Linear model with Swdown, Tair, RelHum, and Lagged SWdown (2d)"
+
+    # 3km243 with lagged Tair
+    elif name == 'STH_km243_lT30min':
+        var_lags = cur_3_var()
+        var_lags.update({'Tair': ['30min']})
+        model = LagAverageWrapper(var_lags, km_lin(243))
+        model.forcing_vars = list(var_lags)
+        model.description = "km243 Linear model with Swdown, Tair, RelHum, and Lagged Tair (30min)"
+    elif name == 'STH_km243_lT1h':
+        var_lags = cur_3_var()
+        var_lags.update({'Tair': ['1h']})
+        model = LagAverageWrapper(var_lags, km_lin(243))
+        model.forcing_vars = list(var_lags)
+        model.description = "km243 Linear model with Swdown, Tair, RelHum, and Lagged Tair (1h)"
+    elif name == 'STH_km243_lT12h':
+        var_lags = cur_3_var()
+        var_lags.update({'Tair': ['12h']})
+        model = LagAverageWrapper(var_lags, km_lin(243))
+        model.forcing_vars = list(var_lags)
+        model.description = "km243 Linear model with Swdown, Tair, RelHum, and Lagged Tair (12h)"
+    elif name == 'STH_km243_lT2d':
+        var_lags = cur_3_var()
+        var_lags.update({'Tair': ['2d']})
+        model = LagAverageWrapper(var_lags, km_lin(243))
+        model.forcing_vars = list(var_lags)
+        model.description = "km243 Linear model with Swdown, Tair, RelHum, and Lagged Tair (2d)"
+
+    # 3km243 with lagged RelHum
+    elif name == 'STH_km243_lH30min':
+        var_lags = cur_3_var()
+        var_lags.update({'RelHum': ['30min']})
+        model = LagAverageWrapper(var_lags, km_lin(243))
+        model.forcing_vars = list(var_lags)
+        model.description = "km243 Linear model with Swdown, Tair, RelHum, and Lagged RelHum (30min)"
+    elif name == 'STH_km243_lH1h':
+        var_lags = cur_3_var()
+        var_lags.update({'RelHum': ['1h']})
+        model = LagAverageWrapper(var_lags, km_lin(243))
+        model.forcing_vars = list(var_lags)
+        model.description = "km243 Linear model with Swdown, Tair, RelHum, and Lagged RelHum (1h)"
+    elif name == 'STH_km243_lH12h':
+        var_lags = cur_3_var()
+        var_lags.update({'RelHum': ['12h']})
+        model = LagAverageWrapper(var_lags, km_lin(243))
+        model.forcing_vars = list(var_lags)
+        model.description = "km243 Linear model with Swdown, Tair, RelHum, and Lagged RelHum (12h)"
+    elif name == 'STH_km243_lH2d':
+        var_lags = cur_3_var()
+        var_lags.update({'RelHum': ['2d']})
+        model = LagAverageWrapper(var_lags, km_lin(243))
+        model.forcing_vars = list(var_lags)
+        model.description = "km243 Linear model with Swdown, Tair, RelHum, and Lagged RelHum (2d)"
+
     # Building the Heirarchy
     elif name == 'STHR_km243_lR2d':
         var_lags = cur_3_var()
