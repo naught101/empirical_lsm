@@ -47,6 +47,7 @@ def get_multisite_df(sites, typ, variables, name=False, qc=False):
 
     if typ == 'met':
         print("Met data: loading... ", end='')
+        # TODO: Split this up into single sites, and use Joblib to cache each site load. Multiple models should be able to re-load the same data, saving time.
         data = get_met_data(sites)
         print("converting... ")
         return xr_list_to_df(data.values(), variables=variables, qc=True, name=name)
