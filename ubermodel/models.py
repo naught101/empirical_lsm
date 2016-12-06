@@ -35,7 +35,11 @@ def get_model(name):
         try:
             model = get_model_from_yaml(name)
         except KeyError:
-            sys.exit("Unknown model {n}".format(n=name))
+            try:
+                from .model_defs import parse_model_name
+                model = parse_model_name(name)
+            except NameError:
+                sys.exit("Unknown model {n}".format(n=name))
 
     if not hasattr(model, 'name'):
         model.name = name

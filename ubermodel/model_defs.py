@@ -9,6 +9,7 @@ Description: Models created programattically
 """
 
 from collections import OrderedDict
+import re
 
 from sklearn.linear_model import LinearRegression
 from sklearn.cluster import MiniBatchKMeans
@@ -37,6 +38,96 @@ def cur_3_var():
 def MLP(*args, **kwargs):
     """Multilayer perceptron """
     return MissingDataWrapper(make_pipeline(StandardScaler(), MLPRegressor(*args, **kwargs)))
+
+
+def get_var_name(v):
+    fvars = {"S": "SWdown",
+             "T": "Tair",
+             "H": "RelHum",
+             "W": "Wind",
+             "R": "Rainf",
+             "L": "LWdown",
+             "Q": "Qair"}
+    return fvars[v]
+
+
+def add_var_lag(var_dict, v, lag='cur'):
+    if v not in var_dict:
+        var_dict.update({v: [lag]})
+    else:
+        var_dict[v] += [lag]
+
+
+def parse_model_name(name):
+    """parses a standard model name"
+    """
+
+    var_lags = OrderedDict()
+    kmeans = None
+    model = 'lin'
+
+    while len(name) > 0:
+        token = name[0]
+        name = name[1:]
+        if token in 'STHWRLQ':
+            add_var_lag(var_lags, get_var_name(token))
+            continue
+        if token == 'd':
+            v = name[0]
+            add_var_lag(var_lags, v + 'growth')
+            name = name[1:]
+            continue
+        elif token == '_':
+            if name.startswith('l'):  # lagged var:
+                lag = re.match('l([A-Z])([0-9]*[a-z]*)', name)
+                add_var_lag(var_lags, get_var_name(lag.groups()[0]), lag.groups()[1])
+                name = name[len(lag.group()):]
+                continue
+            elif name.startswith('km'):  # k means regression
+                match = re.match('km([0-9]*)', name)
+                kmeans = int(match.groups()[0])
+                name = name[len(match.group()):]
+                continue
+            elif name.startswith('mean'):
+                model = 'mean'
+                name = name[4:]
+                continue
+        raise NameError('Unmatched token in name: ' + name)
+
+    desc = "model with"
+
+    if model == 'lin':
+        model = LinearRegression()
+        desc = 'lin ' + desc
+    elif model == 'mean':
+        model = Mean()
+        desc = 'mean ' + desc
+
+    if kmeans is not None:
+        model = km_regression(kmeans, model)
+        desc = 'km' + str(kmeans) + ' ' + desc
+
+    if any([l != ['cur'] for l in var_lags.values()]):
+        model = LagAverageWrapper(var_lags, model)
+    else:
+        model.forcing_vars = list(var_lags)
+
+    cur_vars = []
+    lag_vars = []
+    for k, v in var_lags.items():
+        if 'cur' in v:
+            v.remove('cur')
+            cur_vars += [k]
+        if len(v) > 0:
+            for l in v:
+                lag_vars += ['Lagged ' + k + ' (' + l + ')']
+    desc += ' with ' + ', '.join(cur_vars)
+    if len(lag_vars) > 0:
+        desc += ', ' + ', '.join(lag_vars)
+    desc += ' (parsed)'
+    model.description = desc
+
+    return model
 
 
 def get_model_from_def(name):
