@@ -109,18 +109,18 @@ def parse_model_name(name):
 
     if any([l != ['cur'] for l in var_lags.values()]):
         model = LagAverageWrapper(var_lags, model)
-    else:
-        model.forcing_vars = list(var_lags)
+
+    model.forcing_vars = list(var_lags)
 
     cur_vars = []
     lag_vars = []
     for k, v in var_lags.items():
         if 'cur' in v:
-            v.remove('cur')
             cur_vars += [k]
         if len(v) > 0:
             for l in v:
-                lag_vars += ['Lagged ' + k + ' (' + l + ')']
+                if v != 'cur':
+                    lag_vars += ['Lagged ' + k + ' (' + l + ')']
     desc += ' with ' + ', '.join(cur_vars)
     if len(lag_vars) > 0:
         desc += ', ' + ', '.join(lag_vars)
