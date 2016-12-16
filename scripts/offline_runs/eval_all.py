@@ -18,9 +18,6 @@ Options:
 
 from docopt import docopt
 
-import matplotlib as mpl
-mpl.use('Agg')
-
 import subprocess
 
 from scripts.offline_runs.run_model import main_run_mp
