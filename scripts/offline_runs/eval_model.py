@@ -56,6 +56,13 @@ def model_site_rst_format(name, site, eval_text, plot_files):
     except:
         model = None
 
+    if hasattr(model, "_var_lags"):
+        forcing_vars = model._var_lags
+    elif hasattr(model, "forcing_vars"):
+        forcing_vars = model.forcing_vars
+    else:
+        forcing_vars = None
+
     if model is not None:
         try:
             description = model.description
@@ -66,7 +73,8 @@ def model_site_rst_format(name, site, eval_text, plot_files):
 
             .. code:: python
 
-              `{model}`""").format(desc=description, model=model)
+              {model}
+              {fvs}""").format(desc=description, model=model, fvs=forcing_vars)
     else:
         description = "Description missing - unknown model"
 
