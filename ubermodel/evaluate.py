@@ -62,3 +62,30 @@ def load_sim_evaluation(name, site):
     metric_data = pd.DataFrame.from_csv(eval_path)
 
     return metric_data
+
+
+def get_metric_df(models, sites):
+    """Gets a DF of models metrics at the given sites (pre-computed evaluations)
+
+    :models: TODO
+    :sites: TODO
+    :returns: TODO
+
+    """
+    metric_df = []
+    for m in models:
+        for s in sites:
+            try:
+                df = (pd.read_csv('source/models/{m}/metrics/{m}_{s}_metrics.csv'.format(m=m, s=s)))
+                df['site'] = s
+                df['name'] = m
+                df = df.set_index(['name', 'site', 'metric']).stack().to_frame()
+                df.index.names = ['name', 'site', 'metric', 'variable']
+                df.columns = ['value']
+                metric_df.append(df)
+            except Exception:
+                print('skipping {m} at {s}'.format(m=m, s=s))
+
+    metric_df = pd.concat(metric_df).reset_index()
+
+    return metric_df
