@@ -7,7 +7,7 @@ Email: ned@nedhaughton.com
 Description: Fits and runs a basic model and produces rst output with diagnostics
 
 Usage:
-    run_model.py run <name> <site> [--no-mp] [--multivariate]
+    run_model.py run <name> <site> [--no-mp] [--multivariate] [--overwrite]
 
 Options:
     -h, --help  Show this screen and exit.
@@ -206,7 +206,7 @@ def PLUMBER_fit_predict(model, name, site, multivariate=False):
     return sim_data
 
 
-def main_run(model, name, site, multivariate=False):
+def main_run(model, name, site, multivariate=False, overwrite=False):
     """Main function for fitting and running a model.
 
     :model: sklearn-style model or pipeline (regression estimator)
@@ -218,20 +218,25 @@ def main_run(model, name, site, multivariate=False):
 
     nc_file = '{d}/{n}_{s}.nc'.format(d=sim_dir, n=name, s=site)
 
-    sim_data = PLUMBER_fit_predict(model, name, site, multivariate)
-
-    if os.path.exists(nc_file):
-        print_warn("Overwriting sim file at {f}".format(f=nc_file))
+    if os.path.isfile(nc_file) and not overwrite:
+        print_warn("Sim netcdf already exists for {n} at {s}, use --overwrite to re-run."
+                   .format(n=name, s=site))
+        return
     else:
-        print_good("Writing sim file at {f}".format(f=nc_file))
+        sim_data = PLUMBER_fit_predict(model, name, site, multivariate)
 
-    if site != 'debug':
-        sim_data.to_netcdf(nc_file)
+        if os.path.isfile(nc_file):
+            print_warn("Overwriting sim file at {f}".format(f=nc_file))
+        else:
+            print_good("Writing sim file at {f}".format(f=nc_file))
 
-    return
+        if site != 'debug':
+            sim_data.to_netcdf(nc_file)
+
+        return
 
 
-def main_run_mp(name, site, no_mp=False, multivariate=False):
+def main_run_mp(name, site, no_mp=False, multivariate=False, overwrite=False):
     """Multi-processor run handling."""
 
     model = get_model(name)
@@ -240,14 +245,14 @@ def main_run_mp(name, site, no_mp=False, multivariate=False):
         datasets = get_sites(site)
         if no_mp:
             for s in datasets:
-                main_run(model, name, s, multivariate)
+                main_run(model, name, s, multivariate, overwrite)
         else:
-            f_args = [(model, name, s, multivariate) for s in datasets]
+            f_args = [(model, name, s, multivariate, overwrite) for s in datasets]
             ncores = min(os.cpu_count(), 1 + int(os.cpu_count() * 0.5))
             with Pool(ncores) as p:
                 p.starmap(main_run, f_args)
     else:
-        main_run(model, name, site, multivariate)
+        main_run(model, name, site, multivariate, overwrite)
 
     return
 
@@ -256,7 +261,7 @@ def main(args):
     name = args['<name>']
     site = args['<site>']
 
-    main_run_mp(name, site, args['--no-mp'], args['--multivariate'])
+    main_run_mp(name, site, args['--no-mp'], args['--multivariate'], args['--overwrite'])
 
     return
 
