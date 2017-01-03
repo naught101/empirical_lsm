@@ -242,6 +242,7 @@ def main_run_mp(name, site, no_mp=False, multivariate=False, overwrite=False):
     model = get_model(name)
 
     if site in ['all', 'PLUMBER_ext', 'PLUMBER']:
+        print_good('Running {n} at {s} sites'.format(n=name, s=site))
         datasets = get_sites(site)
         if no_mp:
             for s in datasets:
