@@ -8,7 +8,7 @@ Github: https://github.com/naught101/
 Description: Runs all steps of the offline runs/ubermodel search page generator
 
 Usage:
-    eval_all.py <model>... [--sites=<sites>] [--run] [--multivariate] [--eval [--no-plots]] [--rst] [--html] [--rebuild] [--no-mp] [--overwrite]
+    eval_all.py <model>... [--sites=<sites>] [--run] [--multivariate] [--eval [--plot]] [--rst] [--html] [--rebuild] [--no-mp] [--overwrite]
     eval_all.py (-h | --help | --version)
 
 Options:
@@ -26,7 +26,7 @@ from scripts.offline_runs.model_search_indexes import model_site_index_rst_mp, m
 
 
 def main_eval_all(names, sites, run=False, multivariate=True, evalu=False,
-                  plots=True, rst=False, html=False, rebuild=False, no_mp=False, overwrite=False):
+                  plots=False, rst=False, html=False, rebuild=False, no_mp=False, overwrite=False):
 
     # All scripts already use multiprocessing
     if run:
@@ -59,7 +59,7 @@ def main(args):
                   run=args['--run'],
                   multivariate=args['--multivariate'],
                   evalu=args['--eval'],
-                  plots=not args['--no-plots'],
+                  plots=args['--plot'],
                   rst=args['--rst'],
                   html=args['--html'],
                   rebuild=args['--rebuild'],

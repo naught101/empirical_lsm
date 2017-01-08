@@ -7,7 +7,7 @@ Email: ned@nedhaughton.com
 Description: Evaluates a model (sim or set of sims) and produces rst output with diagnostics
 
 Usage:
-    eval_model.py eval <name> <site> [<file>] [--no-mp] [--no-plots]
+    eval_model.py eval <name> <site> [<file>] [--no-mp] [--plot]
     eval_model.py rst-gen <name> <site> [--no-mp]
 
 Options:
@@ -134,7 +134,7 @@ def model_site_rst_write(name, site, eval_results, plot_files):
     return
 
 
-def main_eval(name, site, sim_file=None, plots=True):
+def main_eval(name, site, sim_file=None, plots=False):
     """Main function for evaluating an existing simulation.
 
     Copies simulation data to source directory.
@@ -219,7 +219,7 @@ def main_rst_gen(name, site):
     return
 
 
-def main_eval_mp(name, site, sim_file=None, plots=True, no_mp=False):
+def main_eval_mp(name, site, sim_file=None, plots=False, no_mp=False):
     """Evaluate using multiple processes if necessary"""
     if site in ['all', 'PLUMBER_ext']:
         # will only work if simulations are already run.
@@ -268,7 +268,7 @@ def main(args):
     name = args['<name>']
     site = args['<site>']
     sim_file = args['<file>']
-    plots = not args['--no-plots']
+    plots = args['--plot']
 
     if args['eval']:
         main_eval_mp(name, site, sim_file, plots, args['--no-mp'])
