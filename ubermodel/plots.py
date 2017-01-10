@@ -32,7 +32,9 @@ def save_plot(base_path, rel_path, filename):
     :returns: rel_path/filename.png for RST
 
     """
-    plot_path = os.path.join(base_path, rel_path, filename)
+    dir_path = os.path.join(base_path, rel_path)
+    os.makedirs(dir_path, exist_ok=True)
+    plot_path = os.path.join(dir_path, filename)
     pl.savefig(plot_path)
     pl.close()
 
