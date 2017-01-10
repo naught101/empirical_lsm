@@ -10,9 +10,13 @@ Description: ubermodel data helper functions
 
 import xarray as xr
 import numpy as np
+import pandas as pd
+import joblib as jl
 import os
 
-from pals_utils.data import copy_data
+from pals_utils.data import copy_data, get_met_data, get_flux_data, pals_xr_to_df, xr_list_to_df
+
+from scripts.lag_average_assessment import rolling_mean
 
 
 def get_data_dir():
@@ -78,3 +82,104 @@ def get_sim_nc_path(name, site):
     nc_path = '{p}{n}_{s}.nc'.format(p=model_path, n=name, s=site)
 
     return nc_path
+
+
+def get_multimodel_data(site, names, variables):
+    """TODO: Docstring for get_multimodel_data.
+    """
+
+    data = []
+    for n in names:
+        path = "model_data/{n}/{n}_{s}.nc".format(n=n, s=site)
+        try:
+            with xr.open_dataset(path) as ds:
+                df = pals_xr_to_df(ds, variables)
+                df['name'] = n
+                data.append(df)
+        except OSError as e:
+            raise Exception(path, e)
+
+    return pd.concat(data)
+
+
+def get_multisite_df(sites, typ, variables, name=False, qc=False):
+    """Load some data and convert it to a dataframe
+
+    :sites: str or list of strs: site names
+    :variables: list of variable names
+    :qc: Whether to replace bad quality data with NAs
+    :names: Whether to include site-names
+    :returns: pandas dataframe
+
+    """
+    if isinstance(sites, str):
+        sites = [sites]
+
+    if typ == 'met':
+        print("Met data: loading... ", end='')
+        # TODO: Split this up into single sites, and use Joblib to cache each site load. Multiple models should be able to re-load the same data, saving time.
+        data = get_met_data(sites)
+        print("converting... ")
+        return xr_list_to_df(data.values(), variables=variables, qc=True, name=name)
+    elif typ == 'flux':
+        print("Flux data: loading... ", end='')
+        data = get_flux_data(sites)
+        print("converting... ")
+        return xr_list_to_df(data.values(),
+                             variables=variables, qc=True, name=name)
+    else:
+        assert False, "Bad dataset type: %s" % typ
+
+mem = jl.Memory(cachedir=os.path.join(os.path.expanduser('~'), 'tmp', 'cache'))
+
+get_multisite_df_cached = mem.cache(get_multisite_df)
+
+
+def get_train_test_sets(site, met_vars, flux_vars, use_names):
+
+    if site == 'debug':
+        train_sets = ['Amplero']
+        test_site = 'Tumba'
+
+        # Use non-quality controlled data, to ensure there's enough to train
+        met_train = get_multisite_df(train_sets, typ='met', variables=met_vars, name=use_names)
+        flux_train = get_multisite_df(train_sets, typ='flux', variables=flux_vars, name=use_names)
+
+        met_test_xr = get_met_data(test_site)[test_site]
+        met_test = pals_xr_to_df(met_test_xr, variables=met_vars)
+
+        met_test_xr = met_test_xr.isel(time=slice(0, 5000))
+        met_train = met_train[0:5000]
+        flux_train = flux_train[0:5000]
+        met_test = met_test[0:5000]
+
+    else:
+        plumber_datasets = get_sites('PLUMBER_ext')
+        if site not in plumber_datasets:
+            # Using a non-PLUMBER site, train on all PLUMBER sites.
+            train_sets = plumber_datasets
+        else:
+            # Using a PLUMBER site, leave one out.
+            train_sets = [s for s in plumber_datasets if s != site]
+        print("Training with {n} datasets".format(n=len(train_sets)))
+
+        met_train = get_multisite_df(train_sets, typ='met', variables=met_vars, qc=True, name=use_names)
+
+        # We use gap-filled data for the testing period, or the model fails.
+        met_test_xr = get_met_data(site)[site]
+        met_test = pals_xr_to_df(met_test_xr, variables=met_vars)
+
+        flux_train = get_multisite_df(train_sets, typ='flux', variables=flux_vars, qc=True, name=use_names)
+
+    return met_train, met_test, met_test_xr, flux_train
+
+
+def get_lagged_df(df, lags=['30min', '2h', '6h', '2d', '7d', '30d', '90d']):
+    """Get lagged variants of variables"""
+
+    data = {}
+    for v in df.columns:
+        data[v] = pd.DataFrame(
+            np.concatenate([rolling_mean(df[[v]].values, l) for l in lags], axis=1),
+            columns=lags, index=df.index)
+    return pd.concat(data, axis=1)

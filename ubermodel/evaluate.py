@@ -9,6 +9,7 @@ Description: PALS-style model evaluation
 """
 
 import pandas as pd
+import glob
 import os
 
 from pals_utils.data import pals_site_name
@@ -89,3 +90,36 @@ def get_metric_df(models, sites):
     metric_df = pd.concat(metric_df).reset_index()
 
     return metric_df
+
+
+def get_metric_data(names):
+    """Get a dataframe of metric means for each model
+
+    :names: List of models to grab data from
+    :returns: All metric data as a pandas dataframe
+
+    """
+    import re
+    import pandas as pd
+
+    pat = re.compile('[^\W_]+(?=_metrics.csv$)')
+
+    data = []
+
+    for name in names:
+        model_dir = 'source/models/' + name
+        csv_files = glob.glob(model_dir + '/metrics/*csv')
+        if len(csv_files) == 0:
+            continue
+        model_dfs = []
+        for csvf in csv_files:
+            site = re.search(pat, csvf).group(0)
+            df = pd.DataFrame.from_csv(csvf)
+            df['site'] = site
+            model_dfs.append(df)
+        model_df = pd.concat(model_dfs)
+        model_df['name'] = name
+        data.append(model_df)
+    data = pd.concat(data)
+
+    return data

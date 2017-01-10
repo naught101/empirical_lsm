@@ -15,7 +15,6 @@ Options:
 
 from docopt import docopt
 
-import joblib as jl
 import pandas as pd
 import numpy as np
 import sys
@@ -24,84 +23,11 @@ import os
 from multiprocessing import Pool
 
 from pals_utils.constants import MET_VARS
-from pals_utils.data import get_met_data, get_flux_data, pals_xr_to_df, xr_list_to_df
 
 from ubermodel.transforms import LagWrapper
 from ubermodel.models import get_model
-from ubermodel.data import get_sites, sim_dict_to_xr
+from ubermodel.data import get_sites, sim_dict_to_xr, get_train_test_sets
 from ubermodel.utils import print_good, print_warn
-
-
-def get_multisite_df(sites, typ, variables, name=False, qc=False):
-    """Load some data and convert it to a dataframe
-
-    :sites: str or list of strs: site names
-    :variables: list of variable names
-    :qc: Whether to replace bad quality data with NAs
-    :names: Whether to include site-names
-    :returns: pandas dataframe
-
-    """
-    if isinstance(sites, str):
-        sites = [sites]
-
-    if typ == 'met':
-        print("Met data: loading... ", end='')
-        # TODO: Split this up into single sites, and use Joblib to cache each site load. Multiple models should be able to re-load the same data, saving time.
-        data = get_met_data(sites)
-        print("converting... ")
-        return xr_list_to_df(data.values(), variables=variables, qc=True, name=name)
-    elif typ == 'flux':
-        print("Flux data: loading... ", end='')
-        data = get_flux_data(sites)
-        print("converting... ")
-        return xr_list_to_df(data.values(),
-                             variables=variables, qc=True, name=name)
-    else:
-        assert False, "Bad dataset type: %s" % typ
-
-mem = jl.Memory(cachedir=os.path.join(os.path.expanduser('~'), 'tmp', 'cache'))
-
-get_multisite_df_cached = mem.cache(get_multisite_df)
-
-
-def get_train_test_sets(site, met_vars, flux_vars, use_names):
-
-    if site == 'debug':
-        train_sets = ['Amplero']
-        test_site = 'Tumba'
-
-        # Use non-quality controlled data, to ensure there's enough to train
-        met_train = get_multisite_df(train_sets, typ='met', variables=met_vars, name=use_names)
-        flux_train = get_multisite_df(train_sets, typ='flux', variables=flux_vars, name=use_names)
-
-        met_test_xr = get_met_data(test_site)[test_site]
-        met_test = pals_xr_to_df(met_test_xr, variables=met_vars)
-
-        met_test_xr = met_test_xr.isel(time=slice(0, 5000))
-        met_train = met_train[0:5000]
-        flux_train = flux_train[0:5000]
-        met_test = met_test[0:5000]
-
-    else:
-        plumber_datasets = get_sites('PLUMBER_ext')
-        if site not in plumber_datasets:
-            # Using a non-PLUMBER site, train on all PLUMBER sites.
-            train_sets = plumber_datasets
-        else:
-            # Using a PLUMBER site, leave one out.
-            train_sets = [s for s in plumber_datasets if s != site]
-        print("Training with {n} datasets".format(n=len(train_sets)))
-
-        met_train = get_multisite_df(train_sets, typ='met', variables=met_vars, qc=True, name=use_names)
-
-        # We use gap-filled data for the testing period, or the model fails.
-        met_test_xr = get_met_data(site)[site]
-        met_test = pals_xr_to_df(met_test_xr, variables=met_vars)
-
-        flux_train = get_multisite_df(train_sets, typ='flux', variables=flux_vars, qc=True, name=use_names)
-
-    return met_train, met_test, met_test_xr, flux_train
 
 
 def fit_predict_univariate(model, flux_vars, met_train, met_test, met_test_xr, flux_train):
