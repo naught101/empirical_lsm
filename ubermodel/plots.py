@@ -24,6 +24,14 @@ from .utils import print_warn
 from .evaluate import get_PLUMBER_metrics, subset_metric_df
 
 
+def color_names_to_palette(colours):
+    hex_cols = [mpl.colors.cnames[c] for c in colours]
+    palette = [mpl.colors.hex2color(c) for c in hex_cols]
+    # mpl.colors.rgb_to_hsv()
+
+    return palette
+
+
 def save_plot(base_path, rel_path, filename):
     """Save a figure and return the relative path (for rst)
 
