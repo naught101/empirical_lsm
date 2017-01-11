@@ -16,7 +16,7 @@ import os
 
 from pals_utils.data import copy_data, get_met_data, get_flux_data, pals_xr_to_df, xr_list_to_df
 
-from scripts.lag_average_assessment import rolling_mean
+from ubermodel.transforms import rolling_mean
 
 
 def get_data_dir():
