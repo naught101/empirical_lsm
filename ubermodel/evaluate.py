@@ -9,6 +9,7 @@ Description: PALS-style model evaluation
 """
 
 import pandas as pd
+import numpy as np
 import glob
 import os
 
@@ -124,6 +125,16 @@ def get_metric_data(names):
     data = pd.concat(data)
 
     return data
+
+
+def normalise_metric(data, metric):
+    """Normalises metrics between 0 and 1, where 0 is the best."""
+    if metric in ['corr', 'overlap']:  # 1-optimal metrics
+        data = np.abs(1 - data)
+
+    normalised = (data - np.min(data)) / (np.max(data) - np.min(data))
+
+    return normalised
 
 
 #################
