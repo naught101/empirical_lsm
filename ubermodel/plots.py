@@ -8,6 +8,7 @@ Github: https://github.com/naught101
 Description: diagnostic plots for evaluating models
 """
 
+import matplotlib as mpl
 import matplotlib.pyplot as pl
 import seaborn as sns
 import pandas as pd
@@ -19,8 +20,8 @@ from dateutil.parser import parse
 
 from pals_utils.data import pals_site_name, pals_xr_to_df
 
-from .utils import print_bad, print_warn
-from .data import get_sites
+from .utils import print_warn
+from .evaluate import get_PLUMBER_metrics, subset_metric_df
 
 
 def save_plot(base_path, rel_path, filename):
@@ -213,84 +214,6 @@ def plot_PLUMBER_sim_metrics(name, site, metrics='all'):
     filename = p_plumber_metrics(metric_df, name, site, metrics)
 
     return filename
-
-
-def rank_metric_df(df):
-    """Ranks all models by metric, at each site/variable, correcting for inverted metrics"""
-    # invert 1-centred metrics
-    one_metrics = ['corr', 'overlap']
-    df.ix[df['metric'].isin(one_metrics), 'value'] = 1 - df.ix[df['metric'].isin(one_metrics), 'value']
-
-    # use worst option for tied ranks
-    df['rank'] = df.groupby(['variable', 'metric', 'site'])['value'].apply(lambda x: x.abs().rank(method='max'))
-
-    # and reinvert
-    df.ix[df['metric'].isin(one_metrics), 'value'] = 1 - df.ix[df['metric'].isin(one_metrics), 'value']
-
-    return df
-
-
-def get_PLUMBER_metrics(name, site='all', variables=['Qle', 'Qh', 'NEE']):
-    """get metrics dataframe from a site, with benchmarks for comparison
-
-    :returns: dataframe with metrics for model at site
-    """
-    csv_file = './source/models/{n}/metrics/{n}_{s}_metrics.csv'
-
-    # benchmark_names = ['1lin', '2lin', '3km27']
-    benchmark_names = ['S_lin', 'ST_lin', 'STH_km27']
-
-    if site == 'all':
-        sites = get_sites('PLUMBER_ext')
-    else:
-        sites = [site]
-
-    metric_df = []
-
-    failures = []
-    for s in sites:
-        try:
-            site_metrics = pd.read_csv(csv_file.format(n=name, s=s))
-            site_metrics = pd.melt(site_metrics, id_vars='metric')
-            site_metrics['name'] = name
-            site_metrics['site'] = s
-            metric_df.append(site_metrics[site_metrics.variable.isin(variables)])
-
-            for b in benchmark_names:
-                benchmark_metrics = pd.read_csv(csv_file.format(n=b, s=s))
-                benchmark_metrics = pd.melt(benchmark_metrics, id_vars='metric')
-                benchmark_metrics['name'] = b
-                benchmark_metrics['site'] = s
-                metric_df.append(benchmark_metrics[benchmark_metrics.variable.isin(variables)])
-        except Exception:
-            failures.append(s)
-            continue
-
-    if len(failures) > 0:
-        print('Skipped {l} sites: {f}'.format(l=len(failures), f=', '.join(failures)))
-
-    if len(metric_df) == 0:
-        print_bad('Failed to load any csv files for {n} at {s} - skipping plot.'.format(n=name, s=site))
-        return
-
-    metric_df = pd.concat(metric_df).reset_index(drop=True)
-
-    metric_df = rank_metric_df(metric_df)
-
-    return metric_df
-
-
-def subset_metric_df(metric_df, metrics):
-    """Return only the metrics required
-    """
-    if metrics == 'standard':
-        metrics_list = ['nme', 'mbe', 'sd_diff', 'corr']
-        return metric_df[metric_df.metric.isin(metrics_list)].copy()
-    elif metrics == 'distribution':
-        metrics_list = ['extreme_5', 'extreme_95', 'skewness', 'kurtosis', 'overlap']
-        return metric_df[metric_df.metric.isin(metrics_list)].copy()
-    else:
-        return metric_df
 
 
 def p_plumber_metrics(metric_df, name, site='all', metrics='all'):
