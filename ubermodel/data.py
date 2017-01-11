@@ -85,8 +85,7 @@ def get_sim_nc_path(name, site):
 
 
 def get_multimodel_data(site, names, variables):
-    """TODO: Docstring for get_multimodel_data.
-    """
+    """Returns a DF with variable columns, time/model indices."""
 
     data = []
     for n in names:
@@ -95,11 +94,20 @@ def get_multimodel_data(site, names, variables):
             with xr.open_dataset(path) as ds:
                 df = pals_xr_to_df(ds, variables)
                 df['name'] = n
+                df.set_index('name', append=True, inplace=True)
                 data.append(df)
         except OSError as e:
             raise Exception(path, e)
 
     return pd.concat(data)
+
+
+def get_multimodel_wide_df(site, names, variables):
+    """Returns a DF with model columns, time/variable indices."""
+
+    df = get_multimodel_data(site, names, variables)
+
+    return df.stack().unstack(level='name')[names]
 
 
 def get_multisite_df(sites, typ, variables, name=False, qc=False):
