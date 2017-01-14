@@ -104,10 +104,14 @@ def get_multimodel_data(site, names, variables):
 
 def get_multimodel_wide_df(site, names, variables):
     """Returns a DF with model columns, time/variable indices."""
-
-    df = get_multimodel_data(site, names, variables)
-
-    return df.stack().unstack(level='name')[names]
+    if isinstance(variables, list):
+        df = get_multimodel_data(site, names, variables)
+        return df.stack().unstack(level='name')[names]
+    elif isinstance(variables, str):
+        df = get_multimodel_data(site, names, [variables])
+        return df.stack().unstack(level='name')[names].xs(variables, level=1)
+    else:
+        raise Exception("WTF is variables? %s" % type(variables))
 
 
 def get_multisite_df(sites, typ, variables, name=False, qc=False):
