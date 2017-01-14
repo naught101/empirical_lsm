@@ -21,7 +21,7 @@ from dateutil.parser import parse
 from pals_utils.data import pals_site_name, pals_xr_to_df
 
 from .utils import print_warn
-from .evaluate import get_PLUMBER_metrics, subset_metric_df
+from .evaluate import get_PLUMBER_metrics, subset_metric_df, quantile_normalise
 
 
 def color_names_to_palette(colours):
@@ -446,6 +446,7 @@ def p_parallel_coord(df):
     missing = [c for c in required if c not in df.columns]
     assert len(missing), "Dataframe is missing variables: {0}".format(missing)
 
+    # TODO: This is kind of backwards for corr, overlap (one-optimal metrics)
     df['value'] = (df.groupby(['variable', 'metric'])['value']
                      .apply(quantile_normalise))
 
@@ -487,13 +488,6 @@ def p_parallel_coord_summary(df):
                       .apply(quantile_normalise))
 
     df_wide = df.set_index(['site', 'metric', 'name', 'variable'])['quants'].unstack()
-
-
-def quantile_normalise(x, dist='uniform'):
-    """Quantile normalise to a standard distribution
-    """
-    if dist == 'uniform':
-        return np.argsort(np.argsort(x)) / (len(x) - 1)
 
 
 ALL_PLOTS = dict()

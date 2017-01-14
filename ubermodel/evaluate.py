@@ -127,14 +127,24 @@ def get_metric_data(names):
     return data
 
 
-def normalise_metric(data, metric):
+def normalise_metric(data, metric, quantile=False):
     """Normalises metrics between 0 and 1, where 0 is the best."""
     if metric in ['corr', 'overlap']:  # 1-optimal metrics
         data = np.abs(1 - data)
 
-    normalised = (data - np.min(data)) / (np.max(data) - np.min(data))
+    if quantile:
+        normalised = quantile_normalise(data)
+    else:
+        normalised = (data - np.min(data)) / (np.max(data) - np.min(data))
 
     return normalised
+
+
+def quantile_normalise(x, dist='uniform'):
+    """Quantile normalise to a standard distribution
+    """
+    if dist == 'uniform':
+        return np.argsort(np.argsort(x)) / (len(x) - 1)
 
 
 #################
