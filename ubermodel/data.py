@@ -99,7 +99,9 @@ def get_multimodel_data(site, names, variables):
         except OSError as e:
             raise Exception(path, e)
 
-    return pd.concat(data)
+    df = pd.concat(data)
+    df.columns.name = 'variable'
+    return df
 
 
 def get_multimodel_wide_df(site, names, variables):
