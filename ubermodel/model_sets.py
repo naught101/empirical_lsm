@@ -58,6 +58,8 @@ def get_model_set(model_set):
         "Lagged Rainf":  base_models + ['STHR_km243'] + [f % 'R' for f in lag_fmts],
         "Lagged Wind":   base_models + ['STHW_km243'] + [f % 'W' for f in lag_fmts],
 
+        "Final ensemble": ["S_lin", "ST_lin", "STH_km27", "STH_km729", "STHW_km243",
+                           "STHdT_km243", "STHWdTdQ_lS30d_lR30d_lH10d_km243"],
         "Combo models": ["S_lin", "ST_lin", "STH_km27"] + get_combo_model_names()
     }
 
