@@ -24,6 +24,14 @@ from .utils import print_warn
 from .evaluate import get_PLUMBER_metrics, subset_metric_df, quantile_normalise
 
 
+def ubermodel_palette(name="Final ensemble"):
+    if name == "Final ensemble":
+        colours = ['hotpink', 'red', 'orange', 'gold',
+                   'lightseagreen', 'cornflowerblue', 'mediumblue']
+    palette = color_names_to_palette(colours)
+    sns.set_palette(palette)
+
+
 def color_names_to_palette(colours):
     hex_cols = [mpl.colors.cnames[c] for c in colours]
     palette = [mpl.colors.hex2color(c) for c in hex_cols]
