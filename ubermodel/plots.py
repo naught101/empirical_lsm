@@ -40,6 +40,18 @@ def color_names_to_palette(colours):
     return palette
 
 
+def save_figure(path, fig=None):
+    if fig is None:
+        fig = pl.gcf()
+
+    dir_path = os.path.dirname(path)
+    os.makedirs(dir_path, exist_ok=True)
+    fig.savefig(path)
+    print('Figure saved to ' + os.path.abspath(path))
+
+    pl.close(fig)
+
+
 def save_plot(base_path, rel_path, filename):
     """Save a figure and return the relative path (for rst)
 
