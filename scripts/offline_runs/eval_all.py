@@ -8,7 +8,7 @@ Github: https://github.com/naught101/
 Description: Runs all steps of the offline runs/ubermodel search page generator
 
 Usage:
-    eval_all.py <model>... [--sites=<sites>] [--run] [--multivariate] [--eval [--plot]] [--rst] [--html] [--rebuild] [--no-mp] [--overwrite]
+    eval_all.py <model>... [--sites=<sites>] [--run] [--multivariate] [--eval [--plot]] [--rst] [--html] [--rebuild] [--no-mp] [--overwrite] [--no-fix-closure]
     eval_all.py (-h | --help | --version)
 
 Options:
@@ -26,16 +26,18 @@ from scripts.offline_runs.model_search_indexes import model_site_index_rst_mp, m
 
 
 def main_eval_all(names, sites, run=False, multivariate=True, evalu=False,
-                  plots=False, rst=False, html=False, rebuild=False, no_mp=False, overwrite=False):
+                  plots=False, rst=False, html=False, rebuild=False, no_mp=False,
+                  overwrite=False, fix_closure=True):
 
     # All scripts already use multiprocessing
     if run:
         for name in names:
-            main_run_mp(name, sites, no_mp=no_mp, multivariate=multivariate, overwrite=overwrite)
+            main_run_mp(name, sites, no_mp=no_mp, multivariate=multivariate,
+                        overwrite=overwrite, fix_closure=fix_closure)
 
     if evalu:
         for name in names:
-            main_eval_mp(name, sites, plots=plots, no_mp=no_mp)
+            main_eval_mp(name, sites, plots=plots, no_mp=no_mp, fix_closure=fix_closure)
 
     if rst:
         for name in names:
@@ -64,7 +66,8 @@ def main(args):
                   html=args['--html'],
                   rebuild=args['--rebuild'],
                   no_mp=args['--no-mp'],
-                  overwrite=args['--overwrite']
+                  overwrite=args['--overwrite'],
+                  fix_closure=not args['--no-fix-closure']
                   )
 
     return

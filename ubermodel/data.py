@@ -136,7 +136,7 @@ def get_multisite_met_df(sites, variables, name=False, qc=False):
     return xr_list_to_df(data.values(), variables=variables, qc=True, name=name)
 
 
-def get_multisite_flux_df(sites, variables, name=False, qc=False):
+def get_multisite_flux_df(sites, variables, name=False, qc=False, fix_closure=True):
     """Load some data and convert it to a dataframe
 
     :sites: str or list of strs: site names
@@ -150,7 +150,7 @@ def get_multisite_flux_df(sites, variables, name=False, qc=False):
         sites = [sites]
 
     print("Flux data: loading... ", end='')
-    data = get_flux_data(sites)
+    data = get_flux_data(sites, fix_closure=True)
     print("converting... ")
     return xr_list_to_df(data.values(),
                          variables=variables, qc=True, name=name)
@@ -161,7 +161,7 @@ get_multisite_met_df_cached = mem.cache(get_multisite_met_df)
 get_multisite_flux_df_cached = mem.cache(get_multisite_flux_df)
 
 
-def get_train_test_sets(site, met_vars, flux_vars, use_names):
+def get_train_test_sets(site, met_vars, flux_vars, use_names, fix_closure=True):
 
     if site == 'debug':
         train_sets = ['Amplero']
@@ -169,7 +169,7 @@ def get_train_test_sets(site, met_vars, flux_vars, use_names):
 
         # Use non-quality controlled data, to ensure there's enough to train
         met_train = get_multisite_met_df(train_sets, variables=met_vars, name=use_names)
-        flux_train = get_multisite_flux_df(train_sets, variables=flux_vars, name=use_names)
+        flux_train = get_multisite_flux_df(train_sets, variables=flux_vars, name=use_names, fix_closure=fix_closure)
 
         met_test_xr = get_met_data(test_site)[test_site]
         met_test = pals_xr_to_df(met_test_xr, variables=met_vars)

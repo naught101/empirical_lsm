@@ -7,7 +7,7 @@ Email: ned@nedhaughton.com
 Description: Fits and runs a basic model and produces rst output with diagnostics
 
 Usage:
-    run_model.py run <name> <site> [--no-mp] [--multivariate] [--overwrite]
+    run_model.py run <name> <site> [--no-mp] [--multivariate] [--overwrite] [--no-fix-closure]
 
 Options:
     -h, --help  Show this screen and exit.
@@ -99,7 +99,7 @@ def fit_predict_multivariate(model, flux_vars, met_train, met_test, met_test_xr,
     return sim_data
 
 
-def PLUMBER_fit_predict(model, name, site, multivariate=False):
+def PLUMBER_fit_predict(model, name, site, multivariate=False, fix_closure=True):
     """Fit and predict a model
 
     :model: sklearn-style model or pipeline (regression estimator)
@@ -119,7 +119,7 @@ def PLUMBER_fit_predict(model, name, site, multivariate=False):
     use_names = isinstance(model, LagWrapper)
 
     met_train, met_test, met_test_xr, flux_train = \
-        get_train_test_sets(site, met_vars, flux_vars, use_names)
+        get_train_test_sets(site, met_vars, flux_vars, use_names, fix_closure=True)
 
     print_good("Running {n} at {s}".format(n=name, s=site))
 
@@ -132,7 +132,7 @@ def PLUMBER_fit_predict(model, name, site, multivariate=False):
     return sim_data
 
 
-def main_run(model, name, site, multivariate=False, overwrite=False):
+def main_run(model, name, site, multivariate=False, overwrite=False, fix_closure=True):
     """Main function for fitting and running a model.
 
     :model: sklearn-style model or pipeline (regression estimator)
@@ -149,7 +149,8 @@ def main_run(model, name, site, multivariate=False, overwrite=False):
                    .format(n=name, s=site))
         return
     else:
-        sim_data = PLUMBER_fit_predict(model, name, site, multivariate)
+        sim_data = PLUMBER_fit_predict(model, name, site,
+                                       multivariate=multivariate, fix_closure=fix_closure)
 
         if os.path.isfile(nc_file):
             print_warn("Overwriting sim file at {f}".format(f=nc_file))
@@ -162,7 +163,7 @@ def main_run(model, name, site, multivariate=False, overwrite=False):
         return
 
 
-def main_run_mp(name, site, no_mp=False, multivariate=False, overwrite=False):
+def main_run_mp(name, site, no_mp=False, multivariate=False, overwrite=False, fix_closure=True):
     """Multi-processor run handling."""
 
     model = get_model(name)
@@ -172,14 +173,14 @@ def main_run_mp(name, site, no_mp=False, multivariate=False, overwrite=False):
         datasets = get_sites(site)
         if no_mp:
             for s in datasets:
-                main_run(model, name, s, multivariate, overwrite)
+                main_run(model, name, s, multivariate, overwrite, fix_closure)
         else:
-            f_args = [(model, name, s, multivariate, overwrite) for s in datasets]
+            f_args = [(model, name, s, multivariate, overwrite, fix_closure) for s in datasets]
             ncores = min(os.cpu_count(), 1 + int(os.cpu_count() * 0.5))
             with Pool(ncores) as p:
                 p.starmap(main_run, f_args)
     else:
-        main_run(model, name, site, multivariate, overwrite)
+        main_run(model, name, site, multivariate, overwrite, fix_closure)
 
     return
 
@@ -188,7 +189,11 @@ def main(args):
     name = args['<name>']
     site = args['<site>']
 
-    main_run_mp(name, site, args['--no-mp'], args['--multivariate'], args['--overwrite'])
+    main_run_mp(name, site,
+                no_mp=args['--no-mp'],
+                multivariate=args['--multivariate'],
+                overwite=args['--overwrite'],
+                fix_closure=not args['--no-fix-closure'])
 
     return
 
