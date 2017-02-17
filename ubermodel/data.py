@@ -116,7 +116,7 @@ def get_multimodel_wide_df(site, names, variables):
         raise Exception("WTF is variables? %s" % type(variables))
 
 
-def get_multisite_df(sites, typ, variables, name=False, qc=False):
+def get_multisite_met_df(sites, variables, name=False, qc=False):
     """Load some data and convert it to a dataframe
 
     :sites: str or list of strs: site names
@@ -129,24 +129,36 @@ def get_multisite_df(sites, typ, variables, name=False, qc=False):
     if isinstance(sites, str):
         sites = [sites]
 
-    if typ == 'met':
-        print("Met data: loading... ", end='')
-        # TODO: Split this up into single sites, and use Joblib to cache each site load. Multiple models should be able to re-load the same data, saving time.
-        data = get_met_data(sites)
-        print("converting... ")
-        return xr_list_to_df(data.values(), variables=variables, qc=True, name=name)
-    elif typ == 'flux':
-        print("Flux data: loading... ", end='')
-        data = get_flux_data(sites)
-        print("converting... ")
-        return xr_list_to_df(data.values(),
-                             variables=variables, qc=True, name=name)
-    else:
-        assert False, "Bad dataset type: %s" % typ
+    print("Met data: loading... ", end='')
+    # TODO: Split this up into single sites, and use Joblib to cache each site load. Multiple models should be able to re-load the same data, saving time.
+    data = get_met_data(sites)
+    print("converting... ")
+    return xr_list_to_df(data.values(), variables=variables, qc=True, name=name)
+
+
+def get_multisite_flux_df(sites, variables, name=False, qc=False):
+    """Load some data and convert it to a dataframe
+
+    :sites: str or list of strs: site names
+    :variables: list of variable names
+    :qc: Whether to replace bad quality data with NAs
+    :names: Whether to include site-names
+    :returns: pandas dataframe
+
+    """
+    if isinstance(sites, str):
+        sites = [sites]
+
+    print("Flux data: loading... ", end='')
+    data = get_flux_data(sites)
+    print("converting... ")
+    return xr_list_to_df(data.values(),
+                         variables=variables, qc=True, name=name)
 
 mem = jl.Memory(cachedir=os.path.join(os.path.expanduser('~'), 'tmp', 'cache'))
 
-get_multisite_df_cached = mem.cache(get_multisite_df)
+get_multisite_met_df_cached = mem.cache(get_multisite_met_df)
+get_multisite_flux_df_cached = mem.cache(get_multisite_flux_df)
 
 
 def get_train_test_sets(site, met_vars, flux_vars, use_names):
@@ -156,8 +168,8 @@ def get_train_test_sets(site, met_vars, flux_vars, use_names):
         test_site = 'Tumba'
 
         # Use non-quality controlled data, to ensure there's enough to train
-        met_train = get_multisite_df(train_sets, typ='met', variables=met_vars, name=use_names)
-        flux_train = get_multisite_df(train_sets, typ='flux', variables=flux_vars, name=use_names)
+        met_train = get_multisite_met_df(train_sets, variables=met_vars, name=use_names)
+        flux_train = get_multisite_flux_df(train_sets, variables=flux_vars, name=use_names)
 
         met_test_xr = get_met_data(test_site)[test_site]
         met_test = pals_xr_to_df(met_test_xr, variables=met_vars)
@@ -177,13 +189,13 @@ def get_train_test_sets(site, met_vars, flux_vars, use_names):
             train_sets = [s for s in plumber_datasets if s != site]
         print("Training with {n} datasets".format(n=len(train_sets)))
 
-        met_train = get_multisite_df(train_sets, typ='met', variables=met_vars, qc=True, name=use_names)
+        met_train = get_multisite_met_df(train_sets, variables=met_vars, qc=True, name=use_names)
 
         # We use gap-filled data for the testing period, or the model fails.
         met_test_xr = get_met_data(site)[site]
         met_test = pals_xr_to_df(met_test_xr, variables=met_vars)
 
-        flux_train = get_multisite_df(train_sets, typ='flux', variables=flux_vars, qc=True, name=use_names)
+        flux_train = get_multisite_flux_df(train_sets, variables=flux_vars, qc=True, name=use_names)
 
     return met_train, met_test, met_test_xr, flux_train
 
