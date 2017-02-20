@@ -14,7 +14,7 @@ import pandas as pd
 import joblib as jl
 import os
 
-from pals_utils.data import copy_data, get_met_data, get_flux_data, pals_xr_to_df, xr_list_to_df
+from pals_utils.data import copy_data, get_met_data, get_met_df, get_flux_df, pals_xr_to_df
 
 from ubermodel.transforms import rolling_mean
 
@@ -116,6 +116,12 @@ def get_multimodel_wide_df(site, names, variables):
         raise Exception("WTF is variables? %s" % type(variables))
 
 
+mem = jl.Memory(cachedir=os.path.join(os.path.expanduser('~'), 'tmp', 'cache'))
+
+get_met_df_cached = mem.cache(get_met_df)
+get_flux_df_cached = mem.cache(get_flux_df)
+
+
 def get_multisite_met_df(sites, variables, name=False, qc=False):
     """Load some data and convert it to a dataframe
 
@@ -129,11 +135,9 @@ def get_multisite_met_df(sites, variables, name=False, qc=False):
     if isinstance(sites, str):
         sites = [sites]
 
-    print("Met data: loading... ", end='')
-    # TODO: Split this up into single sites, and use Joblib to cache each site load. Multiple models should be able to re-load the same data, saving time.
-    data = get_met_data(sites)
-    print("converting... ")
-    return xr_list_to_df(data.values(), variables=variables, qc=True, name=name)
+    print("Met data: loading... ")
+    df = pd.concat([get_met_df_cached([s], variables, name=name, qc=qc) for s in sites])
+    return df
 
 
 def get_multisite_flux_df(sites, variables, name=False, qc=False, fix_closure=True):
@@ -149,16 +153,11 @@ def get_multisite_flux_df(sites, variables, name=False, qc=False, fix_closure=Tr
     if isinstance(sites, str):
         sites = [sites]
 
-    print("Flux data: loading... ", end='')
-    data = get_flux_data(sites, fix_closure=True)
-    print("converting... ")
-    return xr_list_to_df(data.values(),
-                         variables=variables, qc=True, name=name)
-
-mem = jl.Memory(cachedir=os.path.join(os.path.expanduser('~'), 'tmp', 'cache'))
-
-get_multisite_met_df_cached = mem.cache(get_multisite_met_df)
-get_multisite_flux_df_cached = mem.cache(get_multisite_flux_df)
+    print("Flux data: loading... ")
+    df = pd.concat([
+        get_flux_df_cached([s], variables, name=name, qc=qc, fix_closure=fix_closure)
+        for s in sites])
+    return df
 
 
 def get_train_test_sets(site, met_vars, flux_vars, use_names, fix_closure=True):
