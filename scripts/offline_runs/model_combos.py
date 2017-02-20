@@ -51,5 +51,5 @@ if __name__ == '__main__':
          plots=args['--plot'],
          no_mp=args['--no-mp'],
          overwrite=args['--overwrite'],
-         fix_closure=not args['--no-fix_closure']
+         fix_closure=not args['--no-fix-closure']
          )
