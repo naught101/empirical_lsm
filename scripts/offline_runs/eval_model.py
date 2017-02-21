@@ -25,7 +25,7 @@ from multiprocessing import Pool
 from matplotlib.cbook import dedent
 from datetime import datetime as dt
 
-from pals_utils.data import get_site_data
+from pals_utils.data import get_flux_data
 
 from ubermodel.evaluate import evaluate_simulation, load_sim_evaluation
 from ubermodel.plots import diagnostic_plots
@@ -162,7 +162,7 @@ def main_eval(name, site, sim_file=None, plots=False, fix_closure=True):
         # WARNING! over writes existing sim!
         sim_data.to_netcdf(nc_path)
 
-    flux_data = get_site_data([site], 'flux', fix_closure=fix_closure)[site]
+    flux_data = get_flux_data([site], fix_closure=fix_closure)[site]
 
     evaluate_simulation(sim_data, flux_data, name)
 
