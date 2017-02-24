@@ -221,9 +221,9 @@ def main_rst_gen(name, site):
 
 def main_eval_mp(name, site, sim_file=None, plots=False, no_mp=False, fix_closure=True):
     """Evaluate using multiple processes if necessary"""
-    if site in ['all', 'PLUMBER_ext']:
+    if site in ['all', 'PLUMBER_ext', 'PLUMBER']:
         # will only work if simulations are already run.
-        datasets = get_sites('PLUMBER_ext')
+        datasets = get_sites(site)
 
         if no_mp:
             for s in datasets:
