@@ -99,6 +99,7 @@ def main_import_sim(name, site, sim_file):
         sim_data = ds[d_vars].copy(deep=True)
 
     if name == 'CHTESSEL':
+        print("Inverting CHTESSEL and adding data")
         # Fucking inverted, and
         sim_data = - sim_data
 
@@ -117,10 +118,24 @@ def main_import_sim(name, site, sim_file):
         sim_data['time'] = site_time[:tsteps]
         new_data['time'] = site_time[tsteps:]
 
-    if site == 'Espirra' and name == 'ORCHIDEE.trunk_r1401':
-        sim_data = sim_data[70128]
+        sim_data = xr.concat([sim_data, new_data], dim='time')
+
+    if name == 'ORCHIDEE.trunk_r1401':
+        sim_data.rename(dict(time_counter='time'))
+        if site == 'Espirra':
+            print("Deleting a year of data at Espirra for Orchidee")
+            sim_data = sim_data.isel(time=slice(70128))
+
+        # Stores data for all vegetation types
+        # NEE_veget_index = np.where(sim_data.NEE
+        #                                    .isel(time_counter=0, lat=0, lon=0)
+        #                                    .values.flat > 0)[0][0]
+        # sim_data['NEE'] = sim_data['NEE'].isel(veget=NEE_veget_index)
+        print("Flattening veg in ORCHIDEE")
+        sim_data['NEE'] = sim_data['NEE'].sum(axis=1)  # Sum over veget axis
 
     # WARNING! over writes existing sim!
+    print('Writing to', nc_path)
     sim_data.to_netcdf(nc_path)
 
     sim_data.close()
