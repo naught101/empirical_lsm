@@ -15,8 +15,10 @@ Options:
 """
 
 from docopt import docopt
+import numpy as np
 import xarray as xr
 
+from pals_utils.data import get_flux_data
 from ubermodel.utils import print_good
 from ubermodel.data import get_sites, get_sim_nc_path
 
@@ -91,7 +93,32 @@ def main_import_sim(name, site, sim_file):
 
     nc_path = get_sim_nc_path(name, site)
 
-    sim_data = xr.open_dataset(sim_file)
+    data_vars = ['Qh', 'Qle', 'NEE']
+    with xr.open_dataset(sim_file) as ds:
+        d_vars = [v for v in data_vars if v in ds]
+        sim_data = ds[d_vars].copy(deep=True)
+
+    if name == 'CHTESSEL':
+        # Fucking inverted, and
+        sim_data = - sim_data
+
+        # missing most of the last fucking day, and
+        tsteps = ds.dims['time']
+        complete_tsteps = 48 * int(np.ceil(tsteps / 48))
+        missing_tsteps = complete_tsteps - tsteps
+
+        new_data = (sim_data.isel(time=slice(- missing_tsteps, None))
+                            .copy(deep=True))
+
+        # fucking off-set by an hour.
+        with get_flux_data([site])[site] as ds:
+            site_time = ds.time.values.flat.copy()
+
+        sim_data['time'] = site_time[:tsteps]
+        new_data['time'] = site_time[tsteps:]
+
+    if site == 'Espirra' and name == 'ORCHIDEE.trunk_r1401':
+        sim_data = sim_data[70128]
 
     # WARNING! over writes existing sim!
     sim_data.to_netcdf(nc_path)
