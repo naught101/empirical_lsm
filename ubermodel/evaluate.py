@@ -22,7 +22,7 @@ from .data import get_sites
 
 # Evaluate
 
-def evaluate_simulation(sim_data, flux_data, name):
+def evaluate_simulation(sim_data, flux_data, name, qc=True):
     """Top-level simulation evaluator.
 
     Compares sim_data to flux_data, using standard metrics.
@@ -40,8 +40,13 @@ def evaluate_simulation(sim_data, flux_data, name):
     metric_data = pd.DataFrame()
     metric_data.index.name = 'metric'
     for v in eval_vars:
-        sim_v = sim_data[v].values.ravel()
-        obs_v = flux_data[v].values.ravel()
+        if qc:
+            v_qc = v + '_qc'
+            sim_v = sim_data[v].values.ravel()[flux_data[v_qc].values.ravel() == 1]
+            obs_v = flux_data[v].values.ravel()[flux_data[v_qc].values.ravel() == 1]
+        else:
+            sim_v = sim_data[v].values.ravel()
+            obs_v = flux_data[v].values.ravel()
 
         for m, val in run_metrics(sim_v, obs_v).items():
             metric_data.ix[m, v] = val

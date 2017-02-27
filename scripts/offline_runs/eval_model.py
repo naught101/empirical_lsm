@@ -7,7 +7,7 @@ Email: ned@nedhaughton.com
 Description: Evaluates a model (sim or set of sims) and produces rst output with diagnostics
 
 Usage:
-    eval_model.py eval <name> <site> [<file>] [--no-mp] [--plot] [--no-fix-closure]
+    eval_model.py eval <name> <site> [<file>] [--no-mp] [--plot] [--no-fix-closure] [--no-qc]
     eval_model.py rst-gen <name> <site> [--no-mp]
 
 Options:
@@ -134,7 +134,7 @@ def model_site_rst_write(name, site, eval_results, plot_files):
     return
 
 
-def main_eval(name, site, sim_file=None, plots=False, fix_closure=True):
+def main_eval(name, site, sim_file=None, plots=False, fix_closure=True, qc=True):
     """Main function for evaluating an existing simulation.
 
     Copies simulation data to source directory.
@@ -164,7 +164,7 @@ def main_eval(name, site, sim_file=None, plots=False, fix_closure=True):
 
     flux_data = get_flux_data([site], fix_closure=fix_closure)[site]
 
-    evaluate_simulation(sim_data, flux_data, name)
+    evaluate_simulation(sim_data, flux_data, name, qc=qc)
 
     if plots:
         diagnostic_plots(sim_data, flux_data, name)
@@ -219,7 +219,7 @@ def main_rst_gen(name, site):
     return
 
 
-def main_eval_mp(name, site, sim_file=None, plots=False, no_mp=False, fix_closure=True):
+def main_eval_mp(name, site, sim_file=None, plots=False, no_mp=False, fix_closure=True, qc=True):
     """Evaluate using multiple processes if necessary"""
     if site in ['all', 'PLUMBER_ext', 'PLUMBER']:
         # will only work if simulations are already run.
@@ -227,15 +227,15 @@ def main_eval_mp(name, site, sim_file=None, plots=False, no_mp=False, fix_closur
 
         if no_mp:
             for s in datasets:
-                main_eval(name, s, plots=plots, fix_closure=fix_closure)
+                main_eval(name, s, plots=plots, fix_closure=fix_closure, qc=qc)
         else:
-            f_args = [[name, s, None, plots, fix_closure] for s in datasets]
+            f_args = [[name, s, None, plots, fix_closure, qc] for s in datasets]
             ncores = min(os.cpu_count(), 1 + int(os.cpu_count() * 0.5))
             with Pool(ncores) as p:
                 p.starmap(main_eval, f_args)
 
     else:
-        main_eval(name, site, sim_file, plots=plots, fix_closure=fix_closure)
+        main_eval(name, site, sim_file, plots=plots, fix_closure=fix_closure, qc=qc)
 
 
 def main_rst_gen_mp(name, site, sim_file=None, no_mp=False):
@@ -273,7 +273,8 @@ def main(args):
     if args['eval']:
         main_eval_mp(name, site, sim_file, plots,
                      no_mp=args['--no-mp'],
-                     fix_closure=not args['--no-fix-closure'])
+                     fix_closure=not args['--no-fix-closure'],
+                     qc=not args['--no-qc'])
     if args['rst-gen']:
         main_rst_gen_mp(name, site, sim_file,
                         no_mp=args['--no-mp'])
