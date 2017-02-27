@@ -27,9 +27,10 @@ from .evaluate import get_PLUMBER_metrics, subset_metric_df, quantile_normalise
 def ubermodel_palette(name="Final ensemble"):
     if name == "Final ensemble":
         colours = ['hotpink', 'red', 'orange', 'gold',
-                   'lightseagreen', 'cornflowerblue', 'mediumblue']
+                   'lightseagreen', 'cornflowerblue', 'mediumblue', 'black']
     palette = color_names_to_palette(colours)
     sns.set_palette(palette)
+    return palette
 
 
 def color_names_to_palette(colours):
