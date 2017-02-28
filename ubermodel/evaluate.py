@@ -224,11 +224,14 @@ def get_PLUMBER_metrics(name, site='all', variables=['Qle', 'Qh', 'NEE']):
 def subset_metric_df(metric_df, metrics):
     """Return only the metrics required
     """
-    if metrics == 'standard':
+    if metrics == 'standard' or metrics == 'common':
         metrics_list = ['nme', 'mbe', 'sd_diff', 'corr']
         return metric_df[metric_df.metric.isin(metrics_list)].copy()
+    elif metrics == 'extremes':
+        metrics_list = ['extreme_5', 'extreme_95']
+        return metric_df[metric_df.metric.isin(metrics_list)].copy()
     elif metrics == 'distribution':
-        metrics_list = ['extreme_5', 'extreme_95', 'skewness', 'kurtosis', 'overlap']
+        metrics_list = ['skewness', 'kurtosis', 'overlap']
         return metric_df[metric_df.metric.isin(metrics_list)].copy()
     else:
         return metric_df
