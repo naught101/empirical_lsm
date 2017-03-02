@@ -14,7 +14,7 @@ import seaborn as sns
 import pandas as pd
 import os
 import numpy as np
-import xray as xr
+import xarray as xr
 
 from dateutil.parser import parse
 
