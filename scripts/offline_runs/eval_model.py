@@ -169,6 +169,8 @@ def main_eval(name, site, sim_file=None, plots=False, fix_closure=True, qc=True)
     if plots:
         diagnostic_plots(sim_data, flux_data, name)
 
+    sim_data.close()
+
     return
 
 
