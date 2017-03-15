@@ -33,7 +33,7 @@ def evaluate_simulation(sim_data, flux_data, name, qc=True):
     site = pals_site_name(flux_data)
     print_good('Evaluating data for {n} at {s}'.format(n=name, s=site))
 
-    flux_vars = ['Qle', 'Qh', 'NEE']
+    flux_vars = ['NEE', 'Qh', 'Qle']
     eval_vars = list(set(flux_vars).intersection(sim_data.data_vars)
                                    .intersection(flux_data.data_vars))
 
@@ -84,7 +84,8 @@ def get_metric_df(models, sites):
     for m in models:
         for s in sites:
             try:
-                df = (pd.read_csv('source/models/{m}/metrics/{m}_{s}_metrics.csv'.format(m=m, s=s)))
+                df = pd.read_csv('source/models/{m}/metrics/{m}_{s}_metrics.csv'.format(m=m, s=s))
+                df = df[['metric', 'NEE', 'Qh', 'Qle']]
                 df['site'] = s
                 df['name'] = m
                 df = df.set_index(['name', 'site', 'metric']).stack().to_frame()
