@@ -80,12 +80,13 @@ def get_metric_df(models, sites):
     :returns: TODO
 
     """
+    var_order = ['metric', 'NEE', 'Qh', 'Qle', 'Qg', 'Rnet']
     metric_df = []
     for m in models:
         for s in sites:
             try:
                 df = pd.read_csv('source/models/{m}/metrics/{m}_{s}_metrics.csv'.format(m=m, s=s))
-                df = df[['metric', 'NEE', 'Qh', 'Qle']]
+                df = df[[c for c in var_order if c in df.columns]]
                 df['site'] = s
                 df['name'] = m
                 df = df.set_index(['name', 'site', 'metric']).stack().to_frame()
