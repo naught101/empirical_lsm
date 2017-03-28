@@ -19,6 +19,7 @@ import pandas as pd
 import numpy as np
 import sys
 import os
+from datetime import datetime as dt
 
 from multiprocessing import Pool
 
@@ -124,10 +125,19 @@ def PLUMBER_fit_predict(model, name, site, multivariate=False, fix_closure=True)
     print_good("Running {n} at {s}".format(n=name, s=site))
 
     print('Fitting and running {f} using {m}'.format(f=flux_vars, m=met_vars))
+    t_start = dt.now()
     if multivariate:
         sim_data = fit_predict_multivariate(model, flux_vars, met_train, met_test, met_test_xr, flux_train)
     else:
         sim_data = fit_predict_univariate(model, flux_vars, met_train, met_test, met_test_xr, flux_train)
+    run_time = str(dt.now() - t_start).split('.')[0]
+
+    sim_data.attrs.update(
+        model_name=name,
+        site=site,
+        forcing_vars=met_vars,
+        fit_predict_time=run_time
+    )
 
     return sim_data
 
