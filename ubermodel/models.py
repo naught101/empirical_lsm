@@ -31,13 +31,16 @@ def get_model(name):
     try:
         from .model_defs import get_model_from_def
         model = get_model_from_def(name)
+        print("Model {n} loaded from model_defs module".format(n=name))
     except NameError:
         try:
             model = get_model_from_yaml(name)
+            print("Model {n} loaded from yaml".format(n=name))
         except KeyError:
             try:
                 from .model_defs import parse_model_name
                 model = parse_model_name(name)
+                print("Model {n} parsed from name".format(n=name))
             except NameError:
                 sys.exit("Unknown model {n}".format(n=name))
 
