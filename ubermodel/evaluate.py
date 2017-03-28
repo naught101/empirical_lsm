@@ -35,7 +35,7 @@ def evaluate_simulation(sim_data, flux_data, name, qc=True):
 
     flux_vars = ['NEE', 'Qh', 'Qle']
     eval_vars = sorted(set(flux_vars).intersection(sim_data.data_vars)
-                                   .intersection(flux_data.data_vars))
+                                     .intersection(flux_data.data_vars))
 
     metric_data = pd.DataFrame()
     metric_data.index.name = 'metric'
