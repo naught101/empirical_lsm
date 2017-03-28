@@ -173,10 +173,10 @@ def get_train_test_sets(site, met_vars, flux_vars, use_names, fix_closure=True):
         met_test_xr = get_met_data(test_site)[test_site]
         met_test = pals_xr_to_df(met_test_xr, variables=met_vars)
 
-        met_test_xr = met_test_xr.isel(time=slice(0, 5000))
-        met_train = met_train[0:5000]
-        flux_train = flux_train[0:5000]
-        met_test = met_test[0:5000]
+        # met_test_xr = met_test_xr.isel(time=slice(0, 5000))
+        # met_train = met_train[0:5000]
+        # flux_train = flux_train[0:5000]
+        # met_test = met_test[0:5000]
 
     else:
         plumber_datasets = get_sites('PLUMBER_ext')
