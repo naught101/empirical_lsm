@@ -98,17 +98,17 @@ def parse_model_name(name):
                 continue
         raise NameError('Unmatched token in name: ' + name)
 
-    desc = "model with"
-
     if model == 'lin':
         model = LinearRegression()
-        desc = 'lin ' + desc
+        desc = 'lin'
     elif model == 'mean':
         model = Mean()
-        desc = 'mean ' + desc
+        desc = 'mean'
     elif model == 'km':
-        model = km_regression(k, model)
-        desc = 'km' + str(k) + ' ' + desc
+        model = km_regression(k, LinearRegression())
+        desc = 'km' + str(k)
+
+    desc = desc + " model with"
 
     if any([l != ['cur'] for l in var_lags.values()]):
         model = LagAverageWrapper(var_lags, model)
