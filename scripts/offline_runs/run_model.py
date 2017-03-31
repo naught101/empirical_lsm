@@ -134,6 +134,7 @@ def PLUMBER_fit_predict(model, name, site, multivariate=False, fix_closure=True)
 
     sim_data.attrs.update(
         model_name=name,
+        model=str(model),
         site=site,
         forcing_vars=met_vars,
         fit_predict_time=run_time
