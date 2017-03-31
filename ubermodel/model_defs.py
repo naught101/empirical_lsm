@@ -63,8 +63,7 @@ def parse_model_name(name):
     """
 
     var_lags = OrderedDict()
-    kmeans = None
-    model = 'lin'
+    k = None
 
     while len(name) > 0:
         token = name[0]
@@ -78,14 +77,19 @@ def parse_model_name(name):
             name = name[1:]
             continue
         elif token == '_':
-            if name.startswith('l'):  # lagged var:
+            if name.startswith('lin'):  # linear model
+                model = 'lin'
+                name = name[3:]
+                continue
+            elif name.startswith('l'):  # lagged var:
                 lag = re.match('l([A-Z])([0-9]*[a-z]*)', name)
                 add_var_lag(var_lags, get_var_name(lag.groups()[0]), lag.groups()[1])
                 name = name[len(lag.group()):]
                 continue
             elif name.startswith('km'):  # k means regression
+                model = 'km'
                 match = re.match('km([0-9]*)', name)
-                kmeans = int(match.groups()[0])
+                k = int(match.groups()[0])
                 name = name[len(match.group()):]
                 continue
             elif name.startswith('mean'):
@@ -102,10 +106,9 @@ def parse_model_name(name):
     elif model == 'mean':
         model = Mean()
         desc = 'mean ' + desc
-
-    if kmeans is not None:
-        model = km_regression(kmeans, model)
-        desc = 'km' + str(kmeans) + ' ' + desc
+    elif model == 'km':
+        model = km_regression(k, model)
+        desc = 'km' + str(k) + ' ' + desc
 
     if any([l != ['cur'] for l in var_lags.values()]):
         model = LagAverageWrapper(var_lags, model)
