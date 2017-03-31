@@ -289,9 +289,9 @@ class LagAverageWrapper(BaseEstimator):
         :datafreq: data frequency in hours
 
         """
-        self._var_lags = var_lags
-        self._model = model
-        self._datafreq = datafreq
+        self.var_lags = var_lags
+        self.model = model
+        self.datafreq = datafreq
 
     def _lag_array(self, X, var_lags, datafreq):
         """Lags the input array according to the lags specified in var_lags
@@ -317,15 +317,15 @@ class LagAverageWrapper(BaseEstimator):
         :returns: array of lagged averaged variables
 
          if var_lags is None:
-            var_lags = self._var_lags
+            var_lags = self.var_lags
         if datafreq is None:
-            self._datafreq
+            self.datafreq
 
        """
         if var_lags is None:
-            var_lags = self._var_lags
+            var_lags = self.var_lags
         if datafreq is None:
-            datafreq = self._datafreq
+            datafreq = self.datafreq
 
         if isinstance(X, pd.DataFrame):
             assert all([v in X.columns for v in var_lags]), "Variables in X do not match initialised var_lags"
@@ -357,7 +357,7 @@ class LagAverageWrapper(BaseEstimator):
 
         """
         if datafreq is None:
-            datafreq = self._datafreq
+            datafreq = self.datafreq
 
         lagged_data = self._lag_data(X, datafreq=datafreq)
 
@@ -368,7 +368,7 @@ class LagAverageWrapper(BaseEstimator):
 
         print("LAW: Data lagged, fitting with {nk} samples out of {nx}".format(nk=sum(fit_idx), nx=X.shape[0]))
 
-        self._model.fit(lagged_data[fit_idx], y[fit_idx])
+        self.model.fit(lagged_data[fit_idx], y[fit_idx])
 
     def predict(self, X, datafreq=None):
         """predict model using X
@@ -378,7 +378,7 @@ class LagAverageWrapper(BaseEstimator):
 
         """
         if datafreq is None:
-            datafreq = self._datafreq
+            datafreq = self.datafreq
 
         lagged_data = self._lag_data(X, datafreq=datafreq)
 
@@ -386,7 +386,7 @@ class LagAverageWrapper(BaseEstimator):
         for i in range(lagged_data.shape[1]):
             lagged_data.ix[np.isnan(lagged_data.iloc[:, i]), i] = self._means[i]
 
-        return self._model.predict(lagged_data)
+        return self.model.predict(lagged_data)
 
 
 class MarkovLagAverageWrapper(LagAverageWrapper):
@@ -433,7 +433,7 @@ class MarkovLagAverageWrapper(LagAverageWrapper):
 
     def predict(self, X, datafreq=None):
         if datafreq is None:
-            datafreq = self._datafreq
+            datafreq = self.datafreq
 
         X_lag = self._lag_data(X, self._x_lags)
 
@@ -444,7 +444,7 @@ class MarkovLagAverageWrapper(LagAverageWrapper):
         # take means where nans exist
         init = np.where(np.isfinite(init), init, self._means)
         results = []
-        results.append(self._model.predict(init).ravel())
+        results.append(self.model.predict(init).ravel())
         n_steps = X_lag.shape[0]
         print('Predicting, step 0 of {n}'.format(n=n_steps), end='\r')
 
@@ -459,7 +459,7 @@ class MarkovLagAverageWrapper(LagAverageWrapper):
                     last_result.append(self._lag_mean(results, idx, l, datafreq))
             last_result = np.array(last_result, ndmin=2)
             x = np.concatenate([X_lag.iloc[[i]], last_result], axis=1)
-            results.append(self._model.predict(x).ravel())
+            results.append(self.model.predict(x).ravel())
         print('Predicting, step {i} of {n}'.format(i=n_steps, n=n_steps))
 
         results = pd.DataFrame.from_records(results, index=X.index, columns=self._y_cols)
@@ -481,7 +481,7 @@ class MissingDataWrapper(BaseEstimator):
         :model: scikit-learn style model to wrap
 
         """
-        self._model = model
+        self.model = model
 
     def fit(self, X, y):
         """Removes NAs, then fits
@@ -495,7 +495,7 @@ class MissingDataWrapper(BaseEstimator):
         print("MDW: Dropping data... using {n} samples of {N}".format(
             n=qc_index.sum(), N=X.shape[0]))
         # make work with arrays and dataframes
-        self._model.fit(np.array(X)[qc_index, :], np.array(y)[qc_index, :])
+        self.model.fit(np.array(X)[qc_index, :], np.array(y)[qc_index, :])
 
     def predict(self, X):
         """pass on model prediction
@@ -504,7 +504,7 @@ class MissingDataWrapper(BaseEstimator):
         :returns: numpy array like y
 
         """
-        return self._model.predict(X)
+        return self.model.predict(X)
 
 
 #########################################
