@@ -21,12 +21,12 @@ from ubermodel.clusterregression import ModelByCluster
 from ubermodel.transforms import MissingDataWrapper, LagAverageWrapper, MarkovLagAverageWrapper, Mean
 
 
-def km_regression(n, model):
-    return MissingDataWrapper(ModelByCluster(MiniBatchKMeans(27), model))
+def km_regression(k, model):
+    return MissingDataWrapper(ModelByCluster(MiniBatchKMeans(k), model))
 
 
-def km_lin(n):
-    return km_regression(n, LinearRegression())
+def km_lin(k):
+    return km_regression(k, LinearRegression())
 
 
 def cur_3_var():
