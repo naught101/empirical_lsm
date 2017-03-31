@@ -63,7 +63,6 @@ def parse_model_name(name):
     """
 
     var_lags = OrderedDict()
-    k = None
 
     while len(name) > 0:
         token = name[0]
@@ -99,10 +98,10 @@ def parse_model_name(name):
         raise NameError('Unmatched token in name: ' + name)
 
     if model == 'lin':
-        model = LinearRegression()
+        model = MissingDataWrapper(LinearRegression())
         desc = 'lin'
     elif model == 'mean':
-        model = Mean()
+        model = MissingDataWrapper(Mean())
         desc = 'mean'
     elif model == 'km':
         model = km_regression(k, LinearRegression())
