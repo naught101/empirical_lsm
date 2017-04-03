@@ -110,6 +110,7 @@ def parse_model_name(name):
                 continue
         elif token == '.':  # model duplicate - do nothing
             name = name.lstrip('.0123456789')
+            continue
         raise NameError('Unmatched token in name: ' + name)
 
     if model == 'lin':
