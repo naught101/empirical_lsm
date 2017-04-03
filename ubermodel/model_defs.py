@@ -91,9 +91,21 @@ def parse_model_name(name):
                 k = int(match.groups()[0])
                 name = name[len(match.group()):]
                 continue
-            elif name.startswith('mean'):
+            elif name.startswith('mean'):  # Cluster-mean
                 model = 'mean'
                 name = name[4:]
+                continue
+            elif name.startswith('RF'):
+                model = 'randomforest'
+                name = name[2:]
+                continue
+            elif name.startswith('ET'):
+                model = 'extratrees'
+                name = name[2:]
+                continue
+            elif name.startswith('AB'):
+                model = 'adaboost'
+                name = name[2:]
                 continue
         raise NameError('Unmatched token in name: ' + name)
 
@@ -106,6 +118,18 @@ def parse_model_name(name):
     elif model == 'km':
         model = km_regression(k, LinearRegression())
         desc = 'km' + str(k)
+    elif model == 'randomforest':
+        from sklearn.ensemble import RandomForestRegressor
+        model = MissingDataWrapper(RandomForestRegressor(n_estimators=100))
+        desc = 'RandomForest'
+    elif model == 'extratrees':
+        from sklearn.ensemble import ExtraTreesRegressor
+        model = MissingDataWrapper(ExtraTreesRegressor(n_estimators=100))
+        desc = 'ExtraTrees'
+    elif model == 'adaboost':
+        from sklearn.ensemble import AdaBoostRegressor
+        model = MissingDataWrapper(AdaBoostRegressor(n_estimators=100))
+        desc = 'AdataBoost'
 
     desc = desc + " model with"
 
