@@ -132,13 +132,15 @@ def PLUMBER_fit_predict(model, name, site, multivariate=False, fix_closure=True)
         sim_data = fit_predict_univariate(model, flux_vars, met_train, met_test, met_test_xr, flux_train)
     run_time = str(dt.now() - t_start).split('.')[0]
 
-    sim_data.attrs.update(
-        model_name=name,
-        model=str(model),
-        site=site,
-        forcing_vars=met_vars,
-        fit_predict_time=run_time
-    )
+    sim_data.attrs.update({
+        "Model_name": name,
+        "Model_description": str(model),
+        "PALS_site": site,
+        "Forcing_vars": ', '.join(met_vars),
+        "Fit_predict_time": run_time,
+        "Production_time": dt.now(),
+        "Production_source": "Ubermodel offline run scripts"
+    })
 
     return sim_data
 
