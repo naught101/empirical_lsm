@@ -62,6 +62,7 @@ def parse_model_name(name):
     """parses a standard model name"
     """
 
+    name_original = name
     var_lags = OrderedDict()
 
     while len(name) > 0:
@@ -107,6 +108,8 @@ def parse_model_name(name):
                 model = 'adaboost'
                 name = name[2:]
                 continue
+        elif token == '.':  # model duplicate - do nothing
+            name = name.lstrip('.0123456789')
         raise NameError('Unmatched token in name: ' + name)
 
     if model == 'lin':
@@ -152,6 +155,8 @@ def parse_model_name(name):
         desc += ', ' + ', '.join(lag_vars)
     desc += ' (parsed)'
     model.description = desc
+
+    model.name = name_original
 
     return model
 
