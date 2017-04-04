@@ -78,7 +78,7 @@ def parse_model_name(name):
             continue
         elif token == '_':
             if name.startswith('lin'):  # linear model
-                model = 'lin'
+                model_name = 'lin'
                 name = name[3:]
                 continue
             elif name.startswith('l'):  # lagged var:
@@ -87,25 +87,25 @@ def parse_model_name(name):
                 name = name[len(lag.group()):]
                 continue
             elif name.startswith('km'):  # k means regression
-                model = 'km'
+                model_name = 'km'
                 match = re.match('km([0-9]*)', name)
                 k = int(match.groups()[0])
                 name = name[len(match.group()):]
                 continue
             elif name.startswith('mean'):  # Cluster-mean
-                model = 'mean'
+                model_name = 'mean'
                 name = name[4:]
                 continue
             elif name.startswith('RF'):
-                model = 'randomforest'
+                model_name = 'randomforest'
                 name = name[2:]
                 continue
             elif name.startswith('ET'):
-                model = 'extratrees'
+                model_name = 'extratrees'
                 name = name[2:]
                 continue
             elif name.startswith('AB'):
-                model = 'adaboost'
+                model_name = 'adaboost'
                 name = name[2:]
                 continue
         elif token == '.':  # model duplicate - do nothing
@@ -113,27 +113,30 @@ def parse_model_name(name):
             continue
         raise NameError('Unmatched token in name: ' + name)
 
-    if model == 'lin':
+    if model_name == 'lin':
         model = MissingDataWrapper(LinearRegression())
         desc = 'lin'
-    elif model == 'mean':
+    elif model_name == 'mean':
         model = MissingDataWrapper(Mean())
         desc = 'mean'
-    elif model == 'km':
+    elif model_name == 'km':
         model = km_regression(k, LinearRegression())
         desc = 'km' + str(k)
-    elif model == 'randomforest':
+    elif model_name == 'randomforest':
         from sklearn.ensemble import RandomForestRegressor
         model = MissingDataWrapper(RandomForestRegressor(n_estimators=100))
         desc = 'RandomForest'
-    elif model == 'extratrees':
+        memory_req = 20 * 10e9
+    elif model_name == 'extratrees':
         from sklearn.ensemble import ExtraTreesRegressor
         model = MissingDataWrapper(ExtraTreesRegressor(n_estimators=100))
         desc = 'ExtraTrees'
-    elif model == 'adaboost':
+        memory_req = 20 * 10e9
+    elif model_name == 'adaboost':
         from sklearn.ensemble import AdaBoostRegressor
         model = MissingDataWrapper(AdaBoostRegressor(n_estimators=100))
         desc = 'AdataBoost'
+        memory_req = 20 * 10e9
 
     desc = desc + " model with"
 
@@ -158,6 +161,9 @@ def parse_model_name(name):
     model.description = desc
 
     model.name = name_original
+
+    if 'memory_req' in locals():
+        model.memory_requirement = memory_req
 
     return model
 

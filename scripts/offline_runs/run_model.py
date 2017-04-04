@@ -209,6 +209,10 @@ def main_run_mp(name, site, no_mp=False, multivariate=False, overwrite=False, fi
         else:
             f_args = [(model, name, s, multivariate, overwrite, fix_closure) for s in datasets]
             ncores = min(os.cpu_count(), 1 + int(os.cpu_count() * 0.5))
+            if site is not 'debug' and hasattr(model, 'memory_requirement'):
+                ncores = max(1, (psutil.virtual_memory().total / 2) // model.memory_requirement)
+            print("Running on %d core(s)" % ncores)
+
             with Pool(ncores) as p:
                 p.starmap(main_run, f_args)
     else:
