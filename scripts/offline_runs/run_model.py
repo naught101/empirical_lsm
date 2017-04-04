@@ -19,6 +19,8 @@ import pandas as pd
 import numpy as np
 import sys
 import os
+import math
+import psutil
 from datetime import datetime as dt
 
 from multiprocessing import Pool
@@ -29,6 +31,17 @@ from ubermodel.transforms import LagWrapper
 from ubermodel.models import get_model
 from ubermodel.data import get_sites, sim_dict_to_xr, get_train_test_sets
 from ubermodel.utils import print_good, print_warn
+
+
+def bytes_human_readable(n):
+    if (n == 0):
+        return '0B'
+    div = 10 ** 3
+    exp = int(math.log(n, div))
+    suffix = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB'][exp]
+    signif = '%.1f' % (n / (div ** exp))
+
+    return(signif + suffix)
 
 
 def fit_predict_univariate(model, flux_vars, met_train, met_test, met_test_xr, flux_train):
@@ -132,12 +145,18 @@ def PLUMBER_fit_predict(model, name, site, multivariate=False, fix_closure=True)
         sim_data = fit_predict_univariate(model, flux_vars, met_train, met_test, met_test_xr, flux_train)
     run_time = str(dt.now() - t_start).split('.')[0]
 
+    process = psutil.Process(os.getpid())
+    mem_usage = bytes_human_readable(process.memory_info().rss)
+
+    print("Model fit and run in %s, using %s memory." % (run_time, mem_usage))
+
     sim_data.attrs.update({
         "Model_name": name,
         "Model_description": str(model),
         "PALS_site": site,
         "Forcing_vars": ', '.join(met_vars),
         "Fit_predict_time": run_time,
+        "Fit_predict_mem_usage": mem_usage,
         "Production_time": str(dt.now()),
         "Production_source": "Ubermodel offline run scripts"
     })
