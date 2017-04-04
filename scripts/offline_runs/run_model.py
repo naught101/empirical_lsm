@@ -138,7 +138,7 @@ def PLUMBER_fit_predict(model, name, site, multivariate=False, fix_closure=True)
         "PALS_site": site,
         "Forcing_vars": ', '.join(met_vars),
         "Fit_predict_time": run_time,
-        "Production_time": dt.now(),
+        "Production_time": str(dt.now()),
         "Production_source": "Ubermodel offline run scripts"
     })
 
