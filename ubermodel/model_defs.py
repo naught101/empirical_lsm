@@ -131,11 +131,11 @@ def parse_model_name(name):
         from sklearn.ensemble import ExtraTreesRegressor
         model = MissingDataWrapper(ExtraTreesRegressor(n_estimators=100))
         desc = 'ExtraTrees'
-        memory_req = 20e9
+        memory_req = 30e9
     elif model_name == 'adaboost':
         from sklearn.ensemble import AdaBoostRegressor
         model = MissingDataWrapper(AdaBoostRegressor(n_estimators=100))
-        desc = 'AdataBoost'
+        desc = 'AdaBoost'
         memory_req = 20e9
 
     desc = desc + " model with"
