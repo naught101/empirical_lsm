@@ -45,7 +45,7 @@ def get_model_set(model_set=None):
             'STHL_km243', 'STHW_km243', 'STHR_km243'],
 
         "Increasing articulation": [
-            'S_lin', 'ST_lin', 'STH_km27', 'STH_km81',
+            'S_lin', 'ST_lin', 'STH_km27',
             'STH_km243', 'STH_km729', 'STH_km2187'],
 
         "Lagged SWdown": base_models + [f % 'S' for f in lag_fmts],
