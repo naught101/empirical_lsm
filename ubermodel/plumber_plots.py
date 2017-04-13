@@ -24,6 +24,69 @@ def hls_palette(n_models):
     return sns.color_palette("hls", n_models + 1)
 
 
+def group_metrics(metric):
+    """Return the group of a metric"""
+    if metric in ['nme', 'mbe', 'sd_diff', 'corr']:
+        return "common"
+    elif metric in ['extreme_5', 'extreme_95']:
+        return 'extremes'
+    elif metric in ['skewness', 'kurtosis', 'overlap']:
+        return 'distribution'
+    else:
+        return None
+
+
+def p_facetted_plumber_plot(df, x='variable', y='rank', xfacet=None, yfacet=None, **kwargs):
+    """Plots a rank df in a facetted grid """
+
+    n_models = len(df.name.unique())
+
+    groups = ['name', x]
+
+    if yfacet is not None:
+        groups.append(yfacet)
+        yfacets = list(df[yfacet].unique())
+        n_yfacet = len(yfacets)
+    else:
+        yfacets = [None]
+        n_yfacet = 1
+
+    if xfacet is not None:
+        groups.append(xfacet)
+        xfacets = list(df[xfacet].unique())
+        n_xfacet = len(xfacets)
+    else:
+        xfacets = [None]
+        n_xfacet = 1
+
+    # create subplt grid according to facets
+    fig, axes = plt.subplots(nrows=n_yfacet, ncols=n_xfacet, sharex=True, sharey='row', squeeze=False)
+
+    for i, yfacet_val in enumerate(yfacets):
+        for j, xfacet_val in enumerate(xfacets):
+            ax = axes[i, j]
+
+            # subset DF according to facets
+            if yfacet is not None and xfacet is not None:
+                subset_df = df[(df[yfacet] == yfacet_val) & (df[xfacet] == xfacet_val)]
+            elif yfacet is not None:
+                subset_df = df[df[yfacet] == yfacet_val]
+            elif xfacet is not None:
+                subset_df = df[df[xfacet] == xfacet_val]
+
+            p_plumber_plot(subset_df, xfacet_val, '', group=x, ax=ax, legend=False, **kwargs)
+
+            ax.legend().set_visible(False)
+            ax.xaxis.label.set_visible(False)
+
+            if j == 0 and yfacet is not None:
+                ax.set_ylabel(yfacet_val)
+
+    fig.legend(loc='lower center', *ax.get_legend_handles_labels(), ncol=n_models, fontsize='small')
+
+    return fig, axes
+
+
 def p_plumber_plot(df, model_set, metric_set, palette=None, ax=None,
                    group='variable', **kwargs):
     n_sites = len(df.site.unique())
