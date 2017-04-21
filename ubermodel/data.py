@@ -94,8 +94,16 @@ def get_multimodel_data(site, names, variables):
             with xr.open_dataset(path) as ds:
                 df = pals_xr_to_df(ds, variables)
                 df['name'] = n
+
+                # offset time indices
+                if n == 'COLASSiB.2.0':
+                    df.index = df.index + pd.Timedelta('-30min')
+                if n == 'ORCHIDEE.trunk_r1401':
+                    df.index = df.index + pd.Timedelta('-15min')
+
                 df.set_index('name', append=True, inplace=True)
                 data.append(df)
+
         except OSError as e:
             raise Exception(path, e)
 
