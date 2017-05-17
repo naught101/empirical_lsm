@@ -18,14 +18,16 @@ def powerset(iterable, start=0):
 
 def get_combo_model_names():
 
-    opts = ['W', 'dT', 'dQ', '_lS30d', '_lR30d', '_lH10d']
+    opts = ['W', 'dT', 'dQ', '_lS30d', '_lR30d', '_lH10d', '_lT6h']
     res = ['243', '729']
+    # res = ['2187']
 
     combos = powerset(opts, 0)
     names = []
     for c in combos:
         for r in res:
             names += ['STH' + ''.join(c) + '_km' + r]
+            # names += ['STH' + ''.join(c) + '_lT6h' + '_km' + r]
 
     return names
 
