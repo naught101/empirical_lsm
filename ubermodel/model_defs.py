@@ -82,9 +82,10 @@ def parse_model_name(name):
                 name = name[3:]
                 continue
             elif name.startswith('l'):  # lagged var:
-                lag = re.match('l([A-Z])([0-9]*[a-z]*)', name)
-                add_var_lag(var_lags, get_var_name(lag.groups()[0]), lag.groups()[1])
-                name = name[len(lag.group()):]
+                match = re.match('l([A-Z])([0-9]*[a-z]*)(M*)', name)
+                groups = match.groups()
+                add_var_lag(var_lags, get_var_name(groups[0]), groups[1] + groups[2])
+                name = name[len(match.group()):]
                 continue
             elif name.startswith('km'):  # k means regression
                 model_name = 'km'

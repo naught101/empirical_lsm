@@ -306,7 +306,13 @@ class LagAverageWrapper(BaseEstimator):
                 if l == 'cur':
                     lagged_data.append(X[:, [i]])
                 else:
-                    lagged_data.append(rolling_mean(X[:, [i]], l, datafreq=datafreq, shift=1))
+                    if l.endswith('M'):
+                        # Lagged variable minus original variable
+                        lag_avg = rolling_mean(X[:, [i]], l[:-1], datafreq=datafreq, shift=1)
+                        lagged_data.append(lag_avg - X[:, [i]])
+                    else:
+                        lag_avg = rolling_mean(X[:, [i]], l, datafreq=datafreq, shift=1)
+                        lagged_data.append(lag_avg)
         return np.concatenate(lagged_data, axis=1)
 
     def _lag_data(self, X, var_lags=None, datafreq=None):
