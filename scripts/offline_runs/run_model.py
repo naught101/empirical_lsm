@@ -21,6 +21,7 @@ import sys
 import os
 import math
 import psutil
+import pickle
 from datetime import datetime as dt
 
 from multiprocessing import Pool
@@ -33,6 +34,9 @@ from ubermodel.data import get_sites, sim_dict_to_xr, get_train_test_sets
 from ubermodel.utils import print_good, print_warn
 
 
+flux_vars = ['NEE', 'Qle', 'Qh']
+
+
 def bytes_human_readable(n):
     if (n == 0):
         return '0B'
@@ -42,6 +46,39 @@ def bytes_human_readable(n):
     signif = '%.1f' % (n / (div ** exp))
 
     return(signif + suffix)
+
+
+def model_sanity_check(sim_data, model):
+    """Checks a model's output for clearly incorrect values, warns the user,
+    and saves debug output
+
+    :sim_data: xarray dataset with flux output
+    :model: Ubermodel style model
+    """
+    warning = ""
+    for v in flux_vars:
+        # Check output sanity
+        if (sim_data[v].values.min() < -300):
+            warning = v + "too low"
+            break
+        if (sim_data[v].values.max() > 1000):
+            warning = v + "too high"
+            break
+
+    if warning == "":
+        sim_diff = sim_data.diff('time')
+        for v in flux_vars:
+            # Check rate-of-change sanity
+            if (abs(sim_diff[v].values).max() > 500):
+                warning = v + "hanging rapidly"
+                break
+
+    if warning != "":
+        warning = ' '.join(["Probable bad model output:", warning, "at",
+                            model.PALS_site, "for", model.name])
+        raise RuntimeError(warning)
+
+    return
 
 
 def fit_predict_univariate(model, flux_vars, met_train, met_test, met_test_xr, flux_train):
@@ -128,8 +165,6 @@ def PLUMBER_fit_predict(model, name, site, multivariate=False, fix_closure=True)
         print("Warning: no forcing vars, using defaults (all)")
         met_vars = MET_VARS
 
-    flux_vars = ['Qle', 'Qh', 'NEE']
-
     use_names = isinstance(model, LagWrapper)
 
     met_train, met_test, met_test_xr, flux_train = \
@@ -164,6 +199,19 @@ def PLUMBER_fit_predict(model, name, site, multivariate=False, fix_closure=True)
     return sim_data
 
 
+def save_model_structure(model):
+    log_dir = 'logs/models/' + model.name
+    os.makedirs(log_dir, exist_ok=True)
+
+    now = dt.now.strftime('%Y%m%d_%H%M%S')
+    pickle_file = "%s/%s-%s.pickle" % (log_dir, model.name, now)
+    with open(pickle_file, 'wb') as f:
+        pickle.dump(model, f)
+    print_warn('Model structure saved to', pickle_file)
+
+    return
+
+
 def main_run(model, name, site, multivariate=False, overwrite=False, fix_closure=True):
     """Main function for fitting and running a model.
 
@@ -180,19 +228,38 @@ def main_run(model, name, site, multivariate=False, overwrite=False, fix_closure
         print_warn("Sim netcdf already exists for {n} at {s}, use --overwrite to re-run."
                    .format(n=name, s=site))
         return
-    else:
+
+    for i in range(3):
+        # We attempt to run the model up to 3 times, incase of numerical problems
         sim_data = PLUMBER_fit_predict(model, name, site,
                                        multivariate=multivariate, fix_closure=fix_closure)
 
-        if os.path.isfile(nc_file):
-            print_warn("Overwriting sim file at {f}".format(f=nc_file))
+        try:
+            model_sanity_check(sim_data, model)
+        except RuntimeError as e:
+            print_warn(e.message)
+
+            save_model_structure(model)
+
+            if i < 2:
+                print_warn('Attempting a', ['2nd', '3rd'][i], 'run.')
+                continue
+            else:
+                print_warn('Giving up after 3 failed runs. Check your model structres or met data.')
+                return
         else:
-            print_good("Writing sim file at {f}".format(f=nc_file))
+            # model run successful, presumably
+            break
 
-        # if site != 'debug':
-        sim_data.to_netcdf(nc_file)
+    if os.path.isfile(nc_file):
+        print_warn("Overwriting sim file at {f}".format(f=nc_file))
+    else:
+        print_good("Writing sim file at {f}".format(f=nc_file))
 
-        return
+    # if site != 'debug':
+    sim_data.to_netcdf(nc_file)
+
+    return
 
 
 def main_run_mp(name, site, no_mp=False, multivariate=False, overwrite=False, fix_closure=True):
