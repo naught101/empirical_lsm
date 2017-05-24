@@ -32,6 +32,7 @@ from ubermodel.transforms import LagWrapper
 from ubermodel.models import get_model
 from ubermodel.data import get_sites, sim_dict_to_xr, get_train_test_sets
 from ubermodel.utils import print_good, print_warn
+from ubermodel.checks import model_sanity_check
 
 
 flux_vars = ['NEE', 'Qle', 'Qh']
@@ -46,39 +47,6 @@ def bytes_human_readable(n):
     signif = '%.1f' % (n / (div ** exp))
 
     return(signif + suffix)
-
-
-def model_sanity_check(sim_data, model):
-    """Checks a model's output for clearly incorrect values, warns the user,
-    and saves debug output
-
-    :sim_data: xarray dataset with flux output
-    :model: Ubermodel style model
-    """
-    warning = ""
-    for v in flux_vars:
-        # Check output sanity
-        if (sim_data[v].values.min() < -300):
-            warning = v + "too low"
-            break
-        if (sim_data[v].values.max() > 1000):
-            warning = v + "too high"
-            break
-
-    if warning == "":
-        sim_diff = sim_data.diff('time')
-        for v in flux_vars:
-            # Check rate-of-change sanity
-            if (abs(sim_diff[v].values).max() > 500):
-                warning = v + "hanging rapidly"
-                break
-
-    if warning != "":
-        warning = ' '.join(["Probable bad model output:", warning, "at",
-                            model.PALS_site, "for", model.name])
-        raise RuntimeError(warning)
-
-    return
 
 
 def fit_predict_univariate(model, flux_vars, met_train, met_test, met_test_xr, flux_train):
@@ -235,7 +203,7 @@ def main_run(model, name, site, multivariate=False, overwrite=False, fix_closure
                                        multivariate=multivariate, fix_closure=fix_closure)
 
         try:
-            model_sanity_check(sim_data, model)
+            model_sanity_check(sim_data, name, site)
         except RuntimeError as e:
             print_warn(e.message)
 
