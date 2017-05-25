@@ -175,7 +175,7 @@ def save_model_structure(model):
     pickle_file = "%s/%s-%s.pickle" % (log_dir, model.name, now)
     with open(pickle_file, 'wb') as f:
         pickle.dump(model, f)
-    print_warn('Model structure saved to', pickle_file)
+    print_warn('Model structure saved to ' + pickle_file)
 
     return
 
@@ -210,7 +210,7 @@ def main_run(model, name, site, multivariate=False, overwrite=False, fix_closure
             save_model_structure(model)
 
             if i < 2:
-                print_warn('Attempting a', ['2nd', '3rd'][i], 'run.')
+                print_warn('Attempting a % run.' % ['2nd', '3rd'][i])
                 continue
             else:
                 print_warn('Giving up after 3 failed runs. Check your model structres or met data.')
