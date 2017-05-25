@@ -205,7 +205,7 @@ def main_run(model, name, site, multivariate=False, overwrite=False, fix_closure
         try:
             model_sanity_check(sim_data, name, site)
         except RuntimeError as e:
-            print_warn(e.message)
+            print_warn(str(e))
 
             save_model_structure(model)
 
