@@ -28,6 +28,7 @@ from ubermodel.data import get_sites
 from ubermodel.checks import model_sanity_check
 
 from scripts.offline_runs.run_model import run_model_site_tuples_mp
+from scripts.offline_runs.eval_model import main_eval
 
 
 def check_model_data(models, sites):
@@ -108,6 +109,7 @@ def main(args):
 
     if args['--re-run'] and len(bad_sims) > 0:
         run_model_site_tuples_mp(bad_sims)
+        [main_eval(t[0], t[1]) for t in bad_sims]
 
     return
 
