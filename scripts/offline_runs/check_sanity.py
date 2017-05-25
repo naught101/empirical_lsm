@@ -8,7 +8,8 @@ Github: https://github.com/naught101/
 Description: Checks existing model output for sanity
 
 Usage:
-    check_sanity.py (all|<model>...) [--sites=<sites>]
+    check_sanity.py data (all|<model>...) [--sites=<sites>] [--re-run]
+    check_sanity.py metrics (all|<model>...) [--sites=<sites>] [--re-run]
     check_sanity.py (-h | --help | --version)
 
 Options:
@@ -18,6 +19,7 @@ Options:
 from docopt import docopt
 
 import os
+import pandas as pd
 import xarray as xr
 from glob import glob
 
@@ -25,12 +27,16 @@ from ubermodel.utils import print_bad
 from ubermodel.data import get_sites
 from ubermodel.checks import model_sanity_check
 
+from scripts.offline_runs.run_model import run_model_site_tuples_mp
 
-def check_models(models, sites):
+
+def check_model_data(models, sites):
     """Checks all models
 
     :models: list of model names
     """
+    bad_simulations = []
+
     print("Checking {nm} models at {ns} sites.".format(nm=len(models), ns=len(sites)))
     for model in models:
         print('Checking {m}:'.format(m=model))
@@ -45,11 +51,42 @@ def check_models(models, sites):
                     model_sanity_check(ds, model, site)
                 except RuntimeError as e:
                     print_bad('\n' + str(e))
+                    bad_simulations.append((model, site))
                 else:
                     print('.', end='', flush=True)
         print('')
 
-    return
+    return bad_simulations
+
+
+def check_metrics(models, sites):
+    """Checks metrics to see if they're bullshit
+
+    :models: TODO
+    :sites: TODO
+    :returns: TODO
+
+    """
+    # Glob all metric filenames
+
+    bad_simulations = []
+
+    for model in models:
+        for site in sites:
+            csv_path = 'source/models/{m}/metrics/{m}_{s}_metrics.csv'.format(m=model, s=site)
+            if not os.path.exists(csv_path):
+                continue
+
+            metrics = pd.read_csv(csv_path, index_col=0)
+            if ((metrics > 500).any().any() or
+                    (metrics.loc['corr'] > 1).any() or
+                    (metrics.loc['corr'] < -1).any() or
+                    (metrics.loc['overlap'] > 1).any() or
+                    (metrics.loc['overlap'] < 0).any()):
+                print_bad("Crazy value for {m} at {s}".format(m=model, s=site))
+                bad_simulations.append((model, site))
+
+    return bad_simulations
 
 
 def main(args):
@@ -64,7 +101,13 @@ def main(args):
     else:
         models = args['<model>']
 
-    check_models(models, sites)
+    if args['data']:
+        bad_sims = check_model_data(models, sites)
+    if args['metrics']:
+        bad_sims = check_metrics(models, sites)
+
+    if len(bad_sims) > 0:
+        run_model_site_tuples_mp(bad_sims)
 
     return
 

@@ -230,8 +230,21 @@ def main_run(model, name, site, multivariate=False, overwrite=False, fix_closure
     return
 
 
+def run_model_site_tuples_mp(tuples_list):
+    """Run (model, site) pairs
+    """
+    # TODO: options for run..
+    # Currently non-multivariate, overwriting, closure-fixing
+    f_args = [(get_model(t[0]), t[0], t[1], False, True) for t in tuples_list]
+    ncores = min(os.cpu_count(), 1 + int(os.cpu_count() * 0.5))
+    # TODO: Deal with memory requirement?
+    with Pool(ncores) as p:
+        p.starmap(main_run, f_args)
+
+
 def main_run_mp(name, site, no_mp=False, multivariate=False, overwrite=False, fix_closure=True):
     """Multi-processor run handling."""
+    # TODO: refactor to work with above caller.
 
     model = get_model(name)
 
