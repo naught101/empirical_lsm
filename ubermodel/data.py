@@ -104,7 +104,7 @@ def get_multimodel_data(site, names, variables):
                 df.set_index('name', append=True, inplace=True)
                 data.append(df)
 
-        except OSError as e:
+        except (OSError, RuntimeError) as e:
             raise Exception(path, e)
 
     df = pd.concat(data)

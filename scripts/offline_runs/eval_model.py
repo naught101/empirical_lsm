@@ -154,7 +154,7 @@ def main_eval(name, site, sim_file=None, plots=False, fix_closure=True, qc=True)
 
     try:
         sim_data = xr.open_dataset(filename)
-    except OSError as e:
+    except (OSError, RuntimeError) as e:
         print_bad("Sim file ({f}) doesn't exist. What are you doing? {e}".format(f=filename, e=e))
         return
 
@@ -211,7 +211,7 @@ def main_rst_gen(name, site):
     try:
         eval_results = load_sim_evaluation(name, site)
         plot_files = get_existing_plots(name, site)
-    except OSError as e:
+    except (OSError, RuntimeError) as e:
         print_bad('one or more files missing for {n} at {s}: {e}'.format(
             n=name, s=site, e=e))
         return
