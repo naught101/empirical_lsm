@@ -171,7 +171,7 @@ def save_model_structure(model):
     log_dir = 'logs/models/' + model.name
     os.makedirs(log_dir, exist_ok=True)
 
-    now = dt.now.strftime('%Y%m%d_%H%M%S')
+    now = dt.now().strftime('%Y%m%d_%H%M%S')
     pickle_file = "%s/%s-%s.pickle" % (log_dir, model.name, now)
     with open(pickle_file, 'wb') as f:
         pickle.dump(model, f)
