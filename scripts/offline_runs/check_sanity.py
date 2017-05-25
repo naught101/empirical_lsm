@@ -8,8 +8,8 @@ Github: https://github.com/naught101/
 Description: Checks existing model output for sanity
 
 Usage:
-    check_sanity.py data (all|<model>...) [--sites=<sites>] [--re-run]
-    check_sanity.py metrics (all|<model>...) [--sites=<sites>] [--re-run]
+    check_sanity.py data (all|<model>...) [--sites=<sites>] [--re-run] [--re-eval]
+    check_sanity.py metrics (all|<model>...) [--sites=<sites>] [--re-run] [--re-eval]
     check_sanity.py (-h | --help | --version)
 
 Options:
@@ -109,6 +109,8 @@ def main(args):
 
     if args['--re-run'] and len(bad_sims) > 0:
         run_model_site_tuples_mp(bad_sims)
+
+    if args['--re-eval'] and len(bad_sims) > 0:
         [main_eval(t[0], t[1]) for t in bad_sims]
 
     return
