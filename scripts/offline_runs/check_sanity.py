@@ -106,7 +106,7 @@ def main(args):
     if args['metrics']:
         bad_sims = check_metrics(models, sites)
 
-    if len(bad_sims) > 0:
+    if args['--re-run'] and len(bad_sims) > 0:
         run_model_site_tuples_mp(bad_sims)
 
     return
