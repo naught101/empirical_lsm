@@ -104,14 +104,20 @@ def main(args):
 
     if args['data']:
         bad_sims = check_model_data(models, sites)
+        summary = len(bad_sims) + "models' data checked"
     if args['metrics']:
         bad_sims = check_metrics(models, sites)
+        summary = len(bad_sims) + "models' metrics checked"
 
     if args['--re-run'] and len(bad_sims) > 0:
         run_model_site_tuples_mp(bad_sims)
+        summary += " and re-run"
 
     if args['--re-eval'] and len(bad_sims) > 0:
         [main_eval(t[0], t[1]) for t in bad_sims]
+        summary += " and re-evaluated"
+
+    print(summary + ".")
 
     return
 
