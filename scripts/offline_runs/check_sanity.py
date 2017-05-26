@@ -104,10 +104,10 @@ def main(args):
 
     if args['data']:
         bad_sims = check_model_data(models, sites)
-        summary = len(bad_sims) + "models' data checked"
+        summary = "%d models' data checked" % len(bad_sims)
     if args['metrics']:
         bad_sims = check_metrics(models, sites)
-        summary = len(bad_sims) + "models' metrics checked"
+        summary = "%d models' metrics checked" % len(bad_sims)
 
     if args['--re-run'] and len(bad_sims) > 0:
         run_model_site_tuples_mp(bad_sims)
