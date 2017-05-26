@@ -31,7 +31,7 @@ from pals_utils.constants import MET_VARS
 from ubermodel.transforms import LagWrapper
 from ubermodel.models import get_model
 from ubermodel.data import get_sites, sim_dict_to_xr, get_train_test_sets
-from ubermodel.utils import print_good, print_warn
+from ubermodel.utils import print_good, print_warn, print_bad
 from ubermodel.checks import model_sanity_check
 
 
@@ -210,10 +210,10 @@ def main_run(model, name, site, multivariate=False, overwrite=False, fix_closure
             save_model_structure(model)
 
             if i < 2:
-                print_warn('Attempting a % run.' % ['2nd', '3rd'][i])
+                print_warn('Attempting a %s run.' % ['2nd', '3rd'][i])
                 continue
             else:
-                print_warn('Giving up after 3 failed runs. Check your model structres or met data.')
+                print_bad('Giving up after 3 failed runs. Check your model structres or met data.')
                 return
         else:
             # model run successful, presumably
