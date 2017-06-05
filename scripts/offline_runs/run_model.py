@@ -32,7 +32,7 @@ from ubermodel.transforms import LagWrapper
 from ubermodel.models import get_model
 from ubermodel.data import get_sites, sim_dict_to_xr, get_train_test_sets
 from ubermodel.utils import print_good, print_warn, print_bad
-from ubermodel.checks import model_sanity_check
+from ubermodel.checks import model_sanity_check, run_var_checks
 
 
 flux_vars = ['NEE', 'Qle', 'Qh']
@@ -76,6 +76,9 @@ def fit_predict_univariate(model, flux_vars, met_train, met_test, met_test_xr, f
 
         sim_data_dict[v] = model.predict(met_test)
         print("Prediction complete.")
+
+        if run_var_checks(sim_data_dict[v]):
+            save_model_structure(model, v)
 
     if len(sim_data_dict) < 1:
         print("No fluxes successfully fitted, quitting")
@@ -167,12 +170,16 @@ def PLUMBER_fit_predict(model, name, site, multivariate=False, fix_closure=True)
     return sim_data
 
 
-def save_model_structure(model):
-    log_dir = 'logs/models/' + model.name
+def save_model_structure(model, suffix='None'):
+    if suffix is not None:
+        name = model.name + '_' + suffix
+    else:
+        name = model.name
+    log_dir = 'logs/models/' + name
     os.makedirs(log_dir, exist_ok=True)
 
     now = dt.now().strftime('%Y%m%d_%H%M%S')
-    pickle_file = "%s/%s-%s.pickle" % (log_dir, model.name, now)
+    pickle_file = "%s/%s-%s.pickle" % (log_dir, name, now)
     with open(pickle_file, 'wb') as f:
         pickle.dump(model, f)
     print_warn('Model structure saved to ' + pickle_file)
@@ -206,8 +213,6 @@ def main_run(model, name, site, multivariate=False, overwrite=False, fix_closure
             model_sanity_check(sim_data, name, site)
         except RuntimeError as e:
             print_warn(str(e))
-
-            save_model_structure(model)
 
             if i < 2:
                 print_warn('Attempting a %s run.' % ['2nd', '3rd'][i])

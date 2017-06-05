@@ -8,8 +8,40 @@ Github: https://github.com/naught101/
 Description: model sanity checks.
 """
 
+import numpy as np
+
 
 flux_vars = ['NEE', 'Qh', 'Qle']
+
+
+def check_var_too_low(data):
+    if (data.min() < -300):
+        print("data too low!")
+        return True
+    else:
+        return False
+
+
+def check_var_too_high(data):
+    if (data.max() > 1000):
+        print("data too high!")
+        return True
+    else:
+        return False
+
+
+def check_var_change_too_fast(data):
+    if (np.abs(np.diff(data)) > 500):
+        print("data changing too fast!")
+        return True
+    else:
+        return False
+
+
+def run_var_checks(data):
+    return (check_var_too_low(data) or
+            check_var_too_high(data) or
+            check_var_change_too_fast(data))
 
 
 def model_sanity_check(sim_data, name, site):
@@ -28,10 +60,10 @@ def model_sanity_check(sim_data, name, site):
     if warning == "":
         for v in flux_vars:
             # Check output sanity
-            if (sim_data[v].values.min() < -300):
+            if check_var_too_low(sim_data[v].values):
                 warning = v + " too low"
                 break
-            if (sim_data[v].values.max() > 1000):
+            if check_var_too_high(sim_data[v].values):
                 warning = v + " too high"
                 break
 
