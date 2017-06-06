@@ -22,7 +22,7 @@ from ubermodel.transforms import MissingDataWrapper, LagAverageWrapper, MarkovLa
 
 
 def km_regression(k, model):
-    return MissingDataWrapper(ModelByCluster(MiniBatchKMeans(k), model))
+    return MissingDataWrapper(make_pipeline(StandardScaler(), ModelByCluster(MiniBatchKMeans(k), model)))
 
 
 def km_lin(k):
