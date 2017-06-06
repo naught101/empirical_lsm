@@ -28,7 +28,7 @@ from multiprocessing import Pool
 
 from pals_utils.constants import MET_VARS
 
-from ubermodel.transforms import LagWrapper
+from ubermodel.transforms import LagWrapper, LagAverageWrapper
 from ubermodel.models import get_model
 from ubermodel.data import get_sites, sim_dict_to_xr, get_train_test_data
 from ubermodel.utils import print_good, print_warn, print_bad
@@ -137,7 +137,7 @@ def PLUMBER_fit_predict(model, name, site, multivariate=False, fix_closure=True)
         print("Warning: no forcing vars, using defaults (all)")
         met_vars = MET_VARS
 
-    use_names = isinstance(model, LagWrapper)
+    use_names = isinstance(model, (LagWrapper, LagAverageWrapper))
 
     train_test_data = get_train_test_data(site, met_vars, flux_vars, use_names, fix_closure=True)
 

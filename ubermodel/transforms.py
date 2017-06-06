@@ -318,7 +318,7 @@ class LagAverageWrapper(BaseEstimator):
     def _lag_data(self, X, var_lags=None, datafreq=None):
         """lag an array. Assumes that each column corresponds to variables listed in lags
 
-        :X: ndarray
+        :X: dataframe or ndarray
         :datafreq: array data rate in hours
         :returns: array of lagged averaged variables
 
