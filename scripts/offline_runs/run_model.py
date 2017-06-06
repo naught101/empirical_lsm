@@ -78,7 +78,8 @@ def fit_predict_univariate(model, flux_vars, train_test_data):
         print("Prediction complete.")
 
         if run_var_checks(sim_data_dict[v]):
-            save_model_structure(model, v)
+            name = "%s_%s_%s" % (model.name, v, train_test_data["site"])
+            save_model_structure(model, name)
 
     if len(sim_data_dict) < 1:
         print("No fluxes successfully fitted, quitting")
@@ -169,10 +170,8 @@ def PLUMBER_fit_predict(model, name, site, multivariate=False, fix_closure=True)
     return sim_data
 
 
-def save_model_structure(model, suffix='None'):
-    if suffix is not None:
-        name = model.name + '_' + suffix
-    else:
+def save_model_structure(model, name='None'):
+    if name is None:
         name = model.name
     log_dir = 'logs/models/' + name
     os.makedirs(log_dir, exist_ok=True)
