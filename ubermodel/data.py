@@ -168,15 +168,15 @@ def get_multisite_flux_df(sites, variables, name=False, qc=False, fix_closure=Tr
     return df
 
 
-def get_train_test_sets(site, met_vars, flux_vars, use_names, fix_closure=True):
+def get_train_test_data(site, met_vars, flux_vars, use_names, fix_closure=True):
 
     if site == 'debug':
-        train_sets = ['Amplero']
+        train_sites = ['Amplero']
         test_site = 'Tumba'
 
         # Use non-quality controlled data, to ensure there's enough to train
-        met_train = get_multisite_met_df(train_sets, variables=met_vars, name=use_names)
-        flux_train = get_multisite_flux_df(train_sets, variables=flux_vars, name=use_names, fix_closure=fix_closure)
+        met_train = get_multisite_met_df(train_sites, variables=met_vars, name=use_names)
+        flux_train = get_multisite_flux_df(train_sites, variables=flux_vars, name=use_names, fix_closure=fix_closure)
 
         met_test_xr = get_met_data(test_site)[test_site]
         met_test = pals_xr_to_df(met_test_xr, variables=met_vars)
@@ -190,21 +190,30 @@ def get_train_test_sets(site, met_vars, flux_vars, use_names, fix_closure=True):
         plumber_datasets = get_sites('PLUMBER_ext')
         if site not in plumber_datasets:
             # Using a non-PLUMBER site, train on all PLUMBER sites.
-            train_sets = plumber_datasets
+            train_sites = plumber_datasets
         else:
             # Using a PLUMBER site, leave one out.
-            train_sets = [s for s in plumber_datasets if s != site]
-        print("Training with {n} datasets".format(n=len(train_sets)))
+            train_sites = [s for s in plumber_datasets if s != site]
+        print("Training with {n} datasets".format(n=len(train_sites)))
 
-        met_train = get_multisite_met_df(train_sets, variables=met_vars, qc=True, name=use_names)
+        met_train = get_multisite_met_df(train_sites, variables=met_vars, qc=True, name=use_names)
 
         # We use gap-filled data for the testing period, or the model fails.
         met_test_xr = get_met_data(site)[site]
         met_test = pals_xr_to_df(met_test_xr, variables=met_vars)
 
-        flux_train = get_multisite_flux_df(train_sets, variables=flux_vars, qc=True, name=use_names)
+        flux_train = get_multisite_flux_df(train_sites, variables=flux_vars, qc=True, name=use_names)
 
-    return met_train, met_test, met_test_xr, flux_train
+    return dict(
+        site=site,
+        train_sites=train_sites,
+        met_vars=met_vars,
+        flux_vars=flux_vars,
+        fix_closure=fix_closure,
+        met_train=met_train,
+        met_test=met_test,
+        met_test_xr=met_test_xr,
+        flux_train=flux_train)
 
 
 def get_lagged_df(df, lags=['30min', '2h', '6h', '2d', '7d', '30d', '90d']):

@@ -30,7 +30,7 @@ from pals_utils.constants import MET_VARS
 
 from ubermodel.transforms import LagWrapper
 from ubermodel.models import get_model
-from ubermodel.data import get_sites, sim_dict_to_xr, get_train_test_sets
+from ubermodel.data import get_sites, sim_dict_to_xr, get_train_test_data
 from ubermodel.utils import print_good, print_warn, print_bad
 from ubermodel.checks import model_sanity_check, run_var_checks
 
@@ -49,32 +49,32 @@ def bytes_human_readable(n):
     return(signif + suffix)
 
 
-def fit_predict_univariate(model, flux_vars, met_train, met_test, met_test_xr, flux_train):
+def fit_predict_univariate(model, flux_vars, train_test_data):
     """Fits a model one output variable at a time """
     sim_data_dict = dict()
     for v in flux_vars:
         # TODO: Might eventually want to update this to run multivariate-out models
         # There isn't much point right now, because there is almost no data where all variables are available.
-        flux_train_v = flux_train[[v]]
+        flux_train_v = train_test_data["flux_train"][[v]]
 
         if hasattr(model, 'partial_data_ok'):
             # model accepts partial data
             print("Training {v} using all (possibly incomplete) data.".format(v=v))
-            model.fit(X=met_train, y=flux_train_v)
+            model.fit(X=train_test_data["met_train"], y=flux_train_v)
         else:
             # Ditch all of the incomplete data
-            qc_index = (~pd.concat([met_train, flux_train_v], axis=1).isnull()).apply(all, axis=1)
+            qc_index = (~pd.concat([train_test_data["met_train"], flux_train_v], axis=1).isnull()).apply(all, axis=1)
             if qc_index.sum() > 0:
                 print("Training {v} using {count} complete samples out of {total}"
-                      .format(v=v, count=qc_index.sum(), total=met_train.shape[0]))
+                      .format(v=v, count=qc_index.sum(), total=train_test_data["met_train"].shape[0]))
             else:
                 print("No training data, skipping variable %s" % v)
                 continue
 
-            model.fit(X=met_train[qc_index], y=flux_train_v[qc_index])
+            model.fit(X=train_test_data["met_train"][qc_index], y=flux_train_v[qc_index])
         print("Fitting complete.")
 
-        sim_data_dict[v] = model.predict(met_test)
+        sim_data_dict[v] = model.predict(train_test_data["met_test"])
         print("Prediction complete.")
 
         if run_var_checks(sim_data_dict[v]):
@@ -84,39 +84,39 @@ def fit_predict_univariate(model, flux_vars, met_train, met_test, met_test_xr, f
         print("No fluxes successfully fitted, quitting")
         sys.exit()
 
-    sim_data = sim_dict_to_xr(sim_data_dict, met_test_xr)
+    sim_data = sim_dict_to_xr(sim_data_dict, train_test_data["met_test_xr"])
 
     return sim_data
 
 
-def fit_predict_multivariate(model, flux_vars, met_train, met_test, met_test_xr, flux_train):
+def fit_predict_multivariate(model, flux_vars, train_test_data):
     """Fits a model multiple outputs variable at once"""
 
     if hasattr(model, 'partial_data_ok'):
             # model accepts partial data
         print("Training {v} using all (possibly incomplete) data.".format(v=flux_vars))
-        model.fit(X=met_train, y=flux_train)
+        model.fit(X=train_test_data["met_train"], y=train_test_data["flux_train"])
     else:
         # Ditch all of the incomplete data
-        qc_index = (~pd.concat([met_train, flux_train], axis=1).isnull()).apply(all, axis=1)
+        qc_index = (~pd.concat([train_test_data["met_train"], train_test_data["flux_train"]], axis=1).isnull()).apply(all, axis=1)
         if qc_index.sum() > 0:
             print("Training {v} using {count} complete samples out of {total}"
-                  .format(v=flux_vars, count=qc_index.sum(), total=met_train.shape[0]))
+                  .format(v=flux_vars, count=qc_index.sum(), total=train_test_data["met_train"].shape[0]))
         else:
             print("No training data, failing")
             return
 
-        model.fit(X=met_train[qc_index], y=flux_train[qc_index])
+        model.fit(X=train_test_data["met_train"][qc_index], y=train_test_data["flux_train"][qc_index])
     print("Fitting complete.")
 
-    sim_data = model.predict(met_test)
+    sim_data = model.predict(train_test_data["met_test"])
     print("Prediction complete.")
 
     # TODO: some models return arrays... convert to dicts in that case.
     if isinstance(sim_data, np.ndarray):
         sim_data = {v: sim_data[:, i] for i, v in enumerate(flux_vars)}
 
-    sim_data = sim_dict_to_xr(sim_data, met_test_xr)
+    sim_data = sim_dict_to_xr(sim_data, train_test_data["met_test_xr"])
 
     return sim_data
 
@@ -138,17 +138,16 @@ def PLUMBER_fit_predict(model, name, site, multivariate=False, fix_closure=True)
 
     use_names = isinstance(model, LagWrapper)
 
-    met_train, met_test, met_test_xr, flux_train = \
-        get_train_test_sets(site, met_vars, flux_vars, use_names, fix_closure=True)
+    train_test_data = get_train_test_data(site, met_vars, flux_vars, use_names, fix_closure=True)
 
     print_good("Running {n} at {s}".format(n=name, s=site))
 
     print('Fitting and running {f} using {m}'.format(f=flux_vars, m=met_vars))
     t_start = dt.now()
     if multivariate:
-        sim_data = fit_predict_multivariate(model, flux_vars, met_train, met_test, met_test_xr, flux_train)
+        sim_data = fit_predict_multivariate(model, flux_vars, train_test_data)
     else:
-        sim_data = fit_predict_univariate(model, flux_vars, met_train, met_test, met_test_xr, flux_train)
+        sim_data = fit_predict_univariate(model, flux_vars, train_test_data)
     run_time = str(dt.now() - t_start).split('.')[0]
 
     process = psutil.Process(os.getpid())
