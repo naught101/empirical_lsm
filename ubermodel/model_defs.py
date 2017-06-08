@@ -73,7 +73,7 @@ def parse_model_name(name):
             continue
         if token == 'd':
             v = name[0]
-            add_var_lag(var_lags, v + 'growth')
+            add_var_lag(var_lags, 'delta' + v)
             name = name[1:]
             continue
         elif token == '_':
