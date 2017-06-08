@@ -501,7 +501,7 @@ class MissingDataWrapper(BaseEstimator):
         print("MDW: Dropping data... using {n} samples of {N}".format(
             n=qc_index.sum(), N=X.shape[0]))
         # make work with arrays and dataframes
-        self.model.fit(np.array(X)[qc_index, :], np.array(y)[qc_index, :])
+        self.model.fit(X[qc_index], y[qc_index])
 
     def predict(self, X):
         """pass on model prediction
