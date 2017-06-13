@@ -71,7 +71,7 @@ def model_sanity_check(sim_data, name, site):
         sim_diff = sim_data.diff('time')
         for v in flux_vars:
             # Check rate-of-change sanity
-            if (abs(sim_diff[v].values).max() > 500):
+            if (abs(sim_diff[v].values).max() > 1500):
                 warning = v + " changing rapidly"
                 break
 
