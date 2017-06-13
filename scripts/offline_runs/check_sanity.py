@@ -98,16 +98,19 @@ def main(args):
         sites = args['--sites'].split(',')
 
     if args['all']:
-        models = [os.path.basename(f) for f in glob('model_data/*')]
+        if args['data']:
+            models = [os.path.basename(f) for f in glob('model_data/*')]
+        else:
+            models = [os.path.basename(f) for f in glob('source/models/*')]
     else:
         models = args['<model>']
 
     if args['data']:
         bad_sims = check_model_data(models, sites)
-        summary = "%d models' data checked" % len(bad_sims)
+        summary = "%d model with bad data out of %d models checked" % (len(bad_sims), len(models))
     if args['metrics']:
         bad_sims = check_metrics(models, sites)
-        summary = "%d models' metrics checked" % len(bad_sims)
+        summary = "%d model with bad metrics out of %d models checked" % (len(bad_sims), len(models))
 
     if args['--re-run'] and len(bad_sims) > 0:
         run_model_site_tuples_mp(bad_sims)
