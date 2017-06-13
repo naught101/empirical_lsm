@@ -15,7 +15,7 @@ flux_vars = ['NEE', 'Qh', 'Qle']
 
 
 def check_var_too_low(data):
-    if (data.min() < -300):
+    if (data.min() < -1500):
         print("data too low!")
         return True
     else:
@@ -23,7 +23,7 @@ def check_var_too_low(data):
 
 
 def check_var_too_high(data):
-    if (data.max() > 1000):
+    if (data.max() > 5000):
         print("data too high!")
         return True
     else:
@@ -31,7 +31,7 @@ def check_var_too_high(data):
 
 
 def check_var_change_too_fast(data):
-    if (np.abs(np.diff(data)) > 500):
+    if (np.abs(np.diff(data)) > 1500):
         print("data changing too fast!")
         return True
     else:

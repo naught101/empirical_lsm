@@ -217,7 +217,7 @@ def main_run(model, name, site, multivariate=False, overwrite=False, fix_closure
                 continue
             else:
                 print_bad('Giving up after 3 failed runs. Check your model structres or met data.')
-                return
+                sim_data.attrs.update({'Warning': 'model failed after 3 attempts, saved anyway'})
         else:
             # model run successful, presumably
             break
