@@ -57,7 +57,7 @@ def get_regression_parameters(model):
 
 def get_cluster_regression_parameters(model):
     # TODO: This will only work for single-output models
-    [get_regression_parameters(reg) for reg in model.estimators_]
+    return np.array([get_regression_parameters(reg) for reg in model.estimators_])
 
 
 def main(args):
