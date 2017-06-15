@@ -11,7 +11,7 @@ Description:
 import yaml
 import sys
 
-from pals_utils.constants import MET_VARS
+from pals_utils.data import config
 
 from sklearn.pipeline import make_pipeline
 
@@ -110,7 +110,7 @@ def get_model_from_dict(model_dict):
         pipe.forcing_vars = model_dict['forcing_vars']
     else:
         print("Warning: no forcing vars, using defaults (all)")
-        pipe.forcing_vars = MET_VARS
+        pipe.forcing_vars = config['vars']['met']
 
     if 'description' in model_dict:
         pipe.description = model_dict['description']

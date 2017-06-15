@@ -26,8 +26,6 @@ from datetime import datetime as dt
 
 from multiprocessing import Pool
 
-from pals_utils.constants import MET_VARS
-
 from ubermodel.transforms import LagWrapper, LagAverageWrapper
 from ubermodel.models import get_model
 from ubermodel.data import get_sites, sim_dict_to_xr, get_train_test_data
@@ -35,7 +33,9 @@ from ubermodel.utils import print_good, print_warn, print_bad
 from ubermodel.checks import model_sanity_check, run_var_checks
 
 
-flux_vars = ['NEE', 'Qle', 'Qh']
+from pals_utils.data import config
+
+config['vars']['flux'] = ['NEE', 'Qle', 'Qh']
 
 
 def bytes_human_readable(n):
@@ -135,20 +135,20 @@ def PLUMBER_fit_predict(model, name, site, multivariate=False, fix_closure=True)
         met_vars = model.forcing_vars
     else:
         print("Warning: no forcing vars, using defaults (all)")
-        met_vars = MET_VARS
+        met_vars = config['vars']['met']
 
     use_names = isinstance(model, (LagWrapper, LagAverageWrapper))
 
-    train_test_data = get_train_test_data(site, met_vars, flux_vars, use_names, fix_closure=True)
+    train_test_data = get_train_test_data(site, met_vars, config['vars']['flux'], use_names, fix_closure=True)
 
     print_good("Running {n} at {s}".format(n=name, s=site))
 
-    print('Fitting and running {f} using {m}'.format(f=flux_vars, m=met_vars))
+    print('Fitting and running {f} using {m}'.format(f=config['vars']['flux'], m=met_vars))
     t_start = dt.now()
     if multivariate:
-        sim_data = fit_predict_multivariate(model, flux_vars, train_test_data)
+        sim_data = fit_predict_multivariate(model, config['vars']['flux'], train_test_data)
     else:
-        sim_data = fit_predict_univariate(model, flux_vars, train_test_data)
+        sim_data = fit_predict_univariate(model, config['vars']['flux'], train_test_data)
     run_time = str(dt.now() - t_start).split('.')[0]
 
     process = psutil.Process(os.getpid())
