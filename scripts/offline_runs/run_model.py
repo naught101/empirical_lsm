@@ -33,9 +33,9 @@ from ubermodel.utils import print_good, print_warn, print_bad
 from ubermodel.checks import model_sanity_check, run_var_checks
 
 
-from pals_utils.data import config
+from pals_utils.data import set_config, get_config
 
-config['vars']['flux'] = ['NEE', 'Qle', 'Qh']
+set_config(['vars', 'flux'], ['NEE', 'Qle', 'Qh'])
 
 
 def bytes_human_readable(n):
@@ -135,20 +135,20 @@ def PLUMBER_fit_predict(model, name, site, multivariate=False, fix_closure=True)
         met_vars = model.forcing_vars
     else:
         print("Warning: no forcing vars, using defaults (all)")
-        met_vars = config['vars']['met']
+        met_vars = get_config(['vars', 'met'])
 
     use_names = isinstance(model, (LagWrapper, LagAverageWrapper))
 
-    train_test_data = get_train_test_data(site, met_vars, config['vars']['flux'], use_names, fix_closure=True)
+    train_test_data = get_train_test_data(site, met_vars, get_config(['vars', 'flux']), use_names, fix_closure=True)
 
     print_good("Running {n} at {s}".format(n=name, s=site))
 
-    print('Fitting and running {f} using {m}'.format(f=config['vars']['flux'], m=met_vars))
+    print('Fitting and running {f} using {m}'.format(f=get_config(['vars', 'flux']), m=met_vars))
     t_start = dt.now()
     if multivariate:
-        sim_data = fit_predict_multivariate(model, config['vars']['flux'], train_test_data)
+        sim_data = fit_predict_multivariate(model, get_config(['vars', 'flux']), train_test_data)
     else:
-        sim_data = fit_predict_univariate(model, config['vars']['flux'], train_test_data)
+        sim_data = fit_predict_univariate(model, get_config(['vars', 'flux']), train_test_data)
     run_time = str(dt.now() - t_start).split('.')[0]
 
     process = psutil.Process(os.getpid())
