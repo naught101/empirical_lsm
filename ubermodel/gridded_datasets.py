@@ -16,8 +16,6 @@ import xarray as xr
 
 import pals_utils.data as pud
 
-from ubermodel.data import get_data_dir
-
 
 def get_dataset_vars(dataset, met_vars, in_file=False):
     """get the names of dataset variables for each dataset
@@ -123,7 +121,7 @@ def get_CRUNCEP_data(met_vars, year):
     data = {}
     for v, fv in dataset_vars.items():
         # TODO: CRUNCEP uses a mask variable, so replace with NANs?
-        with xr.open_dataset(file_tpl.format(d=get_data_dir(), v=fv, y=year)) as ds:
+        with xr.open_dataset(file_tpl.format(d=pud.get_data_dir(), v=fv, y=year)) as ds:
             data[v] = correct_CRUNCEP_coords(ds, infile_vars[v], year)
     data = xr.Dataset(data)
 
@@ -139,7 +137,7 @@ def get_GSWP3_data(met_vars, year):
 
     data = {}
     for v in met_vars:
-        with xr.open_dataset(file_tpl.format(d=get_data_dir(), v=v, y=year)) as ds:
+        with xr.open_dataset(file_tpl.format(d=pud.get_data_dir(), v=v, y=year)) as ds:
             data[v] = ds[v].copy()
     data = xr.Dataset(data)
 
@@ -154,7 +152,7 @@ def get_PRINCETON_data(met_vars, year):
 
     data = {}
     for v, fv in dataset_vars.items():
-        with xr.open_dataset(file_tpl.format(d=get_data_dir(), v=fv, y=year)) as ds:
+        with xr.open_dataset(file_tpl.format(d=pud.get_data_dir(), v=fv, y=year)) as ds:
             data[v] = ds[fv].copy()
     data = xr.Dataset(data)
 
@@ -167,7 +165,7 @@ def get_WATCH_WFDEI_data(met_vars, year):
 
     data = {}
     for v in met_vars:
-        files = sorted(glob.glob(file_tpl.format(d=get_data_dir(), v=v, y=year)))
+        files = sorted(glob.glob(file_tpl.format(d=pud.get_data_dir(), v=v, y=year)))
         datasets = [xr.open_dataset(f, decode_times=False) for f in files]
         # TODO: WATCH_FDEI uses a fill-value mask, so replace with NANs?
         data[v] = xr.concat(
@@ -186,7 +184,7 @@ def get_MODIS_data(met_vars, year):
 
     data = {}
     for v in met_vars:
-        with xr.open_dataset(file_tpl.format(d=get_data_dir(), v='ET', y=year)) as ds:
+        with xr.open_dataset(file_tpl.format(d=pud.get_data_dir(), v='ET', y=year)) as ds:
             data['Qle'] = ds['et'].copy()
     data = xr.Dataset(data)
 
@@ -200,7 +198,7 @@ def get_MPI_data(met_vars, year):
 
     data = {}
     for v in met_vars:
-        with xr.open_dataset(file_tpl.format(d=get_data_dir(), v='LE', y=year), decode_times=False) as ds:
+        with xr.open_dataset(file_tpl.format(d=pud.get_data_dir(), v='LE', y=year), decode_times=False) as ds:
             data['Qle'] = ds['EnsembleLEcor_May12'].copy()
     data = xr.Dataset(data)
 
@@ -214,7 +212,7 @@ def get_GLEAM3a_data(met_vars, year):
 
     data = {}
     for v in met_vars:
-        with xr.open_dataset(file_tpl.format(d=get_data_dir(), v='Et', y=year), decode_times=False) as ds:
+        with xr.open_dataset(file_tpl.format(d=pud.get_data_dir(), v='Et', y=year), decode_times=False) as ds:
             data['Qle'] = ds['Et'].copy()
     data = xr.Dataset(data)
 

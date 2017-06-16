@@ -11,40 +11,12 @@ Description: ubermodel data helper functions
 import xarray as xr
 import numpy as np
 import pandas as pd
-import joblib as jl
 import os
 
-from pals_utils.data import copy_data, get_met_data, get_met_df, get_flux_df, pals_xr_to_df
+from pals_utils.data import get_sites, copy_data, get_met_data, \
+    pals_xr_to_df, get_multisite_met_df, get_multisite_flux_df
 
 from ubermodel.transforms import rolling_mean
-
-
-def get_data_dir():
-    """get data directory """
-
-    return './data'
-
-
-def get_sites(site_set='all'):
-    """load names of available sites"""
-
-    data_dir = get_data_dir()
-
-    if site_set == 'debug':
-        sites = ['Tumba']
-    else:
-        if site_set == 'all':
-            filename = 'sites.txt'
-        elif site_set == 'PLUMBER':
-            filename = 'sites_PLUMBER.txt'
-        elif site_set == 'PLUMBER_ext':
-            filename = 'sites_PLUMBER_ext.txt'
-
-        path = '{d}/PALS/datasets/{f}'.format(d=data_dir, f=filename)
-        with open(path) as f:
-            sites = [s.strip() for s in f.readlines()]
-
-    return sites
 
 
 def sim_dict_to_xr(sim_dict, old_ds):
@@ -122,50 +94,6 @@ def get_multimodel_wide_df(site, names, variables):
         return df.stack().unstack(level='name')[names].xs(variables, level=1)
     else:
         raise Exception("WTF is variables? %s" % type(variables))
-
-
-mem = jl.Memory(cachedir=os.path.join(os.path.expanduser('~'), 'tmp', 'cache'))
-
-get_met_df_cached = mem.cache(get_met_df)
-get_flux_df_cached = mem.cache(get_flux_df)
-
-
-def get_multisite_met_df(sites, variables, name=False, qc=False):
-    """Load some data and convert it to a dataframe
-
-    :sites: str or list of strs: site names
-    :variables: list of variable names
-    :qc: Whether to replace bad quality data with NAs
-    :names: Whether to include site-names
-    :returns: pandas dataframe
-
-    """
-    if isinstance(sites, str):
-        sites = [sites]
-
-    print("Met data: loading... ")
-    df = pd.concat([get_met_df_cached([s], variables, name=name, qc=qc) for s in sites])
-    return df
-
-
-def get_multisite_flux_df(sites, variables, name=False, qc=False, fix_closure=True):
-    """Load some data and convert it to a dataframe
-
-    :sites: str or list of strs: site names
-    :variables: list of variable names
-    :qc: Whether to replace bad quality data with NAs
-    :names: Whether to include site-names
-    :returns: pandas dataframe
-
-    """
-    if isinstance(sites, str):
-        sites = [sites]
-
-    print("Flux data: loading... ")
-    df = pd.concat([
-        get_flux_df_cached([s], variables, name=name, qc=qc, fix_closure=fix_closure)
-        for s in sites])
-    return df
 
 
 def get_train_test_data(site, met_vars, flux_vars, use_names, fix_closure=True):
