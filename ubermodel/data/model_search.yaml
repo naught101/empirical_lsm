@@ -1,0 +1,271 @@
+### Linear regression
+lin:
+    notes:
+        - insensitive to scaling or PCA
+    class: LinearRegression
+    longname: Linear regression
+    description: "Linear regression, all met forcings"
+
+### Polynomial regression
+poly2:
+    notes:
+        - Only a slight improvement over linear regression?
+            - because non-linearities are localised?
+    class: LinearRegression
+    transforms:
+        poly:
+            degree: 2
+    description: "2nd order polynomial regression, all met forcings"
+
+poly5:
+    notes:
+        - Only a slight improvement over linear regression?
+            - because non-linearities are localised?
+    class: LinearRegression
+    transforms:
+        poly:
+            degree: 5
+    description: "5th order polynomial regression, all met forcings"
+
+### SGD
+# Avoiding until I understand it better
+# sgd:
+#     notes:
+#         - very sensitive to scaling. Not sensitive to PCA
+#     class: SGDRegressor
+#     transforms:
+#         scaler: standard
+
+### Support Vector Machines
+svm:
+    notes:
+        - Sensitive to scaling, not to PCA
+    class: SVR
+    transforms:
+        scaler: standard
+    description: "Support Vector machine, normalised inputs, all met forcings"
+
+svm_poly:
+    class: SVR
+    args:
+        kernel: poly
+    transforms:
+        scaler: standard
+    description: "Support Vector machine with polynomial kernel, normalised inputs, all met forcings"
+
+
+### Multilayer Perceptron
+mlp:
+    class: MLPRegressor
+    transforms:
+        scaler: standard
+        pca: True
+    description: "Multilayer Perceptron (ANN), normalised/PCAd inputs, all met forcings"
+
+mlp_log:
+    class: MLPRegressor
+    args:
+        activation: logistic
+    transforms:
+        scaler: standard
+        pca: True
+    description: "Multilayer Perceptron (ANN) with logisitic activation, normalised/PCAd inputs, all met forcings"
+
+# Maybe sklearn.grid_search would be a better way of doing this?
+mlp_20_20:
+    class: MLPRegressor
+    args:
+        hidden_layer_sizes: [20,20,]
+    transforms:
+        scaler: standard
+        pca: True
+    description: "Multilayer Perceptron (ANN) with 2 hidden layers [20, 20], normalised/PCAd inputs, all met forcings"
+
+mlp_10_10_10:
+    class: MLPRegressor
+    args:
+        hidden_layer_sizes: [10,10,10,]
+    transforms:
+        scaler: standard
+        pca: True
+    description: "Multilayer Perceptron (ANN) with 3 hidden layers [10, 10, 10], normalised/PCAd inputs, all met forcings"
+
+
+### K-nearest neighbours
+knn:
+    notes:
+        - Not sensitive to scaling or PCA
+    class: KNeighborsRegressor
+    description: "K-nearest neighbours regression, all met forcings"
+
+knn_1k:
+    notes:
+        - Not sensitive to scaling or PCA
+    class: KNeighborsRegressor
+    args:
+        n_neighbors: 1000
+    description: "K-nearest neighbours regression, 1000 neighbours, all met forcings"
+
+### Decision Trees
+tree:
+    class: DecisionTreeRegressor
+    transforms:
+        scaler: standard
+        pca: True
+    description: "Decision tree regression, all met forcings"
+
+randomforest:
+    class: RandomForest
+    description: "Random Forest regression, all met forcings"
+
+extratrees:
+    notes:
+        - actually a forest
+    class: ExtraTreesRegressor
+    description: "Extratrees regression, all met forcings"
+
+
+### Lagged linear regression
+lin_lag1:
+    notes: need to make a proper wrapper for this.
+    class: LinearRegression
+    lag:
+        periods: 1
+    description: "Linear regression with single-timestep lagged variables, all met forcings"
+
+km27_lag1:
+    clusterregression:
+        class: MiniBatchKMeans
+        args:
+            n_clusters: 27
+    class: LinearRegression
+    lag:
+        periods: 1
+    description: "km27/Linear regression with single-timestep lagged variables, all met forcings"
+
+### Markov lagging
+markov1:
+    notes: "use one timestep's output as an input for the next timestep"
+    class: LinearRegression
+    markov:
+        periods: 1
+    description: "Linear regression with single-timestep markov-lagged fluxes, all met forcings"
+
+km27_markov1:
+    clusterregression:
+        class: MiniBatchKMeans
+        args:
+            n_clusters: 27
+    class: LinearRegression
+    markov:
+        periods: 1
+    description: "km27/Linear regression with single-timestep markov-lagged fluxes, all met forcings"
+ 
+
+################
+# Model Search #
+################
+
+# Model naming scheme:
+# <Vars>_[<clustering>_]<structure>_[<lag>]
+# Vars: STHQLWRP - SWdown, Tair, RelHum, Qair, LWdown, Wind, Rainf, Psurf
+# clustering: e.g. km27
+# structure: lin, poly, mlp, trees, etc. etc.
+# lag: lag_30m, lag 1d (mean), markov1, etc.
+
+STH_KMeans27: # This is the equivalent of the original 3km27
+    forcing_vars:
+        - SWdown
+        - Tair
+        - RelHum
+    clusterregression:
+        class: KMeans
+        args:
+            n_clusters: 27
+    class: LinearRegression
+    description: "km27/Linear regression with SWdown, Tair, RelHum (equiv. PLUMBER 3km27)"
+
+# lagged variables
+STH_km27_lag30m:
+    forcing_vars: ['SWdown', 'Tair', 'RelHum']
+    clusterregression:
+        class: MiniBatchKMeans
+        args:
+            n_clusters: 27
+    class: LinearRegression
+    lag:
+        periods: 1
+    description: "km27/Linear regression with SWdown, Tair, RelHum, plus 30-min lagged vars"
+
+STH_km27_lag1D:
+    forcing_vars: ['SWdown', 'Tair', 'RelHum']
+    clusterregression:
+        class: MiniBatchKMeans
+        args:
+            n_clusters: 27
+    class: LinearRegression
+    lag:
+        periods: 1
+        freq: D
+    description: "km27/Linear regression with SWdown, Tair, RelHum, plus 1 day lagged vars"
+
+# markov with lagged met
+STH_km27_mkv30m:
+    forcing_vars: ['SWdown', 'Tair', 'RelHum']
+    clusterregression:
+        class: MiniBatchKMeans
+        args:
+            n_clusters: 27
+    class: LinearRegression
+    markov:
+        periods: 1
+    description: "km27/Linear regression with SWdown, Tair, RelHum, plus 30-min markov-lagged fluxes and lagged met"
+
+STH_km27_mkv1D:
+    forcing_vars: ['SWdown', 'Tair', 'RelHum']
+    clusterregression:
+        class: MiniBatchKMeans
+        args:
+            n_clusters: 27
+    class: LinearRegression
+    markov:
+        periods: 1
+        freq: D
+    description: "km27/Linear regression with SWdown, Tair, RelHum, plus 1-day markov-lagged fluxes and lagged met"
+
+# markov lagged flux only
+STH_km27_mkfo30m:
+    forcing_vars: ['SWdown', 'Tair', 'RelHum']
+    clusterregression:
+        class: MiniBatchKMeans
+        args:
+            n_clusters: 27
+    class: LinearRegression
+    markov:
+        periods: 1
+        lag_X: False
+    description: "km27/Linear regression with SWdown, Tair, RelHum, plus 30-min markov-lagged fluxes only"
+
+STH_km27_mkfo1D:
+    forcing_vars: ['SWdown', 'Tair', 'RelHum']
+    clusterregression:
+        class: MiniBatchKMeans
+        args:
+            n_clusters: 27
+    class: LinearRegression
+    markov:
+        periods: 1
+        freq: D
+        lag_X: False
+    description: "km27/Linear regression with SWdown, Tair, RelHum, plus 1-day markov-lagged fluxes only"
+
+STHRW_km243_mkv30m:
+    forcing_vars: ['SWdown', 'Tair', 'RelHum', 'Rainf', 'Wind']
+    clusterregression:
+        class: MiniBatchKMeans
+        args:
+            n_clusters: 243
+    class: LinearRegression
+    markov:
+        periods: 1
+    description: "km243/Linear regression with SWdown, Tair, RelHum, plus 30-min markov-lagged fluxes and lagged met"

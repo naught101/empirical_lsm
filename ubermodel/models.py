@@ -10,6 +10,7 @@ Description:
 
 import yaml
 import sys
+import pkg_resources
 
 from pals_utils.data import get_config
 
@@ -56,7 +57,8 @@ def get_model_from_yaml(name):
     :returns: sklearn model pipeline
 
     """
-    with open('data/model_search.yaml') as f:
+    filename = pkg_resources.resource_filename('ubermodel', 'data/model_search.yaml')
+    with open(filename) as f:
         model_dict = yaml.load(f)[name]
 
     return get_model_from_dict(model_dict)

@@ -9,4 +9,5 @@ setup(name='ubermodel',
       author_email='ned@nedhaughton.com',
       url='https://bitbucket.org/naught101/empirical_ubermodel',
       packages=['ubermodel'],
-     )
+      package_data={'': ['data/*.yaml']},
+      )
