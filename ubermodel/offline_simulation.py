@@ -231,7 +231,12 @@ def run_simulation(model, name, site, multivariate=False, overwrite=False, fix_c
 def run_model_site_tuples_mp(tuples_list, no_mp=False, multivariate=False, overwrite=False, fix_closure=True):
     """Run (model, site) pairs"""
 
-    f_args = [(get_model(t[0]), t[0], t[1], multivariate, overwrite, fix_closure) for t in tuples_list]
+    seen = set()
+    all_names = [t[0] for t in tuples_list if not (t[0] in seen or seen.add(t[0]))]
+
+    all_models = {n: get_model(n) for n in all_names}
+
+    f_args = [(all_models[t[0]], t[0], t[1], multivariate, overwrite, fix_closure) for t in tuples_list]
 
     if no_mp:
         [run_simulation(*args) for args in f_args]
