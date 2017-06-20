@@ -32,10 +32,14 @@ from ubermodel.data import get_sites, sim_dict_to_xr, get_train_test_data
 from ubermodel.utils import print_good, print_warn, print_bad
 from ubermodel.checks import model_sanity_check, run_var_checks
 
-
 from pals_utils.data import set_config, get_config
 
+
 set_config(['vars', 'flux'], ['NEE', 'Qle', 'Qh'])
+
+
+def get_suitable_ncores():
+    return min(os.cpu_count(), 1 + int(os.cpu_count() * 0.5))
 
 
 def bytes_human_readable(n):
@@ -233,16 +237,18 @@ def main_run(model, name, site, multivariate=False, overwrite=False, fix_closure
     return
 
 
-def run_model_site_tuples_mp(tuples_list):
-    """Run (model, site) pairs
-    """
-    # TODO: options for run..
-    # Currently non-multivariate, overwriting, closure-fixing
-    f_args = [(get_model(t[0]), t[0], t[1], False, True) for t in tuples_list]
-    ncores = min(os.cpu_count(), 1 + int(os.cpu_count() * 0.5))
-    # TODO: Deal with memory requirement?
-    with Pool(ncores) as p:
-        p.starmap(main_run, f_args)
+def run_model_site_tuples_mp(tuples_list, no_mp=False, multivariate=False, overwrite=False, fix_closure=True):
+    """Run (model, site) pairs"""
+
+    f_args = [(get_model(t[0]), t[0], t[1], multivariate, overwrite, fix_closure) for t in tuples_list]
+
+    if no_mp:
+        [main_run(*args) for args in f_args]
+    else:  # multiprocess
+        ncores = get_suitable_ncores()
+        # TODO: Deal with memory requirement?
+        with Pool(ncores) as p:
+            p.starmap(main_run, f_args)
 
 
 def main_run_mp(name, site, no_mp=False, multivariate=False, overwrite=False, fix_closure=True):
@@ -259,7 +265,7 @@ def main_run_mp(name, site, no_mp=False, multivariate=False, overwrite=False, fi
                 main_run(model, name, s, multivariate, overwrite, fix_closure)
         else:
             f_args = [(model, name, s, multivariate, overwrite, fix_closure) for s in datasets]
-            ncores = min(os.cpu_count(), 1 + int(os.cpu_count() * 0.5))
+            ncores = get_suitable_ncores()
             if site is not 'debug' and hasattr(model, 'memory_requirement'):
                 ncores = max(1, int((psutil.virtual_memory().total / 2) // model.memory_requirement))
             print("Running on %d core(s)" % ncores)
