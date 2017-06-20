@@ -4,7 +4,7 @@
 File: run_model.py
 Author: ned haughton
 Email: ned@nedhaughton.com
-Description: Fits and runs a basic model and produces rst output with diagnostics
+Description: Fits and runs a basic model.
 
 Usage:
     run_model.py run <name> <site> [--no-mp] [--multivariate] [--overwrite] [--no-fix-closure]
@@ -126,7 +126,7 @@ def fit_predict_multivariate(model, flux_vars, train_test_data):
     return sim_data
 
 
-def PLUMBER_fit_predict(model, name, site, multivariate=False, fix_closure=True):
+def fit_predict(model, name, site, multivariate=False, fix_closure=True):
     """Fit and predict a model
 
     :model: sklearn-style model or pipeline (regression estimator)
@@ -189,7 +189,7 @@ def save_model_structure(model, name='None'):
     return
 
 
-def main_run(model, name, site, multivariate=False, overwrite=False, fix_closure=True):
+def run_simulation(model, name, site, multivariate=False, overwrite=False, fix_closure=True):
     """Main function for fitting and running a model.
 
     :model: sklearn-style model or pipeline (regression estimator)
@@ -208,8 +208,8 @@ def main_run(model, name, site, multivariate=False, overwrite=False, fix_closure
 
     for i in range(3):
         # We attempt to run the model up to 3 times, incase of numerical problems
-        sim_data = PLUMBER_fit_predict(model, name, site,
-                                       multivariate=multivariate, fix_closure=fix_closure)
+        sim_data = fit_predict(model, name, site,
+                               multivariate=multivariate, fix_closure=fix_closure)
 
         try:
             model_sanity_check(sim_data, name, site)
@@ -243,15 +243,15 @@ def run_model_site_tuples_mp(tuples_list, no_mp=False, multivariate=False, overw
     f_args = [(get_model(t[0]), t[0], t[1], multivariate, overwrite, fix_closure) for t in tuples_list]
 
     if no_mp:
-        [main_run(*args) for args in f_args]
+        [run_simulation(*args) for args in f_args]
     else:  # multiprocess
         ncores = get_suitable_ncores()
         # TODO: Deal with memory requirement?
         with Pool(ncores) as p:
-            p.starmap(main_run, f_args)
+            p.starmap(run_simulation, f_args)
 
 
-def main_run_mp(name, site, no_mp=False, multivariate=False, overwrite=False, fix_closure=True):
+def run_simulation_mp(name, site, no_mp=False, multivariate=False, overwrite=False, fix_closure=True):
     """Multi-processor run handling."""
     # TODO: refactor to work with above caller.
 
@@ -262,7 +262,7 @@ def main_run_mp(name, site, no_mp=False, multivariate=False, overwrite=False, fi
         datasets = get_sites(site)
         if no_mp:
             for s in datasets:
-                main_run(model, name, s, multivariate, overwrite, fix_closure)
+                run_simulation(model, name, s, multivariate, overwrite, fix_closure)
         else:
             f_args = [(model, name, s, multivariate, overwrite, fix_closure) for s in datasets]
             ncores = get_suitable_ncores()
@@ -271,9 +271,9 @@ def main_run_mp(name, site, no_mp=False, multivariate=False, overwrite=False, fi
             print("Running on %d core(s)" % ncores)
 
             with Pool(ncores) as p:
-                p.starmap(main_run, f_args)
+                p.starmap(run_simulation, f_args)
     else:
-        main_run(model, name, site, multivariate, overwrite, fix_closure)
+        run_simulation(model, name, site, multivariate, overwrite, fix_closure)
 
     return
 
@@ -282,11 +282,11 @@ def main(args):
     name = args['<name>']
     site = args['<site>']
 
-    main_run_mp(name, site,
-                no_mp=args['--no-mp'],
-                multivariate=args['--multivariate'],
-                overwite=args['--overwrite'],
-                fix_closure=not args['--no-fix-closure'])
+    run_simulation_mp(name, site,
+                      no_mp=args['--no-mp'],
+                      multivariate=args['--multivariate'],
+                      overwite=args['--overwrite'],
+                      fix_closure=not args['--no-fix-closure'])
 
     return
 

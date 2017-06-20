@@ -20,8 +20,8 @@ from docopt import docopt
 
 from ubermodel.model_sets import get_combo_model_names
 
-from scripts.offline_runs.run_model import main_run_mp
-from scripts.offline_runs.eval_model import main_eval_mp
+from scripts.offline_runs.run_model import run_simulation_mp
+from scripts.offline_runs.eval_model import eval_simulation_mp
 
 
 def main(sites, run=False, multivariate=True, evalu=False, plots=False,
@@ -31,12 +31,13 @@ def main(sites, run=False, multivariate=True, evalu=False, plots=False,
 
     if args['--run']:
         for name in names:
-            main_run_mp(name, sites, no_mp=no_mp, multivariate=multivariate,
-                        overwrite=overwrite, fix_closure=fix_closure)
+            run_simulation_mp(name, sites, no_mp=no_mp, multivariate=multivariate,
+                              overwrite=overwrite, fix_closure=fix_closure)
 
     if args['--eval']:
         for name in names:
-            main_eval_mp(name, sites, plots=plots, no_mp=no_mp, fix_closure=fix_closure)
+            eval_simulation_mp(name, sites, plots=plots, no_mp=no_mp,
+                               fix_closure=fix_closure)
 
     return
 

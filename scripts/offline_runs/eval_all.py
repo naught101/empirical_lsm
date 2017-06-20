@@ -20,24 +20,24 @@ from docopt import docopt
 
 import subprocess
 
-from scripts.offline_runs.run_model import main_run_mp
-from scripts.offline_runs.eval_model import main_eval_mp, main_rst_gen_mp
+from scripts.offline_runs.run_model import run_simulation_mp
+from scripts.offline_runs.eval_model import eval_simulation_mp, main_rst_gen_mp
 from scripts.offline_runs.model_search_indexes import model_site_index_rst_mp, model_search_index_rst, get_available_models
 
 
-def main_eval_all(names, sites, run=False, multivariate=True, evalu=False,
-                  plots=False, rst=False, html=False, rebuild=False, no_mp=False,
-                  overwrite=False, fix_closure=True):
+def eval_simulation_all(names, sites, run=False, multivariate=True, evalu=False,
+                        plots=False, rst=False, html=False, rebuild=False, no_mp=False,
+                        overwrite=False, fix_closure=True):
 
     # All scripts already use multiprocessing
     if run:
         for name in names:
-            main_run_mp(name, sites, no_mp=no_mp, multivariate=multivariate,
-                        overwrite=overwrite, fix_closure=fix_closure)
+            run_simulation_mp(name, sites, no_mp=no_mp, multivariate=multivariate,
+                              overwrite=overwrite, fix_closure=fix_closure)
 
     if evalu:
         for name in names:
-            main_eval_mp(name, sites, plots=plots, no_mp=no_mp, fix_closure=fix_closure)
+            eval_simulation_mp(name, sites, plots=plots, no_mp=no_mp, fix_closure=fix_closure)
 
     if rst:
         for name in names:
@@ -56,19 +56,19 @@ def main(args):
     else:
         names = args['<model>']
 
-    main_eval_all(names=names,
-                  sites=args['--sites'],
-                  run=args['--run'],
-                  multivariate=args['--multivariate'],
-                  evalu=args['--eval'],
-                  plots=args['--plot'],
-                  rst=args['--rst'],
-                  html=args['--html'],
-                  rebuild=args['--rebuild'],
-                  no_mp=args['--no-mp'],
-                  overwrite=args['--overwrite'],
-                  fix_closure=not args['--no-fix-closure']
-                  )
+    eval_simulation_all(names=names,
+                        sites=args['--sites'],
+                        run=args['--run'],
+                        multivariate=args['--multivariate'],
+                        evalu=args['--eval'],
+                        plots=args['--plot'],
+                        rst=args['--rst'],
+                        html=args['--html'],
+                        rebuild=args['--rebuild'],
+                        no_mp=args['--no-mp'],
+                        overwrite=args['--overwrite'],
+                        fix_closure=not args['--no-fix-closure']
+                        )
 
     return
 
