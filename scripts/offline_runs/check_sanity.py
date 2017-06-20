@@ -28,7 +28,7 @@ from ubermodel.data import get_sites
 from ubermodel.checks import model_sanity_check
 
 from ubermodel.offline_simulation import run_model_site_tuples_mp
-from scripts.offline_runs.eval_model import eval_simulation
+from ubermodel.offline_eval import eval_simulation
 
 
 def check_model_data(models, sites):

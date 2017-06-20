@@ -21,7 +21,7 @@ from docopt import docopt
 from ubermodel.model_sets import get_combo_model_names
 
 from ubermodel.offline_simulation import run_simulation_mp
-from scripts.offline_runs.eval_model import eval_simulation_mp
+from ubermodel.offline_eval import eval_simulation_mp
 
 
 def main(sites, run=False, multivariate=True, evalu=False, plots=False,
