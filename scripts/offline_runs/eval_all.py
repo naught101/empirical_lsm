@@ -20,7 +20,7 @@ from docopt import docopt
 
 import subprocess
 
-from scripts.offline_runs.run_model import run_simulation_mp
+from ubermodel.offline_simulation import run_simulation_mp
 from scripts.offline_runs.eval_model import eval_simulation_mp, main_rst_gen_mp
 from scripts.offline_runs.model_search_indexes import model_site_index_rst_mp, model_search_index_rst, get_available_models
 

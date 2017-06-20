@@ -20,7 +20,7 @@ from docopt import docopt
 
 from ubermodel.model_sets import get_combo_model_names
 
-from scripts.offline_runs.run_model import run_simulation_mp
+from ubermodel.offline_simulation import run_simulation_mp
 from scripts.offline_runs.eval_model import eval_simulation_mp
 
 
