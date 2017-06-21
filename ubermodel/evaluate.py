@@ -13,11 +13,10 @@ import numpy as np
 import glob
 import os
 
-from pals_utils.data import pals_site_name
+from pals_utils.data import pals_site_name, get_sites
 from pals_utils.stats import run_metrics
 
 from .utils import print_bad, print_good
-from .data import get_sites
 
 
 # Evaluate

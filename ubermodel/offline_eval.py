@@ -17,12 +17,12 @@ from multiprocessing import Pool
 from matplotlib.cbook import dedent
 from datetime import datetime as dt
 
-from pals_utils.data import get_flux_data
+from pals_utils.data import get_sites, get_flux_data
 
 from ubermodel.evaluate import evaluate_simulation, load_sim_evaluation
 from ubermodel.plots import diagnostic_plots
 from ubermodel.utils import print_good, print_bad, dataframe_to_rst
-from ubermodel.data import get_sites, get_sim_nc_path
+from ubermodel.data import get_sim_nc_path
 from ubermodel.models import get_model
 
 

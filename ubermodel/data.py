@@ -13,10 +13,13 @@ import numpy as np
 import pandas as pd
 import os
 
-from pals_utils.data import get_sites, copy_data, get_met_data, \
+from pals_utils.data import get_sites, copy_data, get_met_data, get_config, set_config, \
     pals_xr_to_df, get_multisite_met_df, get_multisite_flux_df
 
 from ubermodel.transforms import rolling_mean
+
+
+set_config(['datasets', 'train'], 'PLUMBER_ext')
 
 
 def sim_dict_to_xr(sim_dict, old_ds):
@@ -115,13 +118,13 @@ def get_train_test_data(site, met_vars, flux_vars, use_names, fix_closure=True):
         # met_test = met_test[0:5000]
 
     else:
-        plumber_datasets = get_sites('PLUMBER_ext')
-        if site not in plumber_datasets:
-            # Using a non-PLUMBER site, train on all PLUMBER sites.
-            train_sites = plumber_datasets
+        training_datasets = get_sites(get_config(['datasets', 'train']))
+        if site not in training_datasets:
+            # Running on a non-training site, train on all training sites.
+            train_sites = training_datasets
         else:
-            # Using a PLUMBER site, leave one out.
-            train_sites = [s for s in plumber_datasets if s != site]
+            # Running on a training site, so leave it out.
+            train_sites = [s for s in training_datasets if s != site]
         print("Training with {n} datasets".format(n=len(train_sites)))
 
         met_train = get_multisite_met_df(train_sites, variables=met_vars, qc=True, name=use_names)
