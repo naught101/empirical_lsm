@@ -279,15 +279,15 @@ def get_model_from_def(name):
         model.description = "Neural-network model with Swdown, Tair, RelHum, and Lagged Rainf (2d)"
 
     # Named parseable models
-    elif name == 'short243':
+    elif name == 'short_term243':
         model = parse_model_name('STHWdTdQ_lT6hM_km243')
-        model.name == 'short243'
-    elif name == 'long243':
+        model.name == 'short_term243'
+    elif name == 'long_term243':
         model = parse_model_name('STHWdTdQ_lS30d_lR30d_lH10d_lT6hM_km243')
-        model.name == 'long243'
-    elif name == 'long729':
+        model.name == 'long_term243'
+    elif name == 'long_term729':
         model = parse_model_name('STHWdTdQ_lS30d_lR30d_lH10d_lT6hM_km729')
-        model.name == 'long729'
+        model.name == 'long_term729'
 
     else:
         raise NameError("unknown model")
