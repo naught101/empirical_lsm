@@ -57,7 +57,7 @@ def get_model_from_yaml(name):
     :returns: sklearn model pipeline
 
     """
-    filename = pkg_resources.resource_filename('ubermodel', 'data/model_search.yaml')
+    filename = pkg_resources.resource_filename('empirical_lsm', 'data/model_search.yaml')
     with open(filename) as f:
         model_dict = yaml.load(f)[name]
 
@@ -90,7 +90,7 @@ def get_model_from_dict(model_dict):
         model = get_model_class(model_dict['class'])
 
     if 'clusterregression' in model_dict:
-        from ubermodel.clusterregression import ModelByCluster
+        from empirical_lsm.clusterregression import ModelByCluster
         clusterer = model_dict['clusterregression']['class']
         cluster_args = model_dict['clusterregression']['args']
         model = ModelByCluster(

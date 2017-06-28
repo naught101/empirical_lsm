@@ -17,8 +17,8 @@ from sklearn.neural_network import MLPRegressor
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import make_pipeline
 
-from ubermodel.clusterregression import ModelByCluster
-from ubermodel.transforms import MissingDataWrapper, LagAverageWrapper, MarkovLagAverageWrapper, Mean
+from empirical_lsm.clusterregression import ModelByCluster
+from empirical_lsm.transforms import MissingDataWrapper, LagAverageWrapper, MarkovLagAverageWrapper, Mean
 
 
 def km_regression(k, model):

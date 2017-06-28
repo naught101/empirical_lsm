@@ -23,12 +23,12 @@ import pandas as pd
 import xarray as xr
 from glob import glob
 
-from ubermodel.utils import print_bad
-from ubermodel.data import get_sites
-from ubermodel.checks import model_sanity_check
+from empirical_lsm.utils import print_bad
+from empirical_lsm.data import get_sites
+from empirical_lsm.checks import model_sanity_check
 
-from ubermodel.offline_simulation import run_model_site_tuples_mp
-from ubermodel.offline_eval import eval_simulation
+from empirical_lsm.offline_simulation import run_model_site_tuples_mp
+from empirical_lsm.offline_eval import eval_simulation
 
 
 def check_model_data(models, sites):

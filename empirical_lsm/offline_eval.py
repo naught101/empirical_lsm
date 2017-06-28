@@ -19,11 +19,11 @@ from datetime import datetime as dt
 
 from pals_utils.data import get_sites, get_flux_data
 
-from ubermodel.evaluate import evaluate_simulation, load_sim_evaluation
-from ubermodel.plots import diagnostic_plots
-from ubermodel.utils import print_good, print_bad, dataframe_to_rst
-from ubermodel.data import get_sim_nc_path
-from ubermodel.models import get_model
+from empirical_lsm.evaluate import evaluate_simulation, load_sim_evaluation
+from empirical_lsm.plots import diagnostic_plots
+from empirical_lsm.utils import print_good, print_bad, dataframe_to_rst
+from empirical_lsm.data import get_sim_nc_path
+from empirical_lsm.models import get_model
 
 
 def model_site_rst_format(name, site, eval_text, plot_files):

@@ -5,7 +5,7 @@ File: data.py
 Author: ned haughton
 Email: ned@nedhaughton.com
 Github: https://github.com/naught101
-Description: ubermodel data helper functions
+Description: empirical_lsm data helper functions
 """
 
 import xarray as xr
@@ -16,7 +16,7 @@ import os
 from pals_utils.data import get_sites, copy_data, get_met_data, get_config, set_config, \
     pals_xr_to_df, get_multisite_met_df, get_multisite_flux_df
 
-from ubermodel.transforms import rolling_mean
+from empirical_lsm.transforms import rolling_mean
 
 
 set_config(['datasets', 'train'], 'PLUMBER_ext')

@@ -5,7 +5,7 @@ File: utils.py
 Author: ned haughton
 Email: ned@nedhaughton.com
 Github: https://github.com/naught101
-Description: ubermodel helper functions
+Description: empirical_lsm helper functions
 """
 
 from tabulate import tabulate

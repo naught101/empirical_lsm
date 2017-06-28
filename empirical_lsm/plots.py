@@ -24,7 +24,7 @@ from .utils import print_warn
 from .evaluate import get_PLUMBER_metrics, subset_metric_df, quantile_normalise
 
 
-def ubermodel_palette(name="Final ensemble"):
+def empirical_lsm_palette(name="Final ensemble"):
     if name == "Final ensemble":
         colours = ['hotpink', 'red', 'orange', 'gold',
                    'lightseagreen', 'cornflowerblue', 'mediumblue',

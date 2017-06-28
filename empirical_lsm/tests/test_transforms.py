@@ -5,7 +5,7 @@ File: test_transforms.py
 Author: naughton101
 Email: naught101@email.com
 Github: https://github.com/naught101/
-Description: Tests for ubermodel
+Description: Tests for empirical_lsm
 """
 
 import unittest
@@ -16,7 +16,7 @@ import numpy.testing as nt
 from sklearn.linear_model import LinearRegression
 
 from pals_utils.data import get_site_data, xr_list_to_df
-from ubermodel.transforms import LagWrapper, MarkovWrapper, rolling_mean
+from empirical_lsm.transforms import LagWrapper, MarkovWrapper, rolling_mean
 
 
 class TestLagWrapper(unittest.TestCase):

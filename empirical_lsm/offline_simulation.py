@@ -22,11 +22,11 @@ from multiprocessing import Pool
 
 from pals_utils.data import get_config, get_sites
 
-from ubermodel.transforms import LagWrapper, LagAverageWrapper
-from ubermodel.models import get_model
-from ubermodel.data import sim_dict_to_xr, get_train_test_data
-from ubermodel.utils import print_good, print_warn, print_bad
-from ubermodel.checks import model_sanity_check, run_var_checks
+from empirical_lsm.transforms import LagWrapper, LagAverageWrapper
+from empirical_lsm.models import get_model
+from empirical_lsm.data import sim_dict_to_xr, get_train_test_data
+from empirical_lsm.utils import print_good, print_warn, print_bad
+from empirical_lsm.checks import model_sanity_check, run_var_checks
 
 
 def get_suitable_ncores():

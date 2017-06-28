@@ -20,7 +20,7 @@ from docopt import docopt
 
 import pickle
 import numpy as np
-import ubermodel
+import empirical_lsm
 
 
 def get_wrapper_vars(wrapper):
@@ -29,7 +29,7 @@ def get_wrapper_vars(wrapper):
 
 def get_cluster_regression_model(wrapper):
     """Unwraps a model"""
-    if isinstance(wrapper, ubermodel.clusterregression.ModelByCluster):
+    if isinstance(wrapper, empirical_lsm.clusterregression.ModelByCluster):
         return wrapper
     else:
         return get_cluster_regression_model(wrapper.model)

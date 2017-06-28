@@ -17,7 +17,7 @@ from docopt import docopt
 
 from pals_utils.data import set_config
 
-from ubermodel.offline_simulation import run_simulation_mp
+from empirical_lsm.offline_simulation import run_simulation_mp
 
 set_config(['vars', 'flux'], ['NEE', 'Qle', 'Qh'])
 

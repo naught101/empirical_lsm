@@ -19,8 +19,8 @@ import numpy as np
 import xarray as xr
 
 from pals_utils.data import get_flux_data
-from ubermodel.utils import print_good
-from ubermodel.data import get_sites, get_sim_nc_path
+from empirical_lsm.utils import print_good
+from empirical_lsm.data import get_sites, get_sim_nc_path
 
 
 def fix_benchmark(site_data, name, site):

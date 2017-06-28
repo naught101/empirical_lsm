@@ -5,7 +5,7 @@ File: eval_all.py
 Author: naught101
 Email: naught101@email.com
 Github: https://github.com/naught101/
-Description: Runs all steps of the offline runs/ubermodel search page generator
+Description: Runs all steps of the offline runs/empirical_lsm search page generator
 
 Usage:
     eval_all.py <model>... [--sites=<sites>] [--run] [--multivariate] [--eval [--plot]] [--rst] [--html] [--rebuild] [--no-mp] [--overwrite] [--no-fix-closure]
@@ -20,8 +20,8 @@ from docopt import docopt
 
 import subprocess
 
-from ubermodel.offline_simulation import run_simulation_mp
-from ubermodel.offline_eval import eval_simulation_mp, main_rst_gen_mp
+from empirical_lsm.offline_simulation import run_simulation_mp
+from empirical_lsm.offline_eval import eval_simulation_mp, main_rst_gen_mp
 from scripts.offline_runs.model_search_indexes import model_site_index_rst_mp, model_search_index_rst, get_available_models
 
 

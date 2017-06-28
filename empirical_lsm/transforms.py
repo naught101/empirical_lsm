@@ -5,7 +5,7 @@ File: transforms.py
 Author: naughton101
 Email: naught101@email.com
 Github: https://github.com/naught101/
-Description: Transformations for ubermodel
+Description: Transformations for empirical_lsm
 """
 
 import re

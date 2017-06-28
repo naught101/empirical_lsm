@@ -28,9 +28,9 @@ import xarray as xr
 
 import pals_utils.data as pud
 
-from ubermodel.data import get_sites, get_data_dir
-from ubermodel.gridded_datasets import get_dataset_data, get_dataset_freq
-from ubermodel.models import get_model
+from empirical_lsm.data import get_sites, get_data_dir
+from empirical_lsm.gridded_datasets import get_dataset_data, get_dataset_freq
+from empirical_lsm.models import get_model
 
 
 def predict_gridded(model, dataset_data, flux_vars, datafreq=None):

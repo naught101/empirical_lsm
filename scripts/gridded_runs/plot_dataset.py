@@ -26,7 +26,7 @@ from mpl_toolkits import basemap
 from mpl_toolkits.axes_grid1 import ImageGrid
 from matplotlib.colors import LinearSegmentedColormap
 
-from ubermodel.gridded_datasets import get_MODIS_data  # , get_GLEAM3a_data, get_MPI_data
+from empirical_lsm.gridded_datasets import get_MODIS_data  # , get_GLEAM3a_data, get_MPI_data
 
 
 def get_range(x):

@@ -16,7 +16,7 @@ Options:
 
 from docopt import docopt
 
-from ubermodel.offline_eval import eval_simulation_mp, main_rst_gen_mp
+from empirical_lsm.offline_eval import eval_simulation_mp, main_rst_gen_mp
 
 
 def main(args):
