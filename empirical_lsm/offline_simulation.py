@@ -149,6 +149,20 @@ def fit_predict_multivariate(model, flux_vars, train_test_data):
     return sim_data
 
 
+def add_sim_metadata(sim_data, name, model, site, met_vars, **kwargs):
+
+    sim_data.attrs.update({
+        "Model_name": name,
+        "Model_description": str(model),
+        "PALS_site": site,
+        "Forcing_vars": ', '.join(met_vars),
+        "Production_time": str(dt.now()),
+        "Production_source": "Ubermodel offline run scripts"
+    })
+
+    sim_data.attrs.update(kwargs)
+
+
 def fit_predict(model, name, site, multivariate=False, fix_closure=True):
     """Fit and predict a model
 
@@ -183,16 +197,9 @@ def fit_predict(model, name, site, multivariate=False, fix_closure=True):
 
     print("Model fit and run in %s, using %s memory." % (run_time, mem_usage))
 
-    sim_data.attrs.update({
-        "Model_name": name,
-        "Model_description": str(model),
-        "PALS_site": site,
-        "Forcing_vars": ', '.join(met_vars),
-        "Fit_predict_time": run_time,
-        "Fit_predict_mem_usage": mem_usage,
-        "Production_time": str(dt.now()),
-        "Production_source": "Ubermodel offline run scripts"
-    })
+    add_sim_metadata(sim_data, name, model, site, met_vars,
+                     Fit_predict_time=run_time,
+                     Fit_predict_mem_usage=mem_usage)
 
     return sim_data
 
