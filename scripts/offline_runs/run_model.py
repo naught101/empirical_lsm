@@ -29,7 +29,7 @@ def main(args):
     run_simulation_mp(name, site,
                       no_mp=args['--no-mp'],
                       multivariate=args['--multivariate'],
-                      overwite=args['--overwrite'],
+                      overwrite=args['--overwrite'],
                       fix_closure=not args['--no-fix-closure'])
 
     return
