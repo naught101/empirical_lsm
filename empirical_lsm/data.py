@@ -20,6 +20,7 @@ from empirical_lsm.transforms import rolling_mean
 
 
 set_config(['datasets', 'train'], 'PLUMBER_ext')
+set_config(['qc_format'], 'PALS')
 
 
 def sim_dict_to_xr(sim_dict, old_ds):
