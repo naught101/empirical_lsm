@@ -16,6 +16,7 @@ import math
 import psutil
 import pickle
 
+from copy import deepcopy
 from datetime import datetime as dt
 
 from multiprocessing import Pool
@@ -44,18 +45,19 @@ def bytes_human_readable(n):
     return(signif + suffix)
 
 
-def fit_predict_univariate(model, flux_vars, train_test_data):
-    """Fits a model one output variable at a time """
-    sim_data_dict = dict()
+def fit_univariate(model, flux_vars, train_test_data):
+    models = {}
     for v in flux_vars:
         # TODO: Might eventually want to update this to run multivariate-out models
         # There isn't much point right now, because there is almost no data where all variables are available.
         flux_train_v = train_test_data["flux_train"][[v]]
 
-        if hasattr(model, 'partial_data_ok'):
+        models[v] = deepcopy(model)
+
+        if hasattr(models[v], 'partial_data_ok'):
             # model accepts partial data
             print("Training {v} using all (possibly incomplete) data.".format(v=v))
-            model.fit(X=train_test_data["met_train"], y=flux_train_v)
+            models[v].fit(X=train_test_data["met_train"], y=flux_train_v)
         else:
             # Ditch all of the incomplete data
             qc_index = (~pd.concat([train_test_data["met_train"], flux_train_v], axis=1).isnull()).apply(all, axis=1)
@@ -66,15 +68,22 @@ def fit_predict_univariate(model, flux_vars, train_test_data):
                 print("No training data, skipping variable %s" % v)
                 continue
 
-            model.fit(X=train_test_data["met_train"][qc_index], y=flux_train_v[qc_index])
+            models[v].fit(X=train_test_data["met_train"][qc_index], y=flux_train_v[qc_index])
         print("Fitting complete.")
 
-        sim_data_dict[v] = model.predict(train_test_data["met_test"])
+    return(models)
+
+
+def predict_univariate(var_models, flux_vars, train_test_data):
+    sim_data_dict = dict()
+
+    for v in flux_vars:
+        sim_data_dict[v] = var_models[v].predict(train_test_data["met_test"])
         print("Prediction complete.")
 
         if run_var_checks(sim_data_dict[v]):
-            name = "%s_%s_%s" % (model.name, v, train_test_data["site"])
-            save_model_structure(model, name)
+            name = "%s_%s_%s" % (var_models[v].name, v, train_test_data["site"])
+            save_model_structure(var_models[v], name)
 
     if len(sim_data_dict) < 1:
         print("No fluxes successfully fitted, quitting")
@@ -85,9 +94,17 @@ def fit_predict_univariate(model, flux_vars, train_test_data):
     return sim_data
 
 
-def fit_predict_multivariate(model, flux_vars, train_test_data):
-    """Fits a model multiple outputs variable at once"""
+def fit_predict_univariate(model, flux_vars, train_test_data):
+    """Fits a model one output variable at a time """
 
+    var_models = fit_univariate(model, flux_vars, train_test_data)
+
+    sim_data = predict_univariate(var_models, flux_vars, train_test_data)
+
+    return sim_data
+
+
+def fit_multivariate(model, flux_vars, train_test_data):
     if hasattr(model, 'partial_data_ok'):
             # model accepts partial data
         print("Training {v} using all (possibly incomplete) data.".format(v=flux_vars))
@@ -105,6 +122,11 @@ def fit_predict_multivariate(model, flux_vars, train_test_data):
         model.fit(X=train_test_data["met_train"][qc_index], y=train_test_data["flux_train"][qc_index])
     print("Fitting complete.")
 
+    return model
+
+
+def predict_multivariate(model, flux_vars, train_test_data):
+
     sim_data = model.predict(train_test_data["met_test"])
     print("Prediction complete.")
 
@@ -113,6 +135,16 @@ def fit_predict_multivariate(model, flux_vars, train_test_data):
         sim_data = {v: sim_data[:, i] for i, v in enumerate(flux_vars)}
 
     sim_data = sim_dict_to_xr(sim_data, train_test_data["met_test_xr"])
+
+    return sim_data
+
+
+def fit_predict_multivariate(model, flux_vars, train_test_data):
+    """Fits a model multiple outputs variable at once"""
+
+    model = fit_multivariate(model, flux_vars, train_test_data)
+
+    sim_data = predict_multivariate(model, flux_vars, train_test_data)
 
     return sim_data
 
