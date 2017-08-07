@@ -7,7 +7,7 @@ setup(name='empirical_lsm',
       description='Empirical land surface model',
       author='ned haughton',
       author_email='ned@nedhaughton.com',
-      url='https://bitbucket.org/naught101/empirical_lsm',
+      url='https://github.com/naught101/empirical_lsm',
       packages=['empirical_lsm'],
       package_data={'': ['data/*.yaml']},
       )

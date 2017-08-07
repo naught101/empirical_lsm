@@ -4,8 +4,8 @@
 File: models.py
 Author: ned haughton
 Email: ned@nedhaughton.com
-Github: https://github.com/naught101
-Description:
+Github: https://github.com/naught101/empirical_lsm
+Description: Model loaders and definitions
 """
 
 import yaml

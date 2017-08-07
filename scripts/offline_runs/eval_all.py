@@ -4,7 +4,7 @@
 File: eval_all.py
 Author: naught101
 Email: naught101@email.com
-Github: https://github.com/naught101/
+Github: https://github.com/naught101/empirical_lsm
 Description: Runs all steps of the offline runs/empirical_lsm search page generator
 
 Usage:

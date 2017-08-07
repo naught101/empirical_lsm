@@ -4,7 +4,7 @@
 File: evaluation.py
 Author: ned haughton
 Email: ned@nedhaughton.com
-Github:
+Github: https://github.com/naught101/empirical_lsm
 Description: PALS-style model evaluation
 """
 

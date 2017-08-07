@@ -4,6 +4,7 @@
 File: import_sim.py
 Author: ned haughton
 Email: ned@nedhaughton.com
+Github: https://github.com/naught101/empirical_lsm
 Description: imports a benchmark from a PALS dataset
 
 Usage:

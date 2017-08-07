@@ -4,6 +4,7 @@
 File: eval_model.py
 Author: ned haughton
 Email: ned@nedhaughton.com
+Github: https://github.com/naught101/empirical_lsm
 Description: Evaluates a model (sim or set of sims) and produces rst output with diagnostics
 
 Usage:

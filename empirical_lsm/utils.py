@@ -4,7 +4,7 @@
 File: utils.py
 Author: ned haughton
 Email: ned@nedhaughton.com
-Github: https://github.com/naught101
+Github: https://github.com/naught101/empirical_lsm
 Description: empirical_lsm helper functions
 """
 

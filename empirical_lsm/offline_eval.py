@@ -4,7 +4,7 @@
 File: offline_eval.py
 Author: naught101
 Email: naught101@email.com
-Github: https://github.com/naught101/
+Github: https://github.com/naught101/empirical_lsm
 Description: Evaluation functions for offline runs
 """
 

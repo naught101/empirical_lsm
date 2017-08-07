@@ -4,7 +4,7 @@
 File: plot_dataset.py
 Author: naught101
 Email: naught101@email.com
-Github: https://github.com/naught101/
+Github: https://github.com/naught101/empirical_lsm
 Description: Plots annual and monthly means and standard deviations of gridded model outputs.
 
 Usage:

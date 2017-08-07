@@ -4,7 +4,7 @@
 File: transforms.py
 Author: naughton101
 Email: naught101@email.com
-Github: https://github.com/naught101/
+Github: https://github.com/naught101/empirical_lsm
 Description: Transformations for empirical_lsm
 """
 

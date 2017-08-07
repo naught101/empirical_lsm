@@ -4,7 +4,7 @@
 File: gridded_benchmarks.py
 Author: naught101
 Email: naught101@email.com
-Github: https://github.com/naught101/
+Github: https://github.com/naught101/empirical_lsm
 Description: Generates gridded output files from benchmark models
 
 Usage:

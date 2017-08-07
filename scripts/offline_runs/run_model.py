@@ -4,6 +4,7 @@
 File: run_model.py
 Author: ned haughton
 Email: ned@nedhaughton.com
+Github: https://github.com/naught101/empirical_lsm
 Description: Fits and runs a basic model.
 
 Usage:

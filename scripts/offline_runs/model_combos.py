@@ -4,7 +4,7 @@
 File: model_combos.py
 Author: naught101
 Email: naught101@email.com
-Github: https://github.com/naught101/
+Github: https://github.com/naught101/empirical_lsm
 Description: Runs and evaluates combination models of forcings that appear to work
 
 Usage:

@@ -4,7 +4,7 @@
 File: plots.py
 Author: ned haughton
 Email: ned@nedhaughton.com
-Github: https://github.com/naught101
+Github: https://github.com/naught101/empirical_lsm
 Description: diagnostic plots for evaluating models
 """
 

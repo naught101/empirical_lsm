@@ -4,7 +4,7 @@
 File: inspect_cluster_regression.py
 Author: naught101
 Email: naught101@email.com
-Github: https://github.com/naught101/
+Github: https://github.com/naught101/empirical_lsm
 Description: Inspects a cluster+regression model for weird values
 
 Usage:
