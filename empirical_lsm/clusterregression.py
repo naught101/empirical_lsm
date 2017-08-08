@@ -31,6 +31,11 @@ class ModelByCluster(BaseEstimator):
         clusters = self.clusterer_.fit_predict(X)
         cluster_ids = np.unique(clusters)
 
+        assert (len(cluster_ids) == self.clusterer_.n_clusters), \
+            "MBC: Some clusters have no data. Probably too little data available: " + \
+            "Only {n} data points for {k} clusters.".format(
+                n=X.shape[0], k=self.clusterer_.n_clusters)
+
         self.estimators_ = {}
         for c in cluster_ids:
             mask = clusters == c
@@ -55,7 +60,7 @@ class ModelByCluster(BaseEstimator):
 
         y_tmp = np.concatenate(y_tmp)
         idx = np.concatenate(idx)
-        y = np.empty_like(y_tmp)
+        y = np.full([X.shape[0], y_tmp.shape[1]], np.nan)
         y[idx] = y_tmp
 
         return y
