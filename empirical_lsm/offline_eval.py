@@ -216,10 +216,14 @@ def main_rst_gen(name, site):
 def eval_simulation_mp(name, site, sim_file=None, plots=False, no_mp=False,
                        fix_closure=True, qc=True):
     """Evaluate using multiple processes if necessary"""
-    if site in ['all', 'PLUMBER_ext', 'PLUMBER']:
-        # will only work if simulations are already run.
+    # will only work if simulations are already run.
+    try:
         datasets = get_sites(site)
 
+    except KeyError:  # Unknown site, single site
+        eval_simulation(name, site, sim_file, plots=plots, fix_closure=fix_closure, qc=qc)
+
+    else:
         if no_mp:
             for s in datasets:
                 eval_simulation(name, s, plots=plots, fix_closure=fix_closure, qc=qc)
@@ -228,9 +232,6 @@ def eval_simulation_mp(name, site, sim_file=None, plots=False, no_mp=False,
             ncores = min(os.cpu_count(), 1 + int(os.cpu_count() * 0.5))
             with Pool(ncores) as p:
                 p.starmap(eval_simulation, f_args)
-
-    else:
-        eval_simulation(name, site, sim_file, plots=plots, fix_closure=fix_closure, qc=qc)
 
 
 def main_rst_gen_mp(name, site, sim_file=None, no_mp=False):
