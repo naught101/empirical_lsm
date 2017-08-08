@@ -13,7 +13,7 @@ import numpy as np
 import glob
 import os
 
-from pals_utils.data import pals_site_name, get_sites
+from pals_utils.data import get_site_code, get_sites
 from pals_utils.stats import run_metrics
 
 from .utils import print_bad, print_good
@@ -29,7 +29,7 @@ def evaluate_simulation(sim_data, flux_data, name, qc=True):
     TODO: Maybe get model model_name from sim_data directly (this is a PITA at
           the moment, most models don't report it).
     """
-    site = pals_site_name(flux_data)
+    site = get_site_code(flux_data)
     print_good('Evaluating data for {n} at {s}'.format(n=name, s=site))
 
     flux_vars = ['NEE', 'Qh', 'Qle']
