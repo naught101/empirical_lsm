@@ -281,13 +281,13 @@ def get_model_from_def(name):
     # Named parseable models
     elif name == 'short_term243':
         model = parse_model_name('STHWdTdQ_lT6hM_km243')
-        model.name == 'short_term243'
+        model.name = 'short_term243'
     elif name == 'long_term243':
         model = parse_model_name('STHWdTdQ_lS30d_lR30d_lH10d_lT6hM_km243')
-        model.name == 'long_term243'
+        model.name = 'long_term243'
     elif name == 'long_term729':
         model = parse_model_name('STHWdTdQ_lS30d_lR30d_lH10d_lT6hM_km729')
-        model.name == 'long_term729'
+        model.name = 'long_term729'
 
     else:
         raise NameError("unknown model")
