@@ -8,7 +8,13 @@ Github: https://github.com/naught101/empirical_lsm
 Description: model sanity checks.
 """
 
+import os
 import numpy as np
+
+import pandas as pd
+import xarray as xr
+
+from empirical_lsm.utils import print_bad
 
 
 flux_vars = ['NEE', 'Qh', 'Qle']
@@ -42,6 +48,65 @@ def run_var_checks(data):
     return (check_var_too_low(data) or
             check_var_too_high(data) or
             check_var_change_too_fast(data))
+
+
+def check_model_data(models, sites):
+    """Checks all models
+
+    :models: list of model names
+    """
+    bad_simulations = []
+
+    print("Checking {nm} models at {ns} sites.".format(nm=len(models), ns=len(sites)))
+    for model in models:
+        print('Checking {m}:'.format(m=model))
+        for site in sites:
+            file_path = 'model_data/{m}/{m}_{s}.nc'.format(m=model, s=site)
+            if not os.path.exists(file_path):
+                # print('\nmissing model run: {m} at {s}'.format(m=model, s=site))
+                print('x', end='', flush=True)
+                continue
+            with xr.open_dataset(file_path) as ds:
+                try:
+                    model_sanity_check(ds, model, site)
+                except RuntimeError as e:
+                    print_bad('\n' + str(e))
+                    bad_simulations.append((model, site))
+                else:
+                    print('.', end='', flush=True)
+        print('')
+
+    return bad_simulations
+
+
+def check_metrics(models, sites):
+    """Checks metrics to see if they're bullshit
+
+    :models: TODO
+    :sites: TODO
+    :returns: TODO
+
+    """
+    # Glob all metric filenames
+
+    bad_simulations = []
+
+    for model in models:
+        for site in sites:
+            csv_path = 'source/models/{m}/metrics/{m}_{s}_metrics.csv'.format(m=model, s=site)
+            if not os.path.exists(csv_path):
+                continue
+
+            metrics = pd.read_csv(csv_path, index_col=0)
+            if ((metrics > 500).any().any() or
+                    (metrics.loc['corr'] > 1).any() or
+                    (metrics.loc['corr'] < -1).any() or
+                    (metrics.loc['overlap'] > 1).any() or
+                    (metrics.loc['overlap'] < 0).any()):
+                print_bad("Crazy value for {m} at {s}".format(m=model, s=site))
+                bad_simulations.append((model, site))
+
+    return bad_simulations
 
 
 def model_sanity_check(sim_data, name, site):
