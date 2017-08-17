@@ -152,7 +152,7 @@ def quantile_normalise(x, dist='uniform'):
     """Quantile normalise to a standard distribution
     """
     if dist == 'uniform':
-        return np.argsort(np.argsort(x)) / (len(x) - 1)
+        return np.argsort(np.argsort(x, axis=None), axis=None) / (len(x) - 1)
 
 
 #################
