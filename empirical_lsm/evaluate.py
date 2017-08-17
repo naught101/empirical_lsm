@@ -137,6 +137,8 @@ def normalise_metric(data, metric, quantile=False):
     """Normalises metrics between 0 and 1, where 0 is the best."""
     if metric in ['corr', 'overlap']:  # 1-optimal metrics
         data = np.abs(1 - data)
+    else:
+        data = np.abs(data)
 
     if quantile:
         normalised = quantile_normalise(data)
