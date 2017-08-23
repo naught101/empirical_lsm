@@ -20,8 +20,11 @@ import numpy as np
 import xarray as xr
 
 from pals_utils.data import get_flux_data
-from empirical_lsm.utils import print_good
 from empirical_lsm.data import get_sites, get_sim_nc_path
+
+import logging
+logger = logging.getLogger(__name__)
+logger.basicConfig(filename='logs/check_sanity.log')
 
 
 def fix_benchmark(site_data, name, site):
@@ -59,7 +62,7 @@ def main_import_benchmark(name, site):
     :site: plumber site name
     """
     # Hacky solution just for PLUMBER benchmarks
-    print_good('Importing {n} data for: '.format(n=name))
+    print('Importing {n} data for: '.format(n=name))
 
     if len(site) == 0:
         datasets = get_sites('PLUMBER')
@@ -68,6 +71,7 @@ def main_import_benchmark(name, site):
 
     for s in datasets:
         print(s, end=', ', flush=True)
+        logger.info("Importing {n} data for {s}", dict(n=name, s=s))
         s_file = 'data/PALS/benchmarks/{n}/{n}_{s}Fluxnet.1.4.nc'.format(n=name, s=s)
         nc_path = get_sim_nc_path(name, s)
 
@@ -80,6 +84,8 @@ def main_import_benchmark(name, site):
 
         sim_data.close()
 
+    print('.')
+
     return
 
 
@@ -90,7 +96,7 @@ def main_import_sim(name, site, sim_file):
     :site: plumber site name
     """
     # Hacky solution just for PLUMBER benchmarks
-    print_good('Importing {n} data for: {s}'.format(n=name, s=site))
+    logger.info('Importing {n} data for: {s}'.format(n=name, s=site))
 
     nc_path = get_sim_nc_path(name, site)
 
@@ -100,7 +106,7 @@ def main_import_sim(name, site, sim_file):
         sim_data = ds[d_vars].copy(deep=True)
 
     if name == 'CHTESSEL':
-        print("Inverting CHTESSEL and adding data")
+        logger.info("Inverting CHTESSEL and adding data")
         # Fucking inverted, and
         sim_data = - sim_data
 
@@ -129,15 +135,15 @@ def main_import_sim(name, site, sim_file):
         #                                    .isel(time_counter=0, lat=0, lon=0)
         #                                    .values.flat > 0)[0][0]
         # sim_data['NEE'] = sim_data['NEE'].isel(veget=NEE_veget_index)
-        print("Flattening veg in ORCHIDEE")
+        logger.info("Flattening veg in ORCHIDEE")
         sim_data['NEE'] = sim_data['NEE'].sum(axis=1)  # Sum over veget axis
 
         if site == 'Espirra':
-            print("Deleting a year of data at Espirra for Orchidee")
+            logger.info("Deleting a year of data at Espirra for Orchidee")
             sim_data = sim_data.isel(time=slice(70128))
 
     # WARNING! over writes existing sim!
-    print('Writing to', nc_path)
+    logger.info('Writing to', nc_path)
     sim_data.to_netcdf(nc_path)
 
     sim_data.close()

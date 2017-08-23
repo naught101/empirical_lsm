@@ -19,6 +19,10 @@ from docopt import docopt
 
 from empirical_lsm.offline_eval import eval_simulation_mp, main_rst_gen_mp
 
+import logging
+logger = logging.getLogger(__name__)
+logger.basicConfig(filename='logs/eval_model.log')
+
 
 def main(args):
     name = args['<name>']
