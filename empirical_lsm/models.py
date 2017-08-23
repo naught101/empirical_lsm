@@ -16,6 +16,9 @@ from pals_utils.data import get_config
 
 from sklearn.pipeline import make_pipeline
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 #################
 # Model loaders
@@ -32,16 +35,16 @@ def get_model(name):
     try:
         from .model_defs import get_model_from_def
         model = get_model_from_def(name)
-        print("Model {n} loaded from model_defs module".format(n=name))
+        logger.info("Model {n} loaded from model_defs module".format(n=name))
     except NameError:
         try:
             model = get_model_from_yaml(name)
-            print("Model {n} loaded from yaml".format(n=name))
+            logger.info("Model {n} loaded from yaml".format(n=name))
         except KeyError:
             try:
                 from .model_defs import parse_model_name
                 model = parse_model_name(name)
-                print("Model {n} parsed from name".format(n=name))
+                logger.info("Model {n} parsed from name".format(n=name))
             except NameError:
                 sys.exit("Unknown model {n}".format(n=name))
 
@@ -111,7 +114,7 @@ def get_model_from_dict(model_dict):
     if 'forcing_vars' in model_dict:
         pipe.forcing_vars = model_dict['forcing_vars']
     else:
-        print("Warning: no forcing vars, using defaults (all)")
+        logger.warning("Warning: no forcing vars, using defaults (all)")
         pipe.forcing_vars = get_config(['vars', 'met'])
 
     if 'description' in model_dict:

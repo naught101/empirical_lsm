@@ -20,6 +20,9 @@ from sklearn.pipeline import make_pipeline
 from empirical_lsm.clusterregression import ModelByCluster
 from empirical_lsm.transforms import MissingDataWrapper, LagAverageWrapper, MarkovLagAverageWrapper, Mean
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 def km_regression(k, model):
     return MissingDataWrapper(ModelByCluster(MiniBatchKMeans(k), model))

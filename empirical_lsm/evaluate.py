@@ -16,7 +16,8 @@ import os
 from pals_utils.data import get_site_code, get_sites
 from pals_utils.stats import run_metrics
 
-from .utils import print_bad, print_good
+import logging
+logger = logging.getLogger(__name__)
 
 
 # Evaluate
@@ -30,7 +31,7 @@ def evaluate_simulation(sim_data, flux_data, name, qc=True):
           the moment, most models don't report it).
     """
     site = get_site_code(flux_data)
-    print_good('Evaluating data for {n} at {s}'.format(n=name, s=site))
+    logger.info('Evaluating data for {n} at {s}'.format(n=name, s=site))
 
     flux_vars = ['NEE', 'Qh', 'Qle']
     eval_vars = sorted(set(flux_vars).intersection(sim_data.data_vars)
@@ -93,7 +94,7 @@ def get_metric_df(models, sites):
                 df.columns = ['value']
                 metric_df.append(df)
             except Exception:
-                print('skipping {m} at {s}'.format(m=m, s=s))
+                logging.warning('skipping {m} at {s}'.format(m=m, s=s))
 
     metric_df = pd.concat(metric_df).reset_index()
 
@@ -211,10 +212,10 @@ def get_PLUMBER_metrics(name, site='all', variables=['Qle', 'Qh', 'NEE']):
             continue
 
     if len(failures) > 0:
-        print('Skipped {l} sites: {f}'.format(l=len(failures), f=', '.join(failures)))
+        logging.warning('Skipped {l} sites: {f}'.format(l=len(failures), f=', '.join(failures)))
 
     if len(metric_df) == 0:
-        print_bad('Failed to load any csv files for {n} at {s} - skipping plot.'.format(n=name, s=site))
+        logger.error('Failed to load any csv files for {n} at {s} - skipping plot.'.format(n=name, s=site))
         return
 
     metric_df = pd.concat(metric_df).reset_index(drop=True)

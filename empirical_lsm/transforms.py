@@ -17,6 +17,9 @@ from collections import OrderedDict
 from sklearn.utils.validation import check_is_fitted
 from sklearn.base import BaseEstimator, TransformerMixin
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class Mean(BaseEstimator):
     """Base class for Linear Models"""
@@ -73,7 +76,7 @@ class LagWrapper(BaseEstimator, TransformerMixin):
 
         X_lag = self.transform(X, nans='drop')
 
-        print("LW: Data lagged, fitting with {nk} samples out of {nx}".format(nk=X_lag.shape[0], nx=X.shape[0]))
+        logger.info("LW: Data lagged, fitting with {nk} samples out of {nx}".format(nk=X_lag.shape[0], nx=X.shape[0]))
 
         self.model.fit(X_lag, y.ix[X_lag.index])
 
@@ -164,7 +167,7 @@ class LagWrapper(BaseEstimator, TransformerMixin):
 
         X_lag = self.transform(X, nans='fill')
 
-        print("Data lagged, now predicting.")
+        logger.info("Data lagged, now predicting.")
 
         return self.model.predict(X_lag)
 
@@ -205,7 +208,7 @@ class MarkovWrapper(LagWrapper):
 
         X_lag = self.transform(X, y, nans='drop')
 
-        print("MW: Data lagged, fitting with {nk} samples out of {nx}".format(nk=X_lag.shape[0], nx=X.shape[0]))
+        logger.info("MW: Data lagged, fitting with {nk} samples out of {nx}".format(nk=X_lag.shape[0], nx=X.shape[0]))
 
         self.model.fit(X_lag, y.ix[X_lag.index])
 
@@ -252,21 +255,21 @@ class MarkovWrapper(LagWrapper):
 
         X_lag = self.transform(X, nans='fill')
 
-        print("Data lagged, now predicting, step by step.")
+        logger.info("Data lagged, now predicting, step by step.")
 
         # initialise with mean y values
         init = pd.concat([X_lag.iloc[0], self.y_mean]).reshape(1, -1)
         results = []
         results.append(self.model.predict(init).ravel())
         n_steps = X_lag.shape[0]
-        print('Predicting, step 0 of {n}'.format(n=n_steps), end='\r')
+        logger.info('Predicting, step 0 of {n}'.format(n=n_steps), end='\r')
 
         for i in range(1, n_steps):
             if i % 100 == 0:
-                print('Predicting, step {i} of {n}'.format(i=i, n=n_steps), end="\r")
+                logger.info('Predicting, step {i} of {n}'.format(i=i, n=n_steps), end="\r")
             x = np.concatenate([X_lag.iloc[i], results[i - 1]]).reshape(1, -1)
             results.append(self.model.predict(x).ravel())
-        print('Predicting, step {i} of {n}'.format(i=n_steps, n=n_steps))
+        logger.info('Predicting, step {i} of {n}'.format(i=n_steps, n=n_steps))
 
         # results = pd.DataFrame.from_records(results, index=X_lag.index, columns=self.y_cols)
         # Scikit-learn models produce numpy arrays, not pandas dataframes
@@ -372,7 +375,7 @@ class LagAverageWrapper(BaseEstimator):
 
         fit_idx = np.isfinite(lagged_data).all(axis=1)
 
-        print("LAW: Data lagged, fitting with {nk} samples out of {nx}".format(nk=sum(fit_idx), nx=X.shape[0]))
+        logger.info("LAW: Data lagged, fitting with {nk} samples out of {nx}".format(nk=sum(fit_idx), nx=X.shape[0]))
 
         self.model.fit(lagged_data[fit_idx], y[fit_idx])
 
@@ -443,7 +446,7 @@ class MarkovLagAverageWrapper(LagAverageWrapper):
 
         X_lag = self._lag_data(X, self._x_lags)
 
-        print("Data lagged, now predicting, step by step.")
+        logger.info("Data lagged, now predicting, step by step.")
 
         # initialise with mean y values
         init = np.concatenate([X_lag.iloc[[0]], np.full([1, self._n_y_lags], np.nan)], axis=1)
@@ -452,11 +455,11 @@ class MarkovLagAverageWrapper(LagAverageWrapper):
         results = []
         results.append(self.model.predict(init).ravel())
         n_steps = X_lag.shape[0]
-        print('Predicting, step 0 of {n}'.format(n=n_steps), end='\r')
+        logger.info('Predicting, step 0 of {n}'.format(n=n_steps), end='\r')
 
         for i in range(1, n_steps):
             if i % 100 == 0:
-                print('Predicting, step {i} of {n}'.format(i=i, n=n_steps), end="\r")
+                logger.info('Predicting, step {i} of {n}'.format(i=i, n=n_steps), end="\r")
             # TODO: Averaging of past fluxes may need efficiency gains
             last_result = []
             for v in self._y_lags:
@@ -466,7 +469,7 @@ class MarkovLagAverageWrapper(LagAverageWrapper):
             last_result = np.array(last_result, ndmin=2)
             x = np.concatenate([X_lag.iloc[[i]], last_result], axis=1)
             results.append(self.model.predict(x).ravel())
-        print('Predicting, step {i} of {n}'.format(i=n_steps, n=n_steps))
+        logger.info('Predicting, step {i} of {n}'.format(i=n_steps, n=n_steps))
 
         results = pd.DataFrame.from_records(results, index=X.index, columns=self._y_cols)
         # Scikit-learn models produce numpy arrays, not pandas dataframes
@@ -498,7 +501,7 @@ class MissingDataWrapper(BaseEstimator):
         qc_index = (np.all(np.isfinite(X), axis=1, keepdims=True) &
                     np.all(np.isfinite(y), axis=1, keepdims=True)).ravel()
 
-        print("MDW: Dropping data... using {n} samples of {N}".format(
+        logger.info("MDW: Dropping data... using {n} samples of {N}".format(
             n=qc_index.sum(), N=X.shape[0]))
         # make work with arrays and dataframes
         self.model.fit(X[qc_index], y[qc_index])
