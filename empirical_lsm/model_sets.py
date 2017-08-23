@@ -10,6 +10,9 @@ Description: Gets named sets of models, for use in various scripts
 
 from itertools import chain, combinations
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 def powerset(iterable, start=0):
     "powerset([1,2,3]) --> () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)"

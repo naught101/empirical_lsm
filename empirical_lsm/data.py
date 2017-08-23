@@ -18,6 +18,9 @@ from pals_utils.data import get_sites, copy_data, get_met_data, get_config, set_
 
 from empirical_lsm.transforms import rolling_mean
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 set_config(['datasets', 'train'], 'PLUMBER_ext')
 set_config(['qc_format'], 'PALS')
@@ -149,7 +152,7 @@ def get_train_test_data(site, met_vars, flux_vars, use_names, qc=True, fix_closu
         else:
             # Running on a training site, so leave it out.
             train_sites = [s for s in train_sites if s != test_site]
-        print("Training with {n} datasets".format(n=len(train_sites)))
+        logger.info("Training with {n} datasets".format(n=len(train_sites)))
 
     train_dict = get_train_data(train_sites, met_vars, flux_vars, use_names=use_names,
                                 qc=qc, fix_closure=fix_closure)

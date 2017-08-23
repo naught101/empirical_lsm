@@ -14,7 +14,8 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from empirical_lsm.utils import print_bad
+import logging
+logger = logging.getLogger(__name__)
 
 
 flux_vars = ['NEE', 'Qh', 'Qle']
@@ -22,7 +23,7 @@ flux_vars = ['NEE', 'Qh', 'Qle']
 
 def check_var_too_low(data):
     if (data.min() < -1500):
-        print("data too low!")
+        logger.warning("data too low!")
         return True
     else:
         return False
@@ -30,7 +31,7 @@ def check_var_too_low(data):
 
 def check_var_too_high(data):
     if (data.max() > 5000):
-        print("data too high!")
+        logger.warning("data too high!")
         return True
     else:
         return False
@@ -38,7 +39,7 @@ def check_var_too_high(data):
 
 def check_var_change_too_fast(data):
     if (np.abs(np.diff(data)) > 1500):
-        print("data changing too fast!")
+        logger.warning("data changing too fast!")
         return True
     else:
         return False
@@ -63,17 +64,19 @@ def check_model_data(models, sites):
         for site in sites:
             file_path = 'model_data/{m}/{m}_{s}.nc'.format(m=model, s=site)
             if not os.path.exists(file_path):
-                # print('\nmissing model run: {m} at {s}'.format(m=model, s=site))
+                logger.warning('missing model run: {m} at {s}', dict(m=model, s=site))
                 print('x', end='', flush=True)
                 continue
             with xr.open_dataset(file_path) as ds:
                 try:
                     model_sanity_check(ds, model, site)
                 except RuntimeError as e:
-                    print_bad('\n' + str(e))
+                    print('\n' + str(e))
+                    logger.error(str(e))
                     bad_simulations.append((model, site))
                 else:
                     print('.', end='', flush=True)
+                    logger.info('model data for {m} at {s} looks ok', dict(m=model, s=site))
         print('')
 
     return bad_simulations
@@ -103,7 +106,7 @@ def check_metrics(models, sites):
                     (metrics.loc['corr'] < -1).any() or
                     (metrics.loc['overlap'] > 1).any() or
                     (metrics.loc['overlap'] < 0).any()):
-                print_bad("Crazy value for {m} at {s}".format(m=model, s=site))
+                logger.error("Crazy value for {m} at {s}".format(m=model, s=site))
                 bad_simulations.append((model, site))
 
     return bad_simulations

@@ -11,6 +11,9 @@ import numpy as np
 from sklearn.base import BaseEstimator, clone
 from sklearn.utils import safe_mask
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class ModelByCluster(BaseEstimator):
     """Cluster data, then run a regression independently on each cluster.
