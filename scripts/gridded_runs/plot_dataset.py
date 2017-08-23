@@ -28,6 +28,10 @@ from matplotlib.colors import LinearSegmentedColormap
 
 from empirical_lsm.gridded_datasets import get_MODIS_data  # , get_GLEAM3a_data, get_MPI_data
 
+import logging
+logger = logging.getLogger(__name__)
+logger.basicConfig(filename='logs/plot_dataset.log')
+
 
 def get_range(x):
     return np.quantile(x, [0, 100])
@@ -131,7 +135,7 @@ def get_stds(da):
 
 
 def p_monthly_mean(data, name, variable, year):
-    print("Plotting monthly mean grid")
+    logger.info("Plotting monthly mean grid")
     cmap = colormap(0.25)
     vmin, vmax = [-50, 150]  # estimate with some leeway
     fig = plt.figure(0, (14, 8))
@@ -151,7 +155,7 @@ def p_monthly_mean(data, name, variable, year):
 
 
 def p_monthly_stdev(data, name, variable, year):
-    print("Plotting monthly std dev grid")
+    logger.info("Plotting monthly std dev grid")
     cmap = colormap(0)
     vmin, vmax = [0, 150]  # estimate with some leeway
     fig = plt.figure(0, (14, 8))
@@ -171,7 +175,7 @@ def p_monthly_stdev(data, name, variable, year):
 
 
 def p_annual_mean(data, name, variable, year):
-    print("Plotting annual Mean")
+    logger.info("Plotting annual Mean")
     # Standardised color profiles for monthly means
     cmap = colormap(0.2)
     vmin, vmax = [-25, 100]  # estimate with some leeway
@@ -187,7 +191,7 @@ def p_annual_mean(data, name, variable, year):
 
 
 def p_annual_stdev(data, name, variable, year):
-    print("Plotting annual Std dev")
+    logger.info("Plotting annual Std dev")
     cmap = colormap(0)
     vmin, vmax = [0, 150]  # estimate with some leeway
     plt.figure(0, (10, 5))

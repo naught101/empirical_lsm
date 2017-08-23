@@ -22,6 +22,10 @@ import pickle
 import numpy as np
 import empirical_lsm
 
+import logging
+logger = logging.getLogger(__name__)
+logger.basicConfig(filename='logs/inspect_cluster_regression.log')
+
 
 def get_wrapper_vars(wrapper):
     return [v + '_' + l for v, lags in wrapper.var_lags.items() for l in lags]
@@ -71,9 +75,7 @@ def main(args):
     count_threshold = 100
     if (counts < count_threshold).any():
         bad_clusters = np.where(counts < count_threshold)[0]
-        print("low counts at clusters", bad_clusters.tolist())
-
-
+        logger.warning("low counts at clusters", bad_clusters.tolist())
 
     return
 
