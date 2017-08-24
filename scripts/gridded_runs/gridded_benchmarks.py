@@ -32,9 +32,8 @@ from empirical_lsm.data import get_sites, get_data_dir
 from empirical_lsm.gridded_datasets import get_dataset_data, get_dataset_freq
 from empirical_lsm.models import get_model
 
-import logging
-logger = logging.getLogger(__name__)
-logger.basicConfig(filename='logs/gridded_benchmarks.log')
+from pals_utils.logging import get_logger
+logger = get_logger(__name__, 'logs/gridded_benchmarks.log')
 
 
 def predict_gridded(model, dataset_data, flux_vars, datafreq=None):

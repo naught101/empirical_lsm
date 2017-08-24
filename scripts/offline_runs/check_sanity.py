@@ -27,9 +27,8 @@ from empirical_lsm.checks import check_model_data, check_metrics
 from empirical_lsm.offline_simulation import run_model_site_tuples_mp
 from empirical_lsm.offline_eval import eval_simulation
 
-import logging
-logger = logging.getLogger(__name__)
-logger.basicConfig(filename='logs/check_sanity.log')
+from pals_utils.logging import get_logger
+logger = get_logger(__name__, 'logs/check_sanity.log')
 
 
 def main(args):

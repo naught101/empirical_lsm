@@ -22,9 +22,8 @@ import pickle
 import numpy as np
 import empirical_lsm
 
-import logging
-logger = logging.getLogger(__name__)
-logger.basicConfig(filename='logs/inspect_cluster_regression.log')
+from pals_utils.logging import get_logger
+logger = get_logger(__name__, 'logs/inspect_cluster_regression.log')
 
 
 def get_wrapper_vars(wrapper):
