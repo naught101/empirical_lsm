@@ -160,10 +160,6 @@ def get_train_test_data(site, met_vars, flux_vars, use_names, qc=True, fix_closu
     train_test_data.update(test_dict)
     train_test_data['site'] = site
 
-    with open('new_data.txt', 'w') as f:
-        for k in sorted(train_test_data.keys()):
-            print(k, ':\n', train_test_data[k], file=f)
-
     return train_test_data
 
 
