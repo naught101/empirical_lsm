@@ -22,9 +22,8 @@ import xarray as xr
 from pals_utils.data import get_flux_data
 from empirical_lsm.data import get_sites, get_sim_nc_path
 
-import logging
-logger = logging.getLogger(__name__)
-logger.basicConfig(filename='logs/check_sanity.log')
+from pals_utils.logging import get_logger
+logger = get_logger(__name__, 'logs/check_sanity.log')
 
 
 def fix_benchmark(site_data, name, site):
