@@ -154,7 +154,7 @@ def get_train_test_data(site, met_vars, flux_vars, use_names, qc=True, fix_closu
     train_dict = get_train_data(train_sites, met_vars, flux_vars, use_names=use_names,
                                 qc=qc, fix_closure=fix_closure)
 
-    test_dict = get_test_data(test_site, met_vars, use_names=use_names, qc=qc)
+    test_dict = get_test_data(test_site, met_vars, use_names=use_names, qc=False)
 
     train_test_data = train_dict
     train_test_data.update(test_dict)
