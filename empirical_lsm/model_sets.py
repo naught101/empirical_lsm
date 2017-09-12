@@ -64,12 +64,23 @@ def get_model_set(model_set=None):
                             [f % 'W' for f in lag_fmts],
 
         "Final ensemble": ["S_lin", "ST_lin", "STH_km27",
-                           "STH_km243", "STHW_km243", "short_term243",  # "STHWdTdQ_lT6hM_km243",
+                           "STH_km243", "STHW_km243",
+                           "short_term243",  # "STHWdTdQ_lT6hM_km243",
                            "long_term243",  # "STHWdTdQ_lS30d_lR30d_lH10d_lT6hM_km243",
                            "long_term729"],  # "STHWdTdQ_lS30d_lR30d_lH10d_lT6hM_km729"],
 
         "Combo models": ["S_lin", "ST_lin", "STH_km27"] + get_combo_model_names()
     }
+    model_sets['all_paper_models'] = list(set(
+        model_sets["Added variables"] +
+        model_sets["Increasing articulation"] +
+        model_sets["Lagged SWdown"] +
+        model_sets["Lagged Tair"] +
+        model_sets["Lagged RelHum"] +
+        model_sets["Lagged LWdown"] +
+        model_sets["Lagged Rainf"] +
+        model_sets["Lagged Wind"] +
+        model_sets["Final ensemble"]))
 
     if model_set is None:
         return model_sets
