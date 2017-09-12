@@ -8,8 +8,11 @@ from matplotlib.cbook import dedent
 from datetime import datetime as dt
 from empirical_lsm.evaluate import get_metric_data
 from empirical_lsm.plots import get_PLUMBER_plot
-from empirical_lsm.utils import print_good, print_warn, dataframe_to_rst
+from empirical_lsm.utils import dataframe_to_rst
 from empirical_lsm.models import get_model
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 def model_site_index_rst(name):
@@ -36,7 +39,7 @@ def model_site_index_rst(name):
     except:
         description = "Description missing - unknown model"
 
-    print_good('Generating index for {n}.'. format(n=name))
+    logger.info('Generating index for {n}.'. format(n=name))
 
     model_run_files = sorted(glob.glob('{d}/{n}*.rst'.format(d=model_dir, n=name)))
 
@@ -51,7 +54,7 @@ def model_site_index_rst(name):
         plots = '\n\n'.join([
             ".. image :: {file}\n    :width: 300px".format(file=f) for f in sorted(rel_paths)])
     except AttributeError as e:
-        print_warn('No plots found, skipping {n}: {e}'.format(n=name, e=e))
+        logger.warning('No plots found, skipping {n}: {e}'.format(n=name, e=e))
         return
 
     title = '{name} simulations'.format(name=name)
@@ -131,7 +134,7 @@ def model_search_index_rst():
 
     time = dt.isoformat(dt.now().replace(microsecond=0), sep=' ')
 
-    print_good('Generating models index')
+    logger.info('Generating models index')
 
     names = get_available_models()
 
@@ -207,7 +210,7 @@ def model_site_index_as_needed(name, rebuild=False):
             if newest > os.path.getmtime(rst_path):
                 model_site_index_rst(name)
             else:
-                print("skipping %s - rst is up to date" % model_dir)
+                logger.info("skipping %s - rst is up to date" % model_dir)
 
 
 def get_available_model_dirs():
