@@ -19,6 +19,9 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import make_pipeline
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 def hls_palette(n_models):
     return sns.color_palette("hls", n_models + 1)

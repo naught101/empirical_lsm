@@ -16,14 +16,23 @@ from multiprocessing import Pool
 
 from matplotlib.cbook import dedent
 from datetime import datetime as dt
+from tabulate import tabulate
 
 from pals_utils.data import get_sites, get_flux_data
 
 from empirical_lsm.evaluate import evaluate_simulation, load_sim_evaluation
 from empirical_lsm.plots import diagnostic_plots
-from empirical_lsm.utils import print_good, print_bad, dataframe_to_rst
 from empirical_lsm.data import get_sim_nc_path
 from empirical_lsm.models import get_model
+
+import logging
+logger = logging.getLogger(__name__)
+
+
+def dataframe_to_rst(dataframe):
+    """Format eval results in rst format
+    """
+    return tabulate(dataframe.round(4), headers='keys', tablefmt='rst')
 
 
 def model_site_rst_format(name, site, eval_text, plot_files):
@@ -114,7 +123,7 @@ def model_site_rst_write(name, site, eval_results, plot_files):
     """
     model_site_rst_file = 'source/models/{n}/{n}_{s}.rst'.format(n=name, s=site)
 
-    print_good("Generating rst file for {n} at {s}.".format(n=name, s=site))
+    logger.info("Generating rst file for {n} at {s}.".format(n=name, s=site))
 
     eval_text = dataframe_to_rst(eval_results)
 
@@ -147,7 +156,7 @@ def eval_simulation(name, site, sim_file=None, plots=False, fix_closure=True, qc
     try:
         sim_data = xr.open_dataset(filename)
     except (OSError, RuntimeError) as e:
-        print_bad("Sim file ({f}) doesn't exist. What are you doing? {e}".format(f=filename, e=e))
+        logger.error("Sim file ({f}) doesn't exist. What are you doing? {e}".format(f=filename, e=e))
         return
 
     if sim_file is not None:
@@ -204,7 +213,7 @@ def main_rst_gen(name, site):
         eval_results = load_sim_evaluation(name, site)
         plot_files = get_existing_plots(name, site)
     except (OSError, RuntimeError) as e:
-        print_bad('one or more files missing for {n} at {s}: {e}'.format(
+        logger.error('one or more files missing for {n} at {s}: {e}'.format(
             n=name, s=site, e=e))
         return
 

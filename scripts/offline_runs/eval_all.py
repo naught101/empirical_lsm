@@ -25,6 +25,9 @@ from empirical_lsm.offline_eval import eval_simulation_mp, main_rst_gen_mp
 from empirical_lsm.model_sets import get_model_set
 from empirical_lsm.model_search import model_site_index_rst_mp, model_search_index_rst, get_available_models
 
+from pals_utils.logging import get_logger
+logger = get_logger(__name__, 'logs/eval_all.log')
+
 
 def eval_simulation_all(names, sites, run=False, multivariate=True, evalu=False,
                         plots=False, rst=False, html=False, rebuild=False, no_mp=False,

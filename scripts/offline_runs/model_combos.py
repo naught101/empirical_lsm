@@ -23,6 +23,9 @@ from empirical_lsm.model_sets import get_combo_model_names
 from empirical_lsm.offline_simulation import run_simulation_mp
 from empirical_lsm.offline_eval import eval_simulation_mp
 
+from pals_utils.logging import get_logger
+logger = get_logger(__name__, 'logs/model_combos.log')
+
 
 def main(sites, run=False, multivariate=True, evalu=False, plots=False,
          no_mp=False, overwrite=False, fix_closure=True):

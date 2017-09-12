@@ -20,6 +20,9 @@ from pals_utils.data import set_config
 
 from empirical_lsm.offline_simulation import run_simulation_mp
 
+from pals_utils.logging import get_logger
+logger = get_logger(__name__, 'logs/run_model.log')
+
 set_config(['vars', 'flux'], ['NEE', 'Qle', 'Qh'])
 
 

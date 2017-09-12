@@ -20,8 +20,10 @@ from dateutil.parser import parse
 
 from pals_utils.data import pals_site_name, pals_xr_to_df
 
-from .utils import print_warn
 from .evaluate import get_PLUMBER_metrics, subset_metric_df, quantile_normalise
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 def empirical_lsm_palette(name="Final ensemble"):
@@ -49,7 +51,7 @@ def save_figure(path, fig=None):
     dir_path = os.path.dirname(path)
     os.makedirs(dir_path, exist_ok=True)
     fig.savefig(path)
-    print('Figure saved to ' + os.path.abspath(path))
+    logger.info('Figure saved to ' + os.path.abspath(path))
 
     pl.close(fig)
 
@@ -98,7 +100,7 @@ def diagnostic_plots(sim_data, flux_data, name):
     """
     site = pals_site_name(flux_data)
 
-    print('Running standard plots for %s at %s' % (name, site))
+    logger.info('Running standard plots for %s at %s' % (name, site))
 
     base_path = 'source/models/{n}'.format(n=name)
     rel_path = 'figures/{s}'.format(s=site)
@@ -113,7 +115,7 @@ def diagnostic_plots(sim_data, flux_data, name):
     try:
         benchmarks = [get_benchmark(bname, site) for bname in benchmark_names]
     except RuntimeError as e:
-        print_warn("Benchmark(s) not available at {s}, skipping. {e}".format(s=site, e=e))
+        logger.warning("Benchmark(s) not available at {s}, skipping. {e}".format(s=site, e=e))
         return
 
     sns.set_palette(sns.color_palette(['red', 'pink', 'orange', 'black', 'blue']))
@@ -132,7 +134,7 @@ def diagnostic_plots(sim_data, flux_data, name):
             data = pd.concat([pals_xr_to_df(ds, [var]) for ds in
                               benchmarks + [flux_data, sim_data]], axis=1)
         except Exception as e:
-            print_warn('Data missing for {v} at {s}, skipping. {e}'.format(v=var, s=site, e=e))
+            logger.warning('Data missing for {v} at {s}, skipping. {e}'.format(v=var, s=site, e=e))
             continue
 
         data.columns = benchmark_names + ['observed', 'modelled']

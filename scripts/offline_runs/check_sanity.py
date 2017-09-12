@@ -27,6 +27,9 @@ from empirical_lsm.checks import check_model_data, check_metrics
 from empirical_lsm.offline_simulation import run_model_site_tuples_mp
 from empirical_lsm.offline_eval import eval_simulation
 
+from pals_utils.logging import get_logger
+logger = get_logger(__name__, 'logs/check_sanity.log')
+
 
 def main(args):
     if args['--sites'] is None:
@@ -57,7 +60,7 @@ def main(args):
         [eval_simulation(t[0], t[1]) for t in bad_sims]
         summary += " and re-evaluated"
 
-    print(summary + ".")
+    logger.info(summary + ".")
 
     return
 

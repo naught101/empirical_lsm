@@ -32,6 +32,9 @@ from empirical_lsm.data import get_sites, get_data_dir
 from empirical_lsm.gridded_datasets import get_dataset_data, get_dataset_freq
 from empirical_lsm.models import get_model
 
+from pals_utils.logging import get_logger
+logger = get_logger(__name__, 'logs/gridded_benchmarks.log')
+
 
 def predict_gridded(model, dataset_data, flux_vars, datafreq=None):
     """predict model results for gridded data
@@ -107,11 +110,11 @@ def fit_and_predict(name, dataset, years='2012-2013'):
 
     years = [int(s) for s in years.split('-')]
 
-    print("Loading fluxnet data for %d sites" % len(sites))
+    logger.info("Loading fluxnet data for %d sites" % len(sites))
     met_data = pud.get_met_df(sites, met_vars, qc=True, name=True)
     flux_data = pud.get_flux_df(sites, flux_vars, qc=True)
 
-    print("Fitting model {b} using {m} to predict {f}".format(
+    logger.info("Fitting model {b} using {m} to predict {f}".format(
         n=name, m=met_vars, f=flux_vars))
     model.fit(met_data, flux_data)
 
@@ -121,9 +124,9 @@ def fit_and_predict(name, dataset, years='2012-2013'):
     outfile_tpl = outdir + "/{b}_{d}_{v}_{y}.nc"
     for year in range(*years):
 
-        print("Loading Forcing data for", year)
+        logger.info("Loading Forcing data for", year)
         data = get_dataset_data(dataset, met_vars, year)
-        print("Predicting", year, end=': ', flush=True)
+        logger.info("Predicting", year, end=': ', flush=True)
         if "lag" in name:
             result = predict_gridded(model, data, flux_vars, datafreq=get_dataset_freq(dataset))
         else:
@@ -132,7 +135,7 @@ def fit_and_predict(name, dataset, years='2012-2013'):
         xr_add_attributes(result, model, dataset, sites)
         for fv in flux_vars:
             filename = outfile_tpl.format(n=name, d=dataset, v=fv, y=year)
-            print("saving to ", filename)
+            logger.info("saving to ", filename)
             result[[fv]].to_netcdf(filename, encoding={fv: {'dtype': 'float32'}})
 
     return

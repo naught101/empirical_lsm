@@ -16,6 +16,9 @@ import xarray as xr
 
 import pals_utils.data as pud
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 def get_dataset_vars(dataset, met_vars, in_file=False):
     """get the names of dataset variables for each dataset
