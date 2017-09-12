@@ -8,7 +8,7 @@ from matplotlib.cbook import dedent
 from datetime import datetime as dt
 from empirical_lsm.evaluate import get_metric_data
 from empirical_lsm.plots import get_PLUMBER_plot
-from empirical_lsm.utils import dataframe_to_rst
+from empirical_lsm.offline_eval import dataframe_to_rst
 from empirical_lsm.models import get_model
 
 import logging
