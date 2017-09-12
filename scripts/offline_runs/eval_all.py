@@ -22,7 +22,8 @@ import subprocess
 
 from empirical_lsm.offline_simulation import run_simulation_mp
 from empirical_lsm.offline_eval import eval_simulation_mp, main_rst_gen_mp
-from scripts.offline_runs.model_search_indexes import model_site_index_rst_mp, model_search_index_rst, get_available_models
+from empirical_lsm.model_sets import get_model_set
+from empirical_lsm.model_search import model_site_index_rst_mp, model_search_index_rst, get_available_models
 
 
 def eval_simulation_all(names, sites, run=False, multivariate=True, evalu=False,
@@ -54,7 +55,10 @@ def main(args):
     if args['<model>'] == ['all']:
         names = get_available_models()
     else:
-        names = args['<model>']
+        try:
+            names = get_model_set(args['<model>'][0])
+        except:
+            names = args['<model>']
 
     eval_simulation_all(names=names,
                         sites=args['--sites'],
