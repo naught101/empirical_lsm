@@ -22,6 +22,7 @@ from datetime import datetime as dt
 from multiprocessing import Pool
 
 from pals_utils.data import get_config, get_sites
+from pals_utils.logging import setup_logger
 
 from empirical_lsm.transforms import LagWrapper, LagAverageWrapper
 from empirical_lsm.models import get_model
@@ -117,7 +118,7 @@ def fit_multivariate(model, flux_vars, train_data):
         qc_index = (~pd.concat([train_data["met_train"], train_data["flux_train"]], axis=1).isnull()).apply(all, axis=1)
         if qc_index.sum() > 0:
             logger.info("Training {v} using {count} complete samples out of {total}"
-                  .format(v=flux_vars, count=qc_index.sum(), total=train_data["met_train"].shape[0]))
+                        .format(v=flux_vars, count=qc_index.sum(), total=train_data["met_train"].shape[0]))
         else:
             logger.warning("No training data, failing")
             return
@@ -229,6 +230,8 @@ def run_simulation(model, name, site, multivariate=False, overwrite=False, fix_c
     :name: name of the model
     :site: PALS site name to run the model at (or 'all', or 'debug')
     """
+    logger = setup_logger(__name__, 'logs/run/{m}/{s}/{m}_{s}.log'.format(m=name, s=site))
+
     sim_dir = 'model_data/{n}'.format(n=name)
     os.makedirs(sim_dir, exist_ok=True)
 
@@ -236,7 +239,7 @@ def run_simulation(model, name, site, multivariate=False, overwrite=False, fix_c
 
     if os.path.isfile(nc_file) and not overwrite:
         logger.warning("Sim netcdf already exists for {n} at {s}, use --overwrite to re-run."
-                   .format(n=name, s=site))
+                       .format(n=name, s=site))
         return
 
     for i in range(3):

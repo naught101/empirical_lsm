@@ -19,6 +19,7 @@ from datetime import datetime as dt
 from tabulate import tabulate
 
 from pals_utils.data import get_sites, get_flux_data
+from pals_utils.logging import setup_logger
 
 from empirical_lsm.evaluate import evaluate_simulation, load_sim_evaluation
 from empirical_lsm.plots import diagnostic_plots
@@ -146,6 +147,8 @@ def eval_simulation(name, site, sim_file=None, plots=False, fix_closure=True, qc
     :site: PALS site name to run the model at
     :sim_file: Path to simulation netcdf
     """
+    logger = setup_logger(__name__, 'logs/eval/{m}/{s}/{m}_{s}.log'.format(m=name, s=site))
+
     nc_path = get_sim_nc_path(name, site)
 
     if sim_file is None:
