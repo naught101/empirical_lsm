@@ -147,7 +147,11 @@ def eval_simulation(name, site, sim_file=None, plots=False, fix_closure=True, qc
     :site: PALS site name to run the model at
     :sim_file: Path to simulation netcdf
     """
+    args = locals()
+    args_str = '\n'.join([k + ': ' + str(args[k]) for k in sorted(args.keys())])
+
     logger = setup_logger(__name__, 'logs/eval/{m}/{s}/{m}_{s}.log'.format(m=name, s=site))
+    logger.info("Evaluating model.\nArgs:\n{a}".format(a=args_str))
 
     nc_path = get_sim_nc_path(name, site)
 
