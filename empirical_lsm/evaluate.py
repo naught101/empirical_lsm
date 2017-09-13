@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 # Evaluate
 
-def evaluate_simulation(sim_data, flux_data, name, qc=True):
+def evaluate_simulation(sim_data, flux_data, name, site=None, qc=True):
     """Top-level simulation evaluator.
 
     Compares sim_data to flux_data, using standard metrics.
@@ -30,7 +30,9 @@ def evaluate_simulation(sim_data, flux_data, name, qc=True):
     TODO: Maybe get model model_name from sim_data directly (this is a PITA at
           the moment, most models don't report it).
     """
-    site = get_site_code(flux_data)
+    if site is None:
+        site = get_site_code(flux_data)
+
     logger.info('Evaluating data for {n} at {s}'.format(n=name, s=site))
 
     flux_vars = ['NEE', 'Qh', 'Qle']

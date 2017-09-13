@@ -173,10 +173,10 @@ def eval_simulation(name, site, sim_file=None, plots=False, fix_closure=True, qc
 
     flux_data = get_flux_data([site], fix_closure=fix_closure)[site]
 
-    evaluate_simulation(sim_data, flux_data, name, qc=qc)
+    evaluate_simulation(sim_data, flux_data, name, site=site, qc=qc)
 
     if plots:
-        diagnostic_plots(sim_data, flux_data, name)
+        diagnostic_plots(sim_data, flux_data, name, site=site)
 
     sim_data.close()
 

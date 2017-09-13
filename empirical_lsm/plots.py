@@ -89,7 +89,7 @@ def get_benchmark(name, site):
     return benchmark
 
 
-def diagnostic_plots(sim_data, flux_data, name):
+def diagnostic_plots(sim_data, flux_data, name, site=None):
     """Plot standard diagnostic plots for a single site
 
     :sim_data: xarray dataset
@@ -98,7 +98,8 @@ def diagnostic_plots(sim_data, flux_data, name):
     :returns: list of paths to plots
 
     """
-    site = pals_site_name(flux_data)
+    if site is None:
+        site = pals_site_name(flux_data)
 
     logger.info('Running standard plots for %s at %s' % (name, site))
 
