@@ -233,7 +233,8 @@ def run_simulation(model, name, site, multivariate=False, overwrite=False, fix_c
     args = locals()
     args_str = '\n'.join([k + ': ' + str(args[k]) for k in sorted(args.keys())])
 
-    logger = setup_logger(__name__, 'logs/run/{m}/{s}/{m}_{s}.log'.format(m=name, s=site))
+    logger = setup_logger(__name__, 'logs/run/{m}/{s}/{m}_{s}.log'.format(m=name, s=site),
+                          stdout=False)
     logger.info("Running model.\nArgs:\n{a}".format(a=args_str))
 
     sim_dir = 'model_data/{n}'.format(n=name)

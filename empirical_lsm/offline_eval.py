@@ -150,7 +150,8 @@ def eval_simulation(name, site, sim_file=None, plots=False, fix_closure=True, qc
     args = locals()
     args_str = '\n'.join([k + ': ' + str(args[k]) for k in sorted(args.keys())])
 
-    logger = setup_logger(__name__, 'logs/eval/{m}/{s}/{m}_{s}.log'.format(m=name, s=site))
+    logger = setup_logger(__name__, 'logs/eval/{m}/{s}/{m}_{s}.log'.format(m=name, s=site),
+                          stdout=False)
     logger.info("Evaluating model.\nArgs:\n{a}".format(a=args_str))
 
     nc_path = get_sim_nc_path(name, site)
