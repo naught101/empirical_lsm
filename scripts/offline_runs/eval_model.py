@@ -19,8 +19,8 @@ from docopt import docopt
 
 from empirical_lsm.offline_eval import eval_simulation_mp, main_rst_gen_mp
 
-from pals_utils.logging import get_logger
-logger = get_logger(__name__, 'logs/eval_model.log')
+from pals_utils.logging import setup_logger
+logger = setup_logger(__name__, 'logs/eval_model.log')
 
 
 def main(args):

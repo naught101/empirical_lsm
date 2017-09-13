@@ -28,8 +28,8 @@ from matplotlib.colors import LinearSegmentedColormap
 
 from empirical_lsm.gridded_datasets import get_MODIS_data  # , get_GLEAM3a_data, get_MPI_data
 
-from pals_utils.logging import get_logger
-logger = get_logger(__name__, 'logs/plot_dataset.log')
+from pals_utils.logging import setup_logger
+logger = setup_logger(__name__, 'logs/plot_dataset.log')
 
 
 def get_range(x):
