@@ -249,8 +249,13 @@ def run_simulation(model, name, site, multivariate=False, overwrite=False, fix_c
 
     for i in range(3):
         # We attempt to run the model up to 3 times, incase of numerical problems
-        sim_data = fit_predict(model, name, site,
-                               multivariate=multivariate, fix_closure=fix_closure)
+        try:
+            sim_data = fit_predict(model, name, site,
+                                   multivariate=multivariate,
+                                   fix_closure=fix_closure)
+        except AssertionError as e:
+            logger.exception("Model failed: " + str(e))
+            return
 
         try:
             model_sanity_check(sim_data, name, site)
