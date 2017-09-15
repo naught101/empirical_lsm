@@ -243,9 +243,9 @@ def run_simulation(model, name, site, multivariate=False, overwrite=False, fix_c
                        .format(n=name, s=site))
         return
 
-    logger = setup_logger(__name__, 'logs/run/{m}/{s}/{m}_{s}.log'.format(m=name, s=site),
-                          stdout=False)
-    logger.info("Running model.\nArgs:\n{a}".format(a=args_str))
+    run_logger = setup_logger(__name__, 'logs/run/{m}/{s}/{m}_{s}.log'.format(m=name, s=site),
+                              stdout=False)
+    run_logger.info("Running model.\nArgs:\n{a}".format(a=args_str))
 
     for i in range(3):
         # We attempt to run the model up to 3 times, incase of numerical problems
