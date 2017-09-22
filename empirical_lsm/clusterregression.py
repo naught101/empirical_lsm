@@ -31,13 +31,20 @@ class ModelByCluster(BaseEstimator):
 
     def fit(self, X, y):
         self.clusterer_ = clone(self.clusterer)
-        clusters = self.clusterer_.fit_predict(X)
-        cluster_ids = np.unique(clusters)
+        for i in range(10):
+            clusters = self.clusterer_.fit_predict(X)
+            cluster_ids = np.unique(clusters)
 
-        assert (len(cluster_ids) == self.clusterer_.n_clusters), \
-            "MBC: Some clusters have no data. Probably too little data available: " + \
-            "Only {n} data points for {k} clusters.".format(
-                n=X.shape[0], k=self.clusterer_.n_clusters)
+            if len(cluster_ids) == self.clusterer_.n_clusters:
+                # Success!
+                break
+            else:
+                assert i != 9, \
+                    "MBC: clustering failed after 10 attempts - some clusters have no data.\n" + \
+                    "    Probably too little data available: " + \
+                    "Only {n} data points for {k} clusters.".format(
+                        n=X.shape[0], k=self.clusterer_.n_clusters)
+                logger.warning("MBC: Clustering failed, trying again")
 
         self.estimators_ = {}
         for c in cluster_ids:
