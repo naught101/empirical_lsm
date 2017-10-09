@@ -26,11 +26,15 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+sns.set_style('darkgrid')
+
+
 def empirical_lsm_palette(name="Final ensemble"):
     if name == "Final ensemble":
         colours = ['hotpink', 'red', 'orange', 'gold',
-                   'lightseagreen', 'cornflowerblue', 'mediumblue',
-                   'darkblue', 'black']
+                   'lightseagreen',
+                   'deepskyblue', 'dodgerblue', 'blue',
+                   'black']
     palette = color_names_to_palette(colours)
     sns.set_palette(palette)
     return palette
