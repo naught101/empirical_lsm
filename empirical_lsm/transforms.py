@@ -389,6 +389,9 @@ class LagAverageWrapper(BaseEstimator):
         if datafreq is None:
             datafreq = self.datafreq
 
+        if any(X.isnull()):
+            raise ValueError("Can't predict with NAs in X - check your data.")
+
         lagged_data = self._lag_data(X, datafreq=datafreq)
 
         # fill initial NaN values with mean values

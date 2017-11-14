@@ -83,7 +83,7 @@ def predict_univariate(var_models, flux_vars, test_data):
 
     for v in flux_vars:
         sim_data_dict[v] = var_models[v].predict(test_data["met_test"])
-        logger.info("Prediction complete.")
+        logger.info("Prediction complete for {v}.".format(v=v))
 
         if run_var_checks(sim_data_dict[v]):
             name = "%s_%s_%s" % (var_models[v].name, v, test_data["site"])
