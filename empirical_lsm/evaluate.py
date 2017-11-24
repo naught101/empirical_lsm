@@ -44,8 +44,8 @@ def evaluate_simulation(sim_data, flux_data, name, site=None, qc=True):
     for v in eval_vars:
         if qc:
             v_qc = v + '_qc'
-            sim_v = sim_data[v].values.ravel()[flux_data[v_qc].values.ravel() == 1]
-            obs_v = flux_data[v].values.ravel()[flux_data[v_qc].values.ravel() == 1]
+            sim_v = sim_data[v].values.ravel()[flux_data[v_qc].values.ravel() == 0]
+            obs_v = flux_data[v].values.ravel()[flux_data[v_qc].values.ravel() == 0]
         else:
             sim_v = sim_data[v].values.ravel()
             obs_v = flux_data[v].values.ravel()
