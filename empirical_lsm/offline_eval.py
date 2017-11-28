@@ -145,7 +145,7 @@ def eval_simulation(name, site, sim_file=None, plots=False, fix_closure=True, qc
 
     :name: name of the model
     :site: PALS site name to run the model at
-    :sim_file: Path to simulation netcdf
+    :sim_file: Path to simulation netcdf. Only required if simulation is at a non-standard place.
     """
     args = locals()
     args_str = '\n'.join([k + ': ' + str(args[k]) for k in sorted(args.keys())])

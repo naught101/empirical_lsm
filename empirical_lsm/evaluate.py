@@ -13,7 +13,7 @@ import numpy as np
 import glob
 import os
 
-from pals_utils.data import get_site_code, get_sites
+from pals_utils.data import get_site_code, get_sites, get_config
 from pals_utils.stats import run_metrics
 
 import logging
@@ -39,13 +39,18 @@ def evaluate_simulation(sim_data, flux_data, name, site=None, qc=True):
     eval_vars = sorted(set(flux_vars).intersection(sim_data.data_vars)
                                      .intersection(flux_data.data_vars))
 
+    if get_config('qc_format') == 'PALS':
+        good_qc = 1
+    elif get_config('qc_format') == 'FluxnetLSM':
+        good_qc = 0
+
     metric_data = pd.DataFrame()
     metric_data.index.name = 'metric'
     for v in eval_vars:
         if qc:
             v_qc = v + '_qc'
-            sim_v = sim_data[v].values.ravel()[flux_data[v_qc].values.ravel() == 0]
-            obs_v = flux_data[v].values.ravel()[flux_data[v_qc].values.ravel() == 0]
+            sim_v = sim_data[v].values.ravel()[flux_data[v_qc].values.ravel() == good_qc]
+            obs_v = flux_data[v].values.ravel()[flux_data[v_qc].values.ravel() == good_qc]
         else:
             sim_v = sim_data[v].values.ravel()
             obs_v = flux_data[v].values.ravel()
