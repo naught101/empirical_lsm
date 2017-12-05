@@ -79,7 +79,7 @@ def load_sim_evaluation(name, site):
     return metric_data
 
 
-def get_metric_df(models, sites):
+def get_metric_df(models, sites, metric=None):
     """Gets a DF of models metrics at the given sites (pre-computed evaluations)
 
     :models: TODO
@@ -99,7 +99,10 @@ def get_metric_df(models, sites):
                 df = df.set_index(['name', 'site', 'metric']).stack().to_frame()
                 df.index.names = ['name', 'site', 'metric', 'variable']
                 df.columns = ['value']
-                metric_df.append(df)
+                if metric is not None:
+                    metric_df.append(df.xs(metric, level='metric'))
+                else:
+                    metric_df.append(df)
             except Exception:
                 logging.warning('skipping {m} at {s}'.format(m=m, s=s))
 
