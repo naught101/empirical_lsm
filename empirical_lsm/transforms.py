@@ -389,7 +389,7 @@ class LagAverageWrapper(BaseEstimator):
         if datafreq is None:
             datafreq = self.datafreq
 
-        if any(X.isnull()):
+        if X.isnull().any().any():  # TODO: Probably won't work with numpy arrays, if that matters..
             raise ValueError("Can't predict with NAs in X - check your data.")
 
         lagged_data = self._lag_data(X, datafreq=datafreq)
