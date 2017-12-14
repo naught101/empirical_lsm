@@ -8,8 +8,8 @@ Github: https://github.com/naught101/empirical_lsm
 Description: Checks existing model output for sanity
 
 Usage:
-    check_sanity.py data (all|<model>...) [--sites=<sites>] [--re-run] [--re-eval]
-    check_sanity.py metrics (all|<model>...) [--sites=<sites>] [--re-run] [--re-eval]
+    check_sanity.py data (all|<model>...) [--sites=<sites>] [--re-run] [--re-eval] [--delete]
+    check_sanity.py metrics (all|<model>...) [--sites=<sites>] [--re-run] [--re-eval] [--delete]
     check_sanity.py (-h | --help | --version)
 
 Options:
@@ -55,13 +55,20 @@ def main(args):
         bad_sims = check_metrics(models, sites)
         summary = "%d model with bad metrics out of %d models checked" % (len(bad_sims), len(models))
 
-    if args['--re-run'] and len(bad_sims) > 0:
-        run_model_site_tuples_mp(bad_sims)
-        summary += " and re-run"
+    if len(bad_sims) > 0:
+        if args['--delete']:
+            for m, s in bad_sims:
+                os.remove('model_data/{m}/{m}_{s}.nc'.format(m=m, s=s))
+                os.remove('source/models/{m}/metrics/{m}_{s}_metrics.csv'.format(m=m, s=s))
+            summary += " and deleted"
 
-    if args['--re-eval'] and len(bad_sims) > 0:
-        [eval_simulation(t[0], t[1]) for t in bad_sims]
-        summary += " and re-evaluated"
+        if args['--re-run']:
+            run_model_site_tuples_mp(bad_sims)
+            summary += " and re-run"
+
+        if args['--re-eval']:
+            [eval_simulation(t[0], t[1]) for t in bad_sims]
+            summary += " and re-evaluated"
 
     logger.info(summary + ".")
 
