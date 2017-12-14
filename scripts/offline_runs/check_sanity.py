@@ -28,14 +28,17 @@ from empirical_lsm.offline_simulation import run_model_site_tuples_mp
 from empirical_lsm.offline_eval import eval_simulation
 
 from pals_utils.logging import setup_logger
-logger = setup_logger(__name__, 'logs/check_sanity.log')
+logger = setup_logger(None, 'logs/check_sanity.log')
 
 
 def main(args):
     if args['--sites'] is None:
         sites = get_sites('PLUMBER_ext')
     else:
-        sites = args['--sites'].split(',')
+        try:
+            sites = get_sites(args['--sites'])
+        except:
+            sites = args['--sites'].split(',')
 
     if args['all']:
         if args['data']:
