@@ -106,7 +106,14 @@ def check_metrics(models, sites):
                     (metrics.loc['corr'] < -1).any() or
                     (metrics.loc['overlap'] > 1).any() or
                     (metrics.loc['overlap'] < 0).any()):
-                logger.error("Crazy value for {m} at {s}".format(m=model, s=site))
+
+                logger.error("Crazy value(s) for {m} at {s}:".format(m=model, s=site))
+
+                indices = [(metrics.index[a[0]], metrics.columns[a[1]])
+                           for a in np.where(metrics == 2)]
+                for m, v in indices:
+                    logger.error("    {v} {m}: {val}".format(v=v, m=m, val=metrics.loc[m, v]))
+
                 bad_simulations.append((model, site))
 
     return bad_simulations
