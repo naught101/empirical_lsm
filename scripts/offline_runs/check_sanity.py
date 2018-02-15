@@ -8,8 +8,9 @@ Github: https://github.com/naught101/empirical_lsm
 Description: Checks existing model output for sanity
 
 Usage:
-    check_sanity.py data (all|<model>...) [--sites=<sites>] [--re-run] [--re-eval] [--delete]
-    check_sanity.py metrics (all|<model>...) [--sites=<sites>] [--re-run] [--re-eval] [--delete]
+    check_sanity.py (data|metrics) (all|<model>...) [--sites=<sites>]
+                    [--re-run] [--re-eval]
+                    [--delete-sims] [--delete-eval]
     check_sanity.py (-h | --help | --version)
 
 Options:
@@ -56,11 +57,15 @@ def main(args):
         summary = "%d model with bad metrics out of %d models checked" % (len(bad_sims), len(models))
 
     if len(bad_sims) > 0:
-        if args['--delete']:
+        if args['--delete-sims']:
             for m, s in bad_sims:
                 os.remove('model_data/{m}/{m}_{s}.nc'.format(m=m, s=s))
+            summary += " and deleted sims"
+
+        if args['--delete-eval']:
+            for m, s in bad_sims:
                 os.remove('source/models/{m}/metrics/{m}_{s}_metrics.csv'.format(m=m, s=s))
-            summary += " and deleted"
+            summary += " and deleted evals"
 
         if args['--re-run']:
             run_model_site_tuples_mp(bad_sims)
