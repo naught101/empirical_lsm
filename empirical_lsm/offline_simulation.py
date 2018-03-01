@@ -60,7 +60,10 @@ def fit_univariate(model, flux_vars, train_data):
         if hasattr(models[v], 'partial_data_ok'):
             # model accepts partial data
             logger.info("Training {v} using all (possibly incomplete) data.".format(v=v))
-            models[v].fit(X=train_data["met_train"], y=flux_train_v)
+            try:
+                models[v].fit(X=train_data["met_train"], y=flux_train_v)
+            except:
+                logger.warning("Model failed for " + v + ", Skipping.")
         else:
             # Ditch all of the incomplete data
             qc_index = (~pd.concat([train_data["met_train"], flux_train_v], axis=1).isnull()).apply(all, axis=1)
@@ -72,7 +75,10 @@ def fit_univariate(model, flux_vars, train_data):
                 logger.warning("No training data, skipping variable %s" % v)
                 continue
 
-            models[v].fit(X=train_data["met_train"][qc_index], y=flux_train_v[qc_index])
+            try:
+                models[v].fit(X=train_data["met_train"][qc_index], y=flux_train_v[qc_index])
+            except:
+                logger.warning("Model failed for " + v + ", Skipping.")
         logger.info("Fitting complete.")
 
     return(models)
