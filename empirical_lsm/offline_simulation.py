@@ -20,6 +20,7 @@ from copy import deepcopy
 from datetime import datetime as dt
 
 from multiprocessing import Pool
+from sklearn.exceptions import NotFittedError
 
 from pals_utils.data import get_config, get_sites
 from pals_utils.logging import setup_logger
@@ -88,15 +89,19 @@ def predict_univariate(var_models, flux_vars, test_data):
     sim_data_dict = dict()
 
     for v in flux_vars:
-        sim_data_dict[v] = var_models[v].predict(test_data["met_test"])
-        logger.info("Prediction complete for {v}.".format(v=v))
+        try:
+            sim_data_dict[v] = var_models[v].predict(test_data["met_test"])
+            logger.info("Prediction complete for {v}.".format(v=v))
 
-        if run_var_checks(sim_data_dict[v]):
-            name = "%s_%s_%s" % (var_models[v].name, v, test_data["site"])
-            save_model_structure(var_models[v], name)
+            if run_var_checks(sim_data_dict[v]):
+                name = "%s_%s_%s" % (var_models[v].name, v, test_data["site"])
+                save_model_structure(var_models[v], name)
+
+        except NotFittedError as e:
+            logger.info("Model not fitted for {v}, skipping.".format(v=v))
 
     if len(sim_data_dict) < 1:
-        logger.warning("No fluxes successfully fitted, quitting")
+        logger.warning("No fluxes successfully predicted, quitting")
         sys.exit()
 
     sim_data = sim_dict_to_xr(sim_data_dict, test_data["met_test_xr"])
