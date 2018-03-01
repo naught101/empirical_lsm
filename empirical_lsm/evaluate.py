@@ -58,10 +58,11 @@ def evaluate_simulation(sim_data, flux_data, name, site=None, qc=True):
         for m, val in run_metrics(sim_v, obs_v).items():
             metric_data.ix[m, v] = val
 
-    eval_dir = 'source/models/{n}/metrics/'.format(n=name)
+    eval_dir = 'source/models/{n}/metrics'.format(n=name)
     os.makedirs(eval_dir, exist_ok=True)
     eval_path = '{d}/{n}_{s}_metrics.csv'.format(d=eval_dir, n=name, s=site)
     metric_data.to_csv(eval_path)
+    logger.info("Metric data saved to " + eval_path)
 
     return metric_data
 
