@@ -10,6 +10,7 @@ import numpy as np
 
 from sklearn.base import BaseEstimator, clone
 from sklearn.utils import safe_mask
+from sklearn.exceptions import NotFittedError
 
 import logging
 logger = logging.getLogger(__name__)
@@ -71,6 +72,9 @@ class ModelByCluster(BaseEstimator):
         return self
 
     def predict(self, X):
+        if not hasattr(self, 'estimators_'):
+            raise NotFittedError("Must fit clusters before predicting.")
+
         # this returns -1 if any of the values squared are too large
         # models with numerical instability will fail.
         clusters = self.clusterer_.predict(X)
