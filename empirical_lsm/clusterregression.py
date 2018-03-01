@@ -31,20 +31,35 @@ class ModelByCluster(BaseEstimator):
 
     def fit(self, X, y):
         self.clusterer_ = clone(self.clusterer)
+
+        min_cluster_size = 5 * X.shape[1]
+        assert X.shape[0] >= min_cluster_size * self.clusterer_.n_clusters, \
+            "MBC: clustering not possible, n_samples ({ns}) is less than " + \
+            "5 * n_features * n_clusters (3 * {nf} * {nc} = {nmin})".format(
+                ns=X.shape[0], nf=X.shape[1], nc=self.clusterer_.n_clusters,
+                nmin=min_cluster_size * self.clusterer_.n_clusters)
+
         for i in range(10):
+            # We try 10 times
             clusters = self.clusterer_.fit_predict(X)
             cluster_ids = np.unique(clusters)
 
-            if len(cluster_ids) == self.clusterer_.n_clusters:
+            if len(cluster_ids) != self.clusterer_.n_clusters:
+                logger.warning("MBC: Clustering failed - empty clusters, trying again")
+            elif np.min(np.bincount(clusters)) < min_cluster_size:
+                # Require a minimum number of samples per cluster
+                logger.warning("MBC: Clustering failed - clusters too small, trying again")
+            else:
                 # Success!
                 break
-            else:
-                assert i != 9, \
-                    "MBC: clustering failed after 10 attempts - some clusters have no data.\n" + \
-                    "    Probably too little data available: " + \
-                    "Only {n} data points for {k} clusters.".format(
-                        n=X.shape[0], k=self.clusterer_.n_clusters)
-                logger.warning("MBC: Clustering failed, trying again")
+
+            # Fail completely after 10 attempts
+            assert i != 9, \
+                "MBC: clustering failed after 10 attempts - some clusters have no data.\n" + \
+                "    Probably too little data available: " + \
+                "Only {n} data points for {k} clusters (abs min = {nmin}).".format(
+                    n=X.shape[0], k=self.clusterer_.n_clusters,
+                    nmin=min_cluster_size * self.clusterer_.n_clusters)
 
         self.estimators_ = {}
         for c in cluster_ids:
