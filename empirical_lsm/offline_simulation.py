@@ -10,7 +10,6 @@ Description: Helper functions for running offline simulations.
 
 import pandas as pd
 import numpy as np
-import sys
 import os
 import math
 import psutil
@@ -100,9 +99,7 @@ def predict_univariate(var_models, flux_vars, test_data):
         except NotFittedError as e:
             logger.info("Model not fitted for {v}, skipping.".format(v=v))
 
-    if len(sim_data_dict) < 1:
-        logger.warning("No fluxes successfully predicted, quitting")
-        sys.exit()
+    assert len(sim_data_dict) > 0, "No fluxes successfully predicted, dying."
 
     sim_data = sim_dict_to_xr(sim_data_dict, test_data["met_test_xr"])
 
