@@ -136,7 +136,8 @@ def model_site_rst_write(name, site, eval_results, plot_files):
     return
 
 
-def eval_simulation(name, site, sim_file=None, plots=False, fix_closure=True, qc=True):
+def eval_simulation(name, site, sim_file=None, plots=False, fix_closure=True,
+                    qc=True, overwrite=False):
     """Main function for evaluating an existing simulation.
 
     Copies simulation data to source directory.
@@ -160,6 +161,15 @@ def eval_simulation(name, site, sim_file=None, plots=False, fix_closure=True, qc
     else:
         filename = sim_file
 
+    eval_path = 'source/models/{n}/metrics/{n}_{s}_metrics.csv'.format(n=name, s=site)
+
+    if not overwrite:
+        if os.path.getmtime(sim_file) > os.path.getmtime(eval_path):
+            logger.warning("Overwriting evaluation file because simulation is newer")
+        else:
+            logger.warning("Evaluation file already exists, skipping")
+            return
+
     try:
         sim_data = xr.open_dataset(filename)
     except (OSError, RuntimeError) as e:
@@ -167,7 +177,7 @@ def eval_simulation(name, site, sim_file=None, plots=False, fix_closure=True, qc
         return
 
     if sim_file is not None:
-        # WARNING! over writes existing sim!
+        logger.warning("Overwriting existing sim!")
         sim_data.to_netcdf(nc_path)
 
     flux_data = get_flux_data([site], fix_closure=fix_closure)[site]
@@ -230,21 +240,23 @@ def main_rst_gen(name, site):
 
 
 def eval_simulation_mp(name, site, sim_file=None, plots=False, no_mp=False,
-                       fix_closure=True, qc=True):
+                       fix_closure=True, qc=True, overwrite=False):
     """Evaluate using multiple processes if necessary"""
     # will only work if simulations are already run.
     try:
         datasets = get_sites(site)
 
     except KeyError:  # Unknown site, single site
-        eval_simulation(name, site, sim_file, plots=plots, fix_closure=fix_closure, qc=qc)
+        eval_simulation(name, site, sim_file, plots=plots,
+                        fix_closure=fix_closure, qc=qc, overwrite=overwrite)
 
     else:
         if no_mp:
             for s in datasets:
-                eval_simulation(name, s, plots=plots, fix_closure=fix_closure, qc=qc)
+                eval_simulation(name, s, plots=plots, fix_closure=fix_closure,
+                                qc=qc, overwrite=overwrite)
         else:
-            f_args = [[name, s, None, plots, fix_closure, qc] for s in datasets]
+            f_args = [[name, s, None, plots, fix_closure, qc, overwrite] for s in datasets]
             ncores = min(os.cpu_count(), 1 + int(os.cpu_count() * 0.5))
             with Pool(ncores) as p:
                 p.starmap(eval_simulation, f_args)
