@@ -164,7 +164,8 @@ def eval_simulation(name, site, sim_file=None, plots=False, fix_closure=True,
     eval_path = 'source/models/{n}/metrics/{n}_{s}_metrics.csv'.format(n=name, s=site)
 
     if not overwrite:
-        if os.path.getmtime(sim_file) > os.path.getmtime(eval_path):
+        if os.path.exists(filename) and os.path.exists(eval_path) and \
+                os.path.getmtime(filename) > os.path.getmtime(eval_path):
             logger.warning("Overwriting evaluation file because simulation is newer")
         else:
             logger.warning("Evaluation file already exists, skipping")
