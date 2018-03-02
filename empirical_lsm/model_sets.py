@@ -69,12 +69,12 @@ def get_model_set(model_set=None):
                            "long_term243",  # "STHWdTdQ_lS30d_lR30d_lH10d_lT6hM_km243",
                            "long_term729"],  # "STHWdTdQ_lS30d_lR30d_lH10d_lT6hM_km729"],
 
-        "Trafficlights ensemble": ["S_lin", "ST_lin", "STH_km27",
-                                   "STH_km81", "STH_km243",
-                                   "STHW_km81", "STHW_km243",
-                                   "short_term243",  # "STHWdTdQ_lT6hM_km243",
-                                   "long_term243",  # "STHWdTdQ_lS30d_lR30d_lH10d_lT6hM_km243",
-                                   "long_term729"],  # "STHWdTdQ_lS30d_lR30d_lH10d_lT6hM_km729"],
+        "Predictability ensemble": ["S_lin", "ST_lin", "STH_km27",
+                                    "STH_km81", "STH_km243",
+                                    "STHW_km81", "STHW_km243",
+                                    "short_term243",  # "STHWdTdQ_lT6hM_km243",
+                                    "long_term243",  # "STHWdTdQ_lS30d_lR30d_lH10d_lT6hM_km243",
+                                    "long_term729"],  # "STHWdTdQ_lS30d_lR30d_lH10d_lT6hM_km729"],
 
         "Combo models": ["S_lin", "ST_lin", "STH_km27"] + get_combo_model_names()
     }
